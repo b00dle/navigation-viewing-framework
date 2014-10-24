@@ -26,6 +26,10 @@ video_visibility_table = {
                           , "portal" : {"dlp_wall" : False, "table" : False, "lcd_wall" : False} 
                           }
 
+#vr_lab_rear.associate_video_3D("/opt/kinect-resources/kinect_surface_K_26_Fake.ks"
+#                             , avango.gua.make_trans_mat(0.0, 0.043, 1.6)
+#                             , video_visibility_table)
+
 vr_lab_front.associate_video_3D("/opt/kinect-resources/kinect_surface_K_23_24_25.ks"
                              , avango.gua.make_trans_mat(0.0, 0.043, 1.6)
                              , video_visibility_table)
@@ -53,7 +57,7 @@ trace_visibility_list_lcd_wall_nav = {  "dlp_wall"  : False
 
 
 spheron_navigation = SteeringNavigation()
-spheron_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 15) * \
+spheron_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 22) * \
                                                      avango.gua.make_rot_mat(0, 0, 1, 0)
                                  , STARTING_SCALE = 1.0
                                  , INPUT_DEVICE_TYPE = 'NewSpheron'
@@ -66,7 +70,7 @@ spheron_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0
                                  , REACTS_ON_PORTAL_TRANSIT = True)
 
 spacemouse_navigation = SteeringNavigation()
-spacemouse_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 20) * \
+spacemouse_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 10) * \
                                                         avango.gua.make_rot_mat(0, 0, 1, 0)
                                     , STARTING_SCALE = 50.0
                                     , INPUT_DEVICE_TYPE = 'Spacemouse'
@@ -94,8 +98,7 @@ xbox_navigation.my_constructor(       STARTING_MATRIX = avango.gua.make_trans_ma
                                     , REACTS_ON_PORTAL_TRANSIT = True)
 
 spheron_navigation2 = SteeringNavigation()
-spheron_navigation2.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 0) * \
-                                                     avango.gua.make_rot_mat(0, 0, 1, 0)
+spheron_navigation2.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 22)
                                  , STARTING_SCALE = 1.0
                                  , INPUT_DEVICE_TYPE = 'OldSpheron'
                                  , INPUT_DEVICE_NAME = 'device-old-spheron'

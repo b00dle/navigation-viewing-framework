@@ -326,10 +326,14 @@ class RayPointer(Tool):
     for _i in range(len(CANDIDATE_LIST)):
       
       _pick_result = CANDIDATE_LIST[_i][0]
+      _hit_repr = CANDIDATE_LIST[_i][1]
+      _intersection_in_nav_space = CANDIDATE_LIST[_i][2]
 
       # check for pick result with closest distance
-      if _pick_result.Distance.value < _closest_distance:
-        _closest_distance = _pick_result.Distance.value
+      _dist = abs(_intersection_in_nav_space.get_translate().z)
+
+      if _dist < _closest_distance:
+        _closest_distance = _dist
         _closest_index = _i 
 
     if _closest_index != -1:
@@ -374,11 +378,19 @@ class RayPointer(Tool):
              _repr.USER_REPRESENTATION.connected_navigation_id != self.assigned_user.user_representations[_hit_display_group.id].connected_navigation_id :
 
             _repr.hide_intersection_geometry()
-            _repr.set_ray_distance(_pick_result.Distance.value * self.ray_length)
+            
+            _dist = abs(_intersection_in_nav_space.get_translate().z)
+            #_repr.set_ray_distance(_pick_result.Distance.value * self.ray_length)
+            
+            _repr.set_ray_distance(_dist)
 
           # otherwise show the intersection geometry
           else:
-            _repr.show_intersection_geometry_at(_intersection_in_nav_space, _pick_result.Distance.value * self.ray_length)
+
+            _dist = abs(_intersection_in_nav_space.get_translate().z)
+            _repr.show_intersection_geometry_at(_intersection_in_nav_space, _dist)
+
+            #_repr.show_intersection_geometry_at(_intersection_in_nav_space, _pick_result.Distance.value * self.ray_length)
 
       # no pick was found
       else:
