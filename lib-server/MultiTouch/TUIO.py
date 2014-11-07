@@ -67,6 +67,16 @@ class TUIODevice(MultiTouchDevice):
 
     #@field_has_changed(PosChanged)
     def processChange(self):
+
+        # reset all visualizations
+        self.fingercenterpos_geometry.GroupNames.value = ["do_not_display_group"]
+        self.handPos_geometry.GroupNames.value = ["do_not_display_group"]
+        self.touch1_geometry.GroupNames.value = ["do_not_display_group"]
+        self.touch2_geometry.GroupNames.value = ["do_not_display_group"]
+        self.touch3_geometry.GroupNames.value = ["do_not_display_group"]
+        self.touch4_geometry.GroupNames.value = ["do_not_display_group"]
+        self.touch5_geometry.GroupNames.value = ["do_not_display_group"]
+
         if -1.0 == self.PosChanged.value:
             return
 
@@ -85,28 +95,57 @@ class TUIODevice(MultiTouchDevice):
         
         # valid input is registered
         doSomething = True
+        
+        # STRANGE BUG
+        #fingerPositions = []
+        #for i in range(0, len(activePoints)):
+        #    fingerPositions.append(avango.gua.Vec3(activePoints[i][1].PosX.value, activePoints[i][1].PosY.value, 0))
+        
+        #self.visualizeFingers(fingerPositions)
 
-        # reset all visualizations
-        self.fingercenterpos_geometry.GroupNames.value = ["do_not_display_group"]
-        self.handPos_geometry.GroupNames.value = ["do_not_display_group"]
+        centerPos = avango.gua.Vec3(0,0,0)
+        if len(activePoints) == 1:
+            point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
+            self.visualizeTouchPos(self.mapInputPosition(point1), 0)
 
-        if len(activePoints) == 2:
+        elif len(activePoints) == 2:
             point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
             point2 = avango.gua.Vec3(activePoints[1][1].PosX.value, activePoints[1][1].PosY.value, 0)
+            self.visualizeTouchPos(self.mapInputPosition(point1), 0)
+            self.visualizeTouchPos(self.mapInputPosition(point2), 1)
             centerPos = (point1 + ((point2-point1) / 2))
 
         elif len(activePoints) == 3:
             point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
             point2 = avango.gua.Vec3(activePoints[1][1].PosX.value, activePoints[1][1].PosY.value, 0)
             point3 = avango.gua.Vec3(activePoints[2][1].PosX.value, activePoints[2][1].PosY.value, 0)
+            self.visualizeTouchPos(self.mapInputPosition(point1), 0)
+            self.visualizeTouchPos(self.mapInputPosition(point2), 1)
+            self.visualizeTouchPos(self.mapInputPosition(point3), 2)
             centerPos = (point1 + point2 + point3) / 3
 
+        elif len(activePoints) == 4:
+            point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
+            point2 = avango.gua.Vec3(activePoints[1][1].PosX.value, activePoints[1][1].PosY.value, 0)
+            point3 = avango.gua.Vec3(activePoints[2][1].PosX.value, activePoints[2][1].PosY.value, 0)
+            point4 = avango.gua.Vec3(activePoints[3][1].PosX.value, activePoints[3][1].PosY.value, 0)
+            self.visualizeTouchPos(self.mapInputPosition(point1), 0)
+            self.visualizeTouchPos(self.mapInputPosition(point2), 1)
+            self.visualizeTouchPos(self.mapInputPosition(point3), 2)
+            self.visualizeTouchPos(self.mapInputPosition(point4), 3)
+            centerPos = (point1 + point2 + point3 + point4) / 4
+            
         elif len(activePoints) == 5:
             point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
             point2 = avango.gua.Vec3(activePoints[1][1].PosX.value, activePoints[1][1].PosY.value, 0)
             point3 = avango.gua.Vec3(activePoints[2][1].PosX.value, activePoints[2][1].PosY.value, 0)
             point4 = avango.gua.Vec3(activePoints[3][1].PosX.value, activePoints[3][1].PosY.value, 0)
             point5 = avango.gua.Vec3(activePoints[4][1].PosX.value, activePoints[4][1].PosY.value, 0)
+            self.visualizeTouchPos(self.mapInputPosition(point1), 0)
+            self.visualizeTouchPos(self.mapInputPosition(point2), 1)
+            self.visualizeTouchPos(self.mapInputPosition(point3), 2)
+            self.visualizeTouchPos(self.mapInputPosition(point4), 3)
+            self.visualizeTouchPos(self.mapInputPosition(point5), 4)
             centerPos = (point1 + point2 + point3 + point4 + point5) / 5
             self.visualisizeHandPosition(self.mapInputPosition(centerPos))
 
@@ -141,18 +180,18 @@ class TUIODevice(MultiTouchDevice):
 
 
 class TUIOCursor(avango.script.Script):
-    PosX = avango.SFFloat()
-    PosY = avango.SFFloat()
-    SpeedX = avango.SFFloat()
-    SpeedY = avango.SFFloat()
-    MotionSpeed = avango.SFFloat()
-    MotionAcceleration = avango.SFFloat()
-    IsMoving = avango.SFBool()
-    State = avango.SFFloat()
-    SessionID = avango.SFFloat()
-    CursorID = avango.SFInt()
-    IsTouched = avango.SFBool()
-    MovementVector = avango.gua.SFVec2()
+    PosX                = avango.SFFloat()
+    PosY                = avango.SFFloat()
+    SpeedX              = avango.SFFloat()
+    SpeedY              = avango.SFFloat()
+    MotionSpeed         = avango.SFFloat()
+    MotionAcceleration  = avango.SFFloat()
+    IsMoving            = avango.SFBool()
+    State               = avango.SFFloat()
+    SessionID           = avango.SFFloat()
+    CursorID            = avango.SFInt()
+    IsTouched           = avango.SFBool()
+    MovementVector      = avango.gua.SFVec2()
 
     def __init__(self):
         self.super(TUIOCursor).__init__()

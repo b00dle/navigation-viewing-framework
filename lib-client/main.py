@@ -21,7 +21,7 @@ import sys
 # Command line parameters:
 # client.py SERVER_IP PLATFORM_ID DISPLAY_NAME SCREEN_NUM
 # @param SERVER_IP The IP address on which the server process is running.
-# @param PLATFORM_ID The platform id for which this client is responsible for.
+# @param  0  The platform id for which this client is responsible for.
 # @param DISPLAY_NAME The name associated to the display for which this client is responsible for.
 # @param SCREEN_NUM The number of the screen on the platform.
 

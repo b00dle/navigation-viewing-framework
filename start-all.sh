@@ -2,7 +2,7 @@
 
 # kill running python on this machine
 if [ "$2" != false ] ; then
-    killall python 2> /dev/null 
+    killall python
 fi
 
 # get directory of script
@@ -30,13 +30,13 @@ export PYTHONPATH="$LOCAL_AVANGO/lib/python2.7":"$LOCAL_AVANGO/examples":$AVANGO
 export LD_LIBRARY_PATH="$LOCAL_GUACAMOLE/lib":$GUACAMOLE/lib:$LD_LIBRARY_PATH:./lib-server
 
 # run daemon
-python ./lib-server/Daemon.py > /dev/null &  
+python ./lib-server/Daemon.py &  
 
 # run program
 if [ "$2" != false ] ; then
     cd "$DIR" && python ./lib-server/main.py $1 True
 else 
-    cd "$DIR" && python ./lib-server/main.py $1 False > /dev/null 
+    cd "$DIR" && python ./lib-server/main.py $1 False
 fi
 
 # kill daemon
