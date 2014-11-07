@@ -275,7 +275,7 @@ class MultiTouchDevice(avango.script.Script):
                                                                    avango.gua.make_scale_mat(self.intersection_sphere_size, self.intersection_sphere_size, self.intersection_sphere_size)
                 """set sphere and ray visible"""                                           
                 #self.intersection_point_geometry.GroupNames.value = [] 
-                #self.ray_geometry.GroupNames.value = []
+                self.ray_geometry.GroupNames.value = []
 
                 """update ray"""
                 _distance = (self._intersectionPoint - self.ray_transform.WorldTransform.value.get_translate()).length()

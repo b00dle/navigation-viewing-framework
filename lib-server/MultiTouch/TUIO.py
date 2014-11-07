@@ -51,7 +51,7 @@ class TUIODevice(MultiTouchDevice):
 
         # register gestures
         # TODO: do this somewhere else
-        self.registerGesture(DoubleTapGesture())
+        # self.registerGesture(DoubleTapGesture())
         self.registerGesture(DragGesture())
         self.registerGesture(PinchGesture())
         self.registerGesture(RotationGesture())
