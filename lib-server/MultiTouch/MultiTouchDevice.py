@@ -2,6 +2,7 @@
 
 from SceneManager import SceneManager 
 from Intersection import *
+from TrackingReader import *
 import Tools
 
 import avango
@@ -9,6 +10,7 @@ import avango.gua
 import avango.daemon
 import avango.script
 from avango.script import field_has_changed
+
 import subprocess
 import math
 import avango.utils
@@ -59,7 +61,7 @@ class MultiTouchDevice(avango.script.Script):
         self.intersection_sphere_size = 0.025
         self.highlighted_object = None
         self.hierarchy_selection_level = -1
-     
+
         self.always_evaluate(True)
 
 
@@ -149,6 +151,16 @@ class MultiTouchDevice(avango.script.Script):
         self.transNode = avango.gua.nodes.TransformNode(Name = "transNode")
         NET_TRANS_NODE.Children.value.append(self.transNode)
         self.fingerPos_geometries = []
+
+        """ hand tracking """
+        self.hand_tracking = TrackingTargetReader()
+        self.hand_tracking.my_constructor("tracking-dlp-hand")
+        self.hand_tracking.set_transmitter_offset(self._applicationManager.user_list[0].transmitter_offset)
+        self.hand_tracking.set_receiver_offset(avango.gua.make_identity_mat())
+
+        self.hand_tracking_trans = avango.gua.nodes.TransformNode(Name = "hand_tracking_node")
+        self.hand_tracking_trans.Transform.connect_from(self.hand_tracking.sf_tracking_mat)
+        self._applicationManager.navigation_list[0].platform.platform_scale_transform_node.Children.value.append(self.hand_tracking_trans)
         #######
 
         """ hand representation """
@@ -196,6 +208,8 @@ class MultiTouchDevice(avango.script.Script):
                                                         avango.gua.make_scale_mat( 0.025, 0.025 , 0.025 )
 
     def visualizeTouchPos(self, touchPos, index):
+        #touchPos.x += 0.016
+        #touchPos.z += 0.010
         """ update fingerpos representation """
         if index == 0:
             self.touch1_geometry.GroupNames.value = []
@@ -217,6 +231,31 @@ class MultiTouchDevice(avango.script.Script):
             self.touch5_geometry.GroupNames.value = []
             self.touch5_geometry.Transform.value = avango.gua.make_trans_mat(touchPos) * \
                                                     avango.gua.make_scale_mat(0.025, 0.0025, 0.025)
+
+    def visualizePointingRay(self, touchPos):
+        #touchPos.x += 0.016
+        #touchPos.z += 0.010
+
+        handPos = self.hand_tracking.sf_abs_vec.value
+        
+        handPos.z += 0.025
+
+        directionVector = touchPos - handPos
+            
+        """ calculate rotation matrix """
+        vec1 = avango.gua.Vec3(0.0,0.0,-1.0)
+        directionVector.normalize()
+        rotationMatrix = Tools.get_rotation_between_vectors( vec1, directionVector)
+        
+        """ start position and rotation matrix """
+        self._rayOrientation.value = avango.gua.make_trans_mat(handPos) * rotationMatrix
+
+        self.ray_geometry.GroupNames.value = []
+
+        """update ray"""
+        self.ray_geometry.Transform.value = avango.gua.make_trans_mat(0.0, 0.0, 20 * -0.5) * \
+                                            avango.gua.make_rot_mat(-90.0,1,0,0) * \
+                                            avango.gua.make_scale_mat(self.ray_thickness, 20, self.ray_thickness)
 
     def visualizeFingers(self, fingerPositions):
         loader = avango.gua.nodes.TriMeshLoader()

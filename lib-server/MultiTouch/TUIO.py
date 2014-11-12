@@ -76,6 +76,7 @@ class TUIODevice(MultiTouchDevice):
         self.touch3_geometry.GroupNames.value = ["do_not_display_group"]
         self.touch4_geometry.GroupNames.value = ["do_not_display_group"]
         self.touch5_geometry.GroupNames.value = ["do_not_display_group"]
+        self.ray_geometry.GroupNames.value = ["do_not_display_group"]
 
         if -1.0 == self.PosChanged.value:
             return
@@ -88,7 +89,7 @@ class TUIODevice(MultiTouchDevice):
                 if touchPoint.IsTouched.value and touchPoint.SessionID.value in hand.FingerSIDs.value:
                     activePoints.append((hand.HandID.value, touchPoint))
                     hands[hand.HandID.value] = hand
-                    break
+                    break            
 
         for gesture in self.gestures:
             gesture.processGesture(activePoints, hands, self)
@@ -103,10 +104,15 @@ class TUIODevice(MultiTouchDevice):
         
         #self.visualizeFingers(fingerPositions)
 
+        #if len(activePoints) > 0:
+        #    print(len(activePoints))
+        #    print(hands[0])
+
         centerPos = avango.gua.Vec3(0,0,0)
         if len(activePoints) == 1:
             point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
             self.visualizeTouchPos(self.mapInputPosition(point1), 0)
+            self.visualizePointingRay(self.mapInputPosition(point1))
 
         elif len(activePoints) == 2:
             point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
@@ -255,7 +261,7 @@ class TUIOHand(avango.script.Script):
     def __init__(self):
         self.super(TUIOHand).__init__()
 
-        self.FingerSIDs.value = [-1.0, -1.0, -1.0, -1.0, 1.0]
+        self.FingerSIDs.value = [-1.0, -1.0, -1.0, -1.0, -1.0]
         self.SessionID.value  = -1.0
         self.Finger1SID.value = -1.0
         self.Finger2SID.value = -1.0
