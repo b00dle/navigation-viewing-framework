@@ -36,7 +36,7 @@ def start():
   server_ip = subprocess.Popen(["hostname", "-I"], stdout=subprocess.PIPE).communicate()[0]
   server_ip = server_ip.strip(" \n")  
   server_ip = server_ip.rsplit(" ")
-  server_ip = str(server_ip[1])
+  server_ip = str(server_ip[-1])
   #server_ip = "127.0.0.1"
 
   # initialize pseudo nettrans node as client processes are started in Platform class
@@ -73,10 +73,6 @@ def start():
   for _nav in application_manager.navigation_list:
     _nav.platform.update_nettrans_node(nettrans)
 
-  # initialize scene
-  scene_manager = SceneManager()
-  scene_manager.my_constructor(nettrans, graph, application_manager.navigation_list)
-
   # initialize touch devices
   multi_touch_device = None
   for i in application_manager.navigation_list:
@@ -84,8 +80,13 @@ def start():
       if "TUIO" in j.get_touch_protocols():
         if None == multi_touch_device:
           device = TUIODevice()
-          device.my_constructor(graph, j, nettrans, scene_manager, application_manager)
+          #device.my_constructor(graph, j, nettrans, scene_manager, application_manager)
+          device.my_constructor(graph, j, nettrans, application_manager)
           multi_touch_device = device
+
+  # initialize scene
+  scene_manager = SceneManager()
+  scene_manager.my_constructor(nettrans, graph, application_manager.navigation_list)
 
   # initialize animation manager
   #animation_manager = AnimationManager()

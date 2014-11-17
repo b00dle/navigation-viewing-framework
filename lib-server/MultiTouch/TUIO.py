@@ -33,8 +33,10 @@ class TUIODevice(MultiTouchDevice):
 
         self._frameCounter = 0
 
-    def my_constructor(self, graph, display, NET_TRANS_NODE, SCENE_MANAGER, APPLICATION_MANAGER):
-        self.super(TUIODevice).my_constructor(graph, display, NET_TRANS_NODE, SCENE_MANAGER, APPLICATION_MANAGER)
+    #def my_constructor(self, graph, display, NET_TRANS_NODE, SCENE_MANAGER, APPLICATION_MANAGER):
+    def my_constructor(self, graph, display, NET_TRANS_NODE, APPLICATION_MANAGER):
+        #self.super(TUIODevice).my_constructor(graph, display, NET_TRANS_NODE, SCENE_MANAGER, APPLICATION_MANAGER)
+        self.super(TUIODevice).my_constructor(graph, display, NET_TRANS_NODE, APPLICATION_MANAGER)
         
         # add touch cursors
         for i in range(0, 20):

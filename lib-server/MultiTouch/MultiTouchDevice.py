@@ -65,7 +65,8 @@ class MultiTouchDevice(avango.script.Script):
         self.always_evaluate(True)
 
 
-    def my_constructor(self, graph, display, NET_TRANS_NODE, SCENE_MANAGER, APPLICATION_MANAGER):
+    #def my_constructor(self, graph, display, NET_TRANS_NODE, SCENE_MANAGER, APPLICATION_MANAGER):
+    def my_constructor(self, graph, display, NET_TRANS_NODE, APPLICATION_MANAGER):
         """
         Initialize multi-touch device.
 
