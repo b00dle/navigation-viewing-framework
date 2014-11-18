@@ -73,7 +73,7 @@ class SceneMedievalTownObjects(SceneObject):
     self.starting_scale = 1.0
 
     # initObjects
-    _mat = avango.gua.make_scale_mat(0.1)
+    _mat = avango.gua.make_trans_mat(0, -0.5, 0) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("barrel", "data/objects/demo_models/medieval_harbour_objects/barrel.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     self.init_geometry("barrel2", "data/objects/demo_models/medieval_harbour_objects/barrel2.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     self.init_geometry("box1", "data/objects/demo_models/medieval_harbour_objects/box1.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
@@ -91,8 +91,8 @@ class SceneMedievalTownObjects(SceneObject):
     self.init_geometry("house7", "data/objects/demo_models/medieval_harbour_objects/house7.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     self.init_geometry("tower", "data/objects/demo_models/medieval_harbour_objects/tower.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     
-    _mat = avango.gua.make_trans_mat(0, -0.05, 0) * avango.gua.make_scale_mat(1500.0, 1.0, 1500.0)
-    self.init_geometry("water", "data/objects/plane.obj", _mat, 'data/materials/Water.gmd', False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG,
+    #_mat = avango.gua.make_trans_mat(0, -0.55, 0) * avango.gua.make_scale_mat(1500.0, 1.0, 1500.0)
+    #self.init_geometry("water", "data/objects/plane.obj", _mat, 'data/materials/Water.gmd', False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG,
   
     # lights
     _mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)

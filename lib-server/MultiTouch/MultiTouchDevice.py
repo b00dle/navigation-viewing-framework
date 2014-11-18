@@ -25,6 +25,9 @@ class MultiTouchDevice(avango.script.Script):
     """
     _rayOrientation = avango.gua.SFMatrix4()
     _fingerCenterPos = avango.gua.SFVec3()
+
+    sf_key2 = avango.SFBool()
+    sf_key3 = avango.SFBool()
     
     def __init__(self):
         self.super(MultiTouchDevice).__init__()
@@ -115,42 +118,50 @@ class MultiTouchDevice(avango.script.Script):
         Geometry node representing the intersection point of the ray with an object in the scene.
         """
         self.intersection_point_geometry = _loader.create_geometry_from_file("intersection_point_geometry", "data/objects/sphere.obj", "data/materials/White.gmd", avango.gua.LoaderFlags.DEFAULTS)
-        NET_TRANS_NODE.Children.value.append(self.intersection_point_geometry)
+        _parent_node.Children.value.append(self.intersection_point_geometry)
+        #NET_TRANS_NODE.Children.value.append(self.intersection_point_geometry)
         self.intersection_point_geometry.GroupNames.value = ["do_not_display_group"] # set geometry invisible
 
         self.ray_transform.Transform.connect_from(self._rayOrientation)
 
         """ representation of fingercenterpos """
         self.fingercenterpos_geometry = _loader.create_geometry_from_file("fingercenterpos", "data/objects/sphere.obj", "data/materials/Red.gmd", avango.gua.LoaderFlags.DEFAULTS)
-        NET_TRANS_NODE.Children.value.append(self.fingercenterpos_geometry)
+        _parent_node.Children.value.append(self.fingercenterpos_geometry)
+        #NET_TRANS_NODE.Children.value.append(self.fingercenterpos_geometry)
         self.fingercenterpos_geometry.GroupNames.value = ["do_not_display_group"]
 
         #######
         """ representation of touchpoints """
         self.touch1_geometry = _loader.create_geometry_from_file("touch1", "data/objects/cube.obj", "data/materials/Blue.gmd", avango.gua.LoaderFlags.DEFAULTS)
         self.touch1_geometry.GroupNames.value = ["do_not_display_group"]
-        NET_TRANS_NODE.Children.value.append(self.touch1_geometry)
+        _parent_node.Children.value.append(self.touch1_geometry)
+        #NET_TRANS_NODE.Children.value.append(self.touch1_geometry)
         
         self.touch2_geometry = _loader.create_geometry_from_file("touch2", "data/objects/cube.obj", "data/materials/Blue.gmd", avango.gua.LoaderFlags.DEFAULTS)
         self.touch2_geometry.GroupNames.value = ["do_not_display_group"]
-        NET_TRANS_NODE.Children.value.append(self.touch2_geometry)
+        _parent_node.Children.value.append(self.touch2_geometry)
+        #NET_TRANS_NODE.Children.value.append(self.touch2_geometry)
         
         self.touch3_geometry = _loader.create_geometry_from_file("touch3", "data/objects/cube.obj", "data/materials/Blue.gmd", avango.gua.LoaderFlags.DEFAULTS)
         self.touch3_geometry.GroupNames.value = ["do_not_display_group"]
-        NET_TRANS_NODE.Children.value.append(self.touch3_geometry)
+        _parent_node.Children.value.append(self.touch3_geometry)
+        #NET_TRANS_NODE.Children.value.append(self.touch3_geometry)
         
         self.touch4_geometry = _loader.create_geometry_from_file("touch4", "data/objects/cube.obj", "data/materials/Blue.gmd", avango.gua.LoaderFlags.DEFAULTS)
         self.touch4_geometry.GroupNames.value = ["do_not_display_group"]
-        NET_TRANS_NODE.Children.value.append(self.touch4_geometry)
+        _parent_node.Children.value.append(self.touch4_geometry)
+        #NET_TRANS_NODE.Children.value.append(self.touch4_geometry)
         
         self.touch5_geometry = _loader.create_geometry_from_file("touch5", "data/objects/cube.obj", "data/materials/Blue.gmd", avango.gua.LoaderFlags.DEFAULTS)
         self.touch5_geometry.GroupNames.value = ["do_not_display_group"]
-        NET_TRANS_NODE.Children.value.append(self.touch5_geometry)
+        _parent_node.Children.value.append(self.touch5_geometry)
+        #NET_TRANS_NODE.Children.value.append(self.touch5_geometry)
                 
 
         # parameters for visualizeFingers function
         self.transNode = avango.gua.nodes.TransformNode(Name = "transNode")
-        NET_TRANS_NODE.Children.value.append(self.transNode)
+        _parent_node.Children.value.append(self.transNode)
+        #NET_TRANS_NODE.Children.value.append(self.transNode)
         self.fingerPos_geometries = []
 
         """ hand tracking """
@@ -162,11 +173,18 @@ class MultiTouchDevice(avango.script.Script):
         self.hand_tracking_trans = avango.gua.nodes.TransformNode(Name = "hand_tracking_node")
         self.hand_tracking_trans.Transform.connect_from(self.hand_tracking.sf_tracking_mat)
         self._applicationManager.navigation_list[0].platform.platform_scale_transform_node.Children.value.append(self.hand_tracking_trans)
+
+        self.keyboard_sensor = avango.daemon.nodes.DeviceSensor(DeviceService = avango.daemon.DeviceService())
+        self.keyboard_sensor.Station.value = "device-keyboard0"
+        
+        self.sf_key2.connect_from(self.keyboard_sensor.Button11) # key 2
+        self.sf_key3.connect_from(self.keyboard_sensor.Button12) # key 3
         #######
 
         """ hand representation """
-        self.handPos_geometry = _loader.create_geometry_from_file("handpos", "data/objects/cube.obj", "data/materials/Red.gmd", avango.gua.LoaderFlags.DEFAULTS)
-        NET_TRANS_NODE.Children.value.append(self.handPos_geometry)
+        self.handPos_geometry = _loader.create_geometry_from_file("handpos", "data/objects/ring.obj", "data/materials/Red.gmd", avango.gua.LoaderFlags.DEFAULTS)
+        _parent_node.Children.value.append(self.handPos_geometry)
+        #NET_TRANS_NODE.Children.value.append(self.handPos_geometry)
         self.handPos_geometry.GroupNames.value = ["do_not_display_group"]
 
 
@@ -280,7 +298,7 @@ class MultiTouchDevice(avango.script.Script):
         """ update hand representation """
         self.handPos_geometry.GroupNames.value = []
         self.handPos_geometry.Transform.value = avango.gua.make_trans_mat(handPos) * \
-                                                avango.gua.make_scale_mat( 0.1, 0.005 , 0.1 )
+                                                avango.gua.make_scale_mat( 0.08, 0.08 , 0.08 )
 
 
     def setObjectMode(self, active):
@@ -537,3 +555,19 @@ class MultiTouchDevice(avango.script.Script):
         self._rotMat     = avango.gua.make_identity_mat()
         self._scaleMat   = avango.gua.make_identity_mat()
         self._globalMatrix = avango.gua.make_identity_mat()
+
+    ## Called whenever sf_key2 changes.
+    @field_has_changed(sf_key2)
+    def sf_key2_changed(self):
+
+        if self.sf_key2.value == True: # key pressed
+            _parent_node = self._sceneGraph["/net/platform_0/scale"]
+            _parent_node.Transform.value = avango.gua.make_trans_mat(0.0,0.1,0.0) * _parent_node.Transform.value
+  
+    ##Called whenever sf_key3 changes.
+    @field_has_changed(sf_key3)
+    def sf_key3_changed(self):
+
+        if self.sf_key3.value == True: # key pressed
+            _parent_node = self._sceneGraph["/net/platform_0/scale"]
+            _parent_node.Transform.value = avango.gua.make_trans_mat(0.0,-0.1,0.0) * _parent_node.Transform.value

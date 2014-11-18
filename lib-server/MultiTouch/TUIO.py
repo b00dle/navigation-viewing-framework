@@ -54,10 +54,10 @@ class TUIODevice(MultiTouchDevice):
         # register gestures
         # TODO: do this somewhere else
         # self.registerGesture(DoubleTapGesture())
-        self.registerGesture(DragGesture())
-        self.registerGesture(PinchGesture())
-        self.registerGesture(RotationGesture())
-        self.registerGesture(PitchRollGesture())
+        # self.registerGesture(DragGesture())
+        # self.registerGesture(PinchGesture())
+        # self.registerGesture(RotationGesture())
+        # self.registerGesture(PitchRollGesture())
 
         self.always_evaluate(True)
 
@@ -114,7 +114,7 @@ class TUIODevice(MultiTouchDevice):
         if len(activePoints) == 1:
             point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
             self.visualizeTouchPos(self.mapInputPosition(point1), 0)
-            self.visualizePointingRay(self.mapInputPosition(point1))
+            #self.visualizePointingRay(self.mapInputPosition(point1))
 
         elif len(activePoints) == 2:
             point1 = avango.gua.Vec3(activePoints[0][1].PosX.value, activePoints[0][1].PosY.value, 0)
@@ -149,13 +149,30 @@ class TUIODevice(MultiTouchDevice):
             point3 = avango.gua.Vec3(activePoints[2][1].PosX.value, activePoints[2][1].PosY.value, 0)
             point4 = avango.gua.Vec3(activePoints[3][1].PosX.value, activePoints[3][1].PosY.value, 0)
             point5 = avango.gua.Vec3(activePoints[4][1].PosX.value, activePoints[4][1].PosY.value, 0)
+            
             self.visualizeTouchPos(self.mapInputPosition(point1), 0)
             self.visualizeTouchPos(self.mapInputPosition(point2), 1)
             self.visualizeTouchPos(self.mapInputPosition(point3), 2)
             self.visualizeTouchPos(self.mapInputPosition(point4), 3)
             self.visualizeTouchPos(self.mapInputPosition(point5), 4)
-            centerPos = (point1 + point2 + point3 + point4 + point5) / 5
-            self.visualisizeHandPosition(self.mapInputPosition(centerPos))
+            
+            visualize_hand = True
+            i = 0
+            lastID = 0
+            for point in activePoints:
+                handID = point[0]
+                if(i == 0):
+                    lastID = handID
+                else:
+                    visualize_hand = (lastID == handID)
+                    lastID = handID
+                if not(visualize_hand):
+                    break
+                i += 1
+
+            if(visualize_hand):
+                centerPos = (point1 + point2 + point3 + point4 + point5) / 5
+                self.visualisizeHandPosition(self.mapInputPosition(centerPos))
 
         else:
             # only one ore more than 3 input points are not valid until now
