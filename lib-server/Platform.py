@@ -156,7 +156,7 @@ class Platform(avango.script.Script):
     _server_ip = _server_ip.strip(" \n")
     _server_ip = _server_ip.rsplit(" ")
     _server_ip = str(_server_ip[1])
-
+    
     # get own hostname
     _hostname = open('/etc/hostname', 'r').readline()
     _hostname = _hostname.strip(" \n")

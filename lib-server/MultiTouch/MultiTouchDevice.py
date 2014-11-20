@@ -106,7 +106,8 @@ class MultiTouchDevice(avango.script.Script):
         # Geometry node representing the ray graphically.
         """
         self.ray_geometry = _loader.create_geometry_from_file("ray_geometry", "data/objects/cylinder.obj", "data/materials/White.gmd", avango.gua.LoaderFlags.DEFAULTS)
-        self.ray_transform.Children.value.append(self.ray_geometry)
+        #self.ray_transform.Children.value.append(self.ray_geometry)
+        _parent_node.Children.value.append(self.ray_geometry)
         self.ray_geometry.GroupNames.value = ["do_not_display_group"]
 
         self.ray_geometry.Transform.value = avango.gua.make_trans_mat(0,0,0) * \
@@ -294,12 +295,55 @@ class MultiTouchDevice(avango.script.Script):
 
         print(len(self.transNode.Children.value))
 
-    def visualisizeHandPosition(self, handPos):
+    def visualisizeHandPosAvgCenter(self, fPos1, fPos2, fPos3, fPos4, fPos5):
+        fingerPositions = [fPos1, fPos2, fPos3, fPos4, fPos5]
+        xMin = 100000.0
+        yMin = 100000.0
+        xMax = -100000.0
+        yMax = -100000.0
+        
+        for fPos in fingerPositions:
+            xMin = min(xMin, fPos.x)
+            xMax = max(xMax, fPos.x)
+            yMin = min(yMin, fPos.y)
+            yMax = max(yMax, fPos.y)
+
+        vecMinMax = avango.gua.Vec3((xMax-xMin), (yMax-yMin), 0.0)
+        lengthVecMinMax = math.sqrt(math.pow(vecMinMax.x,2) + math.pow(vecMinMax.y,2))
+
+        centerPos = (fPos1 + fPos2 + fPos3 + fPos4 + fPos5) / 5
+
         """ update hand representation """
         self.handPos_geometry.GroupNames.value = []
-        self.handPos_geometry.Transform.value = avango.gua.make_trans_mat(handPos) * \
-                                                avango.gua.make_scale_mat( 0.08, 0.08 , 0.08 )
+        self.handPos_geometry.Transform.value = avango.gua.make_trans_mat(self.mapInputPosition(centerPos)) * \
+                                                avango.gua.make_scale_mat( 0.5*lengthVecMinMax, 0.5*lengthVecMinMax, 0.5*lengthVecMinMax )
 
+    def visualisizeHandPosBBCenter(self, fPos1, fPos2, fPos3, fPos4, fPos5):
+        fingerPositions = [fPos1, fPos2, fPos3, fPos4, fPos5]
+        xMin = 100000.0
+        yMin = 100000.0
+        xMax = -100000.0
+        yMax = -100000.0
+        
+        for fPos in fingerPositions:
+            xMin = min(xMin, fPos.x)
+            xMax = max(xMax, fPos.x)
+            yMin = min(yMin, fPos.y)
+            yMax = max(yMax, fPos.y)
+
+        vecMinMax = avango.gua.Vec3((xMax-xMin), (yMax-yMin), 0.0)
+        lengthVecMinMax = math.sqrt(math.pow(vecMinMax.x,2) + math.pow(vecMinMax.y,2))
+        centerPos = avango.gua.Vec3(xMin, yMin, 0.0) + avango.gua.Vec3(0.5*vecMinMax.x, 0.5*vecMinMax.y, 0.0)
+        mappedPos = self.mapInputPosition(centerPos)
+
+        self.handPos_geometry.GroupNames.value = []
+        self.handPos_geometry.Transform.value = avango.gua.make_trans_mat(mappedPos) * \
+                                                avango.gua.make_scale_mat( 0.5*lengthVecMinMax, 0.5*lengthVecMinMax, 0.5*lengthVecMinMax)
+
+        self.ray_geometry.GroupNames.value = []
+        rayLength = 1        
+        self.ray_geometry.Transform.value = avango.gua.make_trans_mat(mappedPos.x, -0.5 * rayLength, mappedPos.z) * \
+                                            avango.gua.make_scale_mat(0.01, rayLength, 0.01)
 
     def setObjectMode(self, active):
         """

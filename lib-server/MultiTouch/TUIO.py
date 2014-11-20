@@ -156,6 +156,8 @@ class TUIODevice(MultiTouchDevice):
             self.visualizeTouchPos(self.mapInputPosition(point4), 3)
             self.visualizeTouchPos(self.mapInputPosition(point5), 4)
             
+            centerPos = (point1 + point2 + point3 + point4 + point5) / 5
+
             visualize_hand = True
             i = 0
             lastID = 0
@@ -171,8 +173,10 @@ class TUIODevice(MultiTouchDevice):
                 i += 1
 
             if(visualize_hand):
-                centerPos = (point1 + point2 + point3 + point4 + point5) / 5
-                self.visualisizeHandPosition(self.mapInputPosition(centerPos))
+                hand = hands[activePoints[0][0]]
+                #print("handPos: " + str(hand.PosX.value) + "," + str(hand.PosY.value))
+                self.visualisizeHandPosBBCenter(point1, point2, point3, point4, point5)
+                #self.visualisizeHandPosAvgCenter(point1, point2, point3, point4, point5)
 
         else:
             # only one ore more than 3 input points are not valid until now
@@ -183,7 +187,6 @@ class TUIODevice(MultiTouchDevice):
             self.intersectSceneWithFingerPos()
             self.update_object_highlight()
             self.applyTransformations()
-
 
     def registerGesture(self, gesture):
         """
@@ -271,6 +274,8 @@ class TUIOHand(avango.script.Script):
     Finger5SID = avango.SFFloat()
     FingerSIDs = avango.MFFloat()
     SessionID  = avango.SFFloat()
+    PosX       = avango.SFFloat()
+    PosY       = avango.SFFloat()
     HandID     = avango.SFInt()
 
     CLASS_UNKNOWN = 0
@@ -287,6 +292,8 @@ class TUIOHand(avango.script.Script):
         self.Finger3SID.value = -1.0
         self.Finger4SID.value = -1.0
         self.Finger5SID.value = -1.0
+        self.PosX.value       = -1.0
+        self.PosY.value       = -1.0
 
         self.device_sensor = avango.daemon.nodes.DeviceSensor(DeviceService = avango.daemon.DeviceService())
         self.HandClass.connect_from(self.device_sensor.Value0)
@@ -296,6 +303,8 @@ class TUIOHand(avango.script.Script):
         self.Finger4SID.connect_from(self.device_sensor.Value4)
         self.Finger5SID.connect_from(self.device_sensor.Value5)
         self.SessionID.connect_from(self.device_sensor.Value6)
+        self.PosX.connect_from(self.device_sensor.Value7)
+        self.PosY.connect_from(self.device_sensor.Value8)
 
     @field_has_changed(HandID)
     def set_station(self):
