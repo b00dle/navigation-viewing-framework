@@ -2,6 +2,7 @@
 
 from SceneManager import SceneManager 
 from Intersection import *
+from TrackingReader import *
 import Utilities
 
 import avango
@@ -85,6 +86,11 @@ class MultiTouchDevice(avango.script.Script):
         """ parent node of ray node """
         _parent_node = self._sceneGraph["/net"]
 
+        """ add screen transform node to append dynamic touch geometry """
+        self._screenTransformNode = avango.gua.nodes.TransformNode(Name = "screen_transform")
+        self._screenTransformNode.Transform.connect_from(self._sceneGraph["/net/w0_dg0_u0/screen_0"].Transform)
+        _parent_node.Children.value.append(self._screenTransformNode)
+        
         """
         # init scenegraph node
         ## @var ray_transform
@@ -127,11 +133,125 @@ class MultiTouchDevice(avango.script.Script):
         NET_TRANS_NODE.Children.value.append(self.handPos_geometry)
         self.handPos_geometry.GroupNames.value = ["do_not_display_group"]
 
+        ############
+        """ representation of touchpoints """
+        self.touch_finger_geometries = []
+        self.touch_hand_geometries = []
+        self.touch_ray_geometries = []
+        self.setupTouchGeometries(20, "data/objects/cube.obj", 4, "data/objects/ring.obj")
+
+        """ hand tracking """
+        self.hand_tracking = TrackingTargetReader()
+        self.hand_tracking.my_constructor("tracking-dlp-hand")
+        self.hand_tracking.set_transmitter_offset(avango.gua.make_trans_mat(0.0, 0.043, 0.0)) #see config
+        self.hand_tracking.set_receiver_offset(avango.gua.make_identity_mat())
+
+        self.hand_tracking_trans = avango.gua.nodes.TransformNode(Name = "hand_tracking")
+        self.hand_tracking_trans.Transform.connect_from(self.hand_tracking.sf_tracking_mat)
+        self._screenTransformNode.Children.value.append(self.hand_tracking_trans)
+        ############        
 
         """ define Input display size """
         #111,5cm x 75,8
         self._inputDisplaySize = avango.gua.Vec2(1.115,0.758)
 
+
+    def setupTouchGeometries(self, fingerCount, fingerObjPath, handCount, handObjPath):
+        _loader = avango.gua.nodes.TriMeshLoader()
+
+        self.touch_finger_geometries = []
+        for i in range(0,fingerCount):
+            self.touch_finger_geometries.append(_loader.create_geometry_from_file("touch_finger_" + str(i),
+                                                                        fingerObjPath,
+                                                                        "data/materials/Blue.gmd",
+                                                                        avango.gua.LoaderFlags.DEFAULTS))
+            self.touch_finger_geometries[i].GroupNames.value = ["do_not_display_group"]
+            self._screenTransformNode.Children.value.append(self.touch_finger_geometries[i])
+
+        self.touch_hand_geometries = []
+        self.touch_ray_geometries = []
+        for i in range(0,handCount):
+            self.touch_hand_geometries.append(_loader.create_geometry_from_file("touch_hand_" + str(i),
+                                                                        handObjPath,
+                                                                        "data/materials/Red.gmd",
+                                                                        avango.gua.LoaderFlags.DEFAULTS))
+            self.touch_hand_geometries[i].GroupNames.value = ["do_not_display_group"]
+            self._screenTransformNode.Children.value.append(self.touch_hand_geometries[i])
+
+            self.touch_ray_geometries.append(_loader.create_geometry_from_file("touch_ray_" + str(i),
+                                                                            "data/objects/cylinder.obj",
+                                                                            "data/materials/White.gmd",
+                                                                            avango.gua.LoaderFlags.DEFAULTS))
+            self.touch_ray_geometries[i].GroupNames.value = ["do_not_display_group"]
+            self._screenTransformNode.Children.value.append(self.touch_ray_geometries[i])
+
+    def visualizeTouchFinger(self, touchPos, index):
+        if index >= len(self.touch_finger_geometries) or index < 0:
+            print("touchpoint index exceeds count of touch geometries setup or is smaller than 0.")
+        else:
+            self.touch_finger_geometries[index].GroupNames.value = []
+            self.touch_finger_geometries[index].Transform.value = avango.gua.make_trans_mat(self.mapInputPosition(touchPos)) * \
+                                                            avango.gua.make_scale_mat(0.025, 0.025, 0.0025)
+            
+    def visualisizeHandPosAvgCenter(self, fPos1, fPos2, fPos3, fPos4, fPos5, index):
+        fingerPositions = [fPos1, fPos2, fPos3, fPos4, fPos5]
+        xMin = 100000.0
+        yMin = 100000.0
+        xMax = -100000.0
+        yMax = -100000.0
+        
+        for fPos in fingerPositions:
+            xMin = min(xMin, fPos.x)
+            xMax = max(xMax, fPos.x)
+            yMin = min(yMin, fPos.y)
+            yMax = max(yMax, fPos.y)
+
+        vecMinMax = avango.gua.Vec3((xMax-xMin), (yMax-yMin), 0.0)
+        lengthVecMinMax = math.sqrt(math.pow(vecMinMax.x,2) + math.pow(vecMinMax.y,2))
+
+        centerPos = (fPos1 + fPos2 + fPos3 + fPos4 + fPos5) / 5
+
+        """ update hand representation """
+        self.touch_hand_geometries[index].GroupNames.value = []
+        self.touch_hand_geometries[index].Transform.value = avango.gua.make_trans_mat(self.mapInputPosition(centerPos)) * \
+                                                avango.gua.make_rot_mat(90,1,0,0) * \
+                                                avango.gua.make_scale_mat( 0.5*lengthVecMinMax, 0.5*lengthVecMinMax, 0.5*lengthVecMinMax )
+        
+        self.touch_ray_geometries[index].GroupNames.value = []
+        rayLength = 1        
+        self.touch_ray_geometries[index].Transform.value = avango.gua.make_trans_mat(mappedPos.x, mappedPos.y, -0.5 * rayLength) * \
+                                                avango.gua.make_scale_mat(0.01, 0.01, rayLength)
+
+    def visualisizeHandPosBBCenter(self, fPos1, fPos2, fPos3, fPos4, fPos5, index):
+        fingerPositions = [fPos1, fPos2, fPos3, fPos4, fPos5]
+        xMin = 100000.0
+        yMin = 100000.0
+        xMax = -100000.0
+        yMax = -100000.0
+        
+        for fPos in fingerPositions:
+            xMin = min(xMin, fPos.x)
+            xMax = max(xMax, fPos.x)
+            yMin = min(yMin, fPos.y)
+            yMax = max(yMax, fPos.y)
+
+        vecMinMax = avango.gua.Vec3((xMax-xMin), (yMax-yMin), 0.0)
+        lengthVecMinMax = math.sqrt(math.pow(vecMinMax.x,2) + math.pow(vecMinMax.y,2))
+        centerPos = avango.gua.Vec3(xMin, yMin, 0.0) + avango.gua.Vec3(0.5*vecMinMax.x, 0.5*vecMinMax.y, 0.0)
+        mappedPos = self.mapInputPosition(centerPos)
+
+        self.touch_hand_geometries[index].GroupNames.value = []
+        self.touch_hand_geometries[index].Transform.value = avango.gua.make_trans_mat(mappedPos) * \
+                                                avango.gua.make_rot_mat(90,1,0,0) * \
+                                                avango.gua.make_scale_mat( 0.5*lengthVecMinMax, 0.5*lengthVecMinMax, 0.5*lengthVecMinMax)
+
+        #self.touch_hand_geometries[index].Transform.value = avango.gua.make_trans_mat(self.mapInputPosition(fPos1)) * \
+        #                                                    avango.gua.make_scale_mat(0.025, 0.025, 0.025)
+
+        self.touch_ray_geometries[index].GroupNames.value = []
+        rayLength = 1        
+        self.touch_ray_geometries[index].Transform.value = avango.gua.make_trans_mat(mappedPos.x, mappedPos.y, -0.5 * rayLength) * \
+                                                avango.gua.make_scale_mat(0.01, 0.01, rayLength)
 
     def getDisplay(self):
         return self._display
@@ -153,7 +273,7 @@ class MultiTouchDevice(avango.script.Script):
         mappedPosY = point[1] * 1 - 0.5
 
         """ map point to display intervall ([-1/2*display-size] -> [+1/2*display-size]) """
-        mappedPos = avango.gua.Vec3(mappedPosX * self._inputDisplaySize.x, 0.0, mappedPosY * self._inputDisplaySize.y)   
+        mappedPos = avango.gua.Vec3(mappedPosX * self._inputDisplaySize.x, -1 * (mappedPosY * self._inputDisplaySize.y), 0.0)   
 
         return mappedPos        
 

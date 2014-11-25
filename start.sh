@@ -15,7 +15,7 @@ DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 # assuming a local guacmole version is located properly
 LOCAL_GUACAMOLE="$DIR/../guacamole"
-LOCAL_AVANGO="$DIR/../avango"
+LOCAL_AVANGO="$DIR/../avango-py3"
 
 GUACAMOLE=/opt/guacamole/master
 AVANGO=/opt/avango/feature_python3
