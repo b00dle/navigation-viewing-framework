@@ -28,10 +28,6 @@ class Portal(Display):
   # Static intance counter to assign proper IDs to the portals.
   num_instances_created = 0
 
-  ## @var portal_group_node
-  # Scenegraph node on server side to which all portal relevant nodes are appended to.
-  portal_group_node = avango.gua.nodes.TransformNode(Name = "portal_group")
-
   ## Custom constructor.
   # @param PORTAL_MATRIX Matrix where the portal display is located (entry).
   # @param WIDTH Width of the portal in meters.
@@ -41,17 +37,10 @@ class Portal(Display):
   # @param NEGATIVE_PARALLAX Indicating if negative parallax is allowed in the portal, can be either "True" or "False".
   # @param BORDER_MATERIAL The material string to be used for the portal's border.
   # @param TRANSITABLE Boolean saying if teleportation for this portal is enabled.
-  # @param PORTAL_NODE_NAME_ATTACHMENT Additional string information passed in the name of portal_node.
   def __init__(self
              , PORTAL_MATRIX
              , WIDTH
-             , HEIGHT
-             , VIEWING_MODE
-             , CAMERA_MODE
-             , NEGATIVE_PARALLAX
-             , BORDER_MATERIAL
-             , TRANSITABLE
-             , PORTAL_NODE_NAME_ATTACHMENT = "wa_dga"):
+             , HEIGHT):
 
 
     _stereo = True
@@ -62,58 +51,15 @@ class Portal(Display):
     self.id = Portal.num_instances_created
     Portal.num_instances_created += 1
 
-    if self.id == 0:
-      scenegraphs[0]["/net"].Children.value.append(Portal.portal_group_node)
-
     ## @var portal_matrix
     # Matrix where the portal display is located (entry).
     self.portal_matrix = PORTAL_MATRIX
 
-    ## @var NET_TRANS_NODE
-    # Reference to the nettrans node used for distribution.
-    self.NET_TRANS_NODE = scenegraphs[0]["/net"]
+  ## Returns a boolean value saying if this display is virtual.
+  def is_virtual(self):
+    return True
 
-    ## @var viewing_mode
-    # Viewing mode of the portal, can be either "2D" or "3D".
-    self.viewing_mode = VIEWING_MODE
-
-    ## @var camera_mode
-    # Projection mode of the portal camera, can be either "PERSPECTIVE" or "ORTHOGRAPHIC".
-    self.camera_mode = CAMERA_MODE
-
-    ## @var negative_parallax
-    # Indicating if negative parallax is allowed in the portal, can be either "True" or "False".
-    self.negative_parallax = NEGATIVE_PARALLAX
-
-    ## @var border_material
-    # The material string to be used for the portal's border.
-    self.border_material = BORDER_MATERIAL
-
-    ## @var visible
-    # Boolean string variable indicating if the portal is currently visible.
-    self.visible = "True"
-
-    ## @var transitable
-    # Boolean saying if teleportation for is portal is enabled.
-    self.transitable = TRANSITABLE
-
-    ## @var display_group_offset
-    # Offset of this portal to the display group. Used when multiple portals are in one display group.
-    self.display_group_offset = avango.gua.make_identity_mat()
-
-    ## @var portal_node_name_attachment
-    # Additional string information passed in the name of portal_node.
-    self.portal_node_name_attachment = PORTAL_NODE_NAME_ATTACHMENT
-
-  ## Sets the offset to the display group and updates the screen node accordingly..
-  # @param OFFSET_MATRIX The matrix to be set.
-  def set_display_group_offset(self, OFFSET_MATRIX):
-
-    self.display_group_offset = OFFSET_MATRIX
-
-    self.portal_screen_node.Transform.value = OFFSET_MATRIX
-
-
+  '''
   ## Switches viewing_mode to the other state.
   def switch_viewing_mode(self):
     if self.viewing_mode == "2D":
@@ -183,44 +129,6 @@ class Portal(Display):
     self.portal_screen_node.Width.value = WIDTH
     self.portal_screen_node.Height.value = HEIGHT
 
-  ## Appends the necessary portal scenegraph nodes on server side.
-  def append_portal_nodes(self):
-
-    ## @var portal_node
-    # Grouping node for this portal below the group node for all portals.
-    self.portal_node = avango.gua.nodes.TransformNode(Name = "portal_" + str(self.id) + "_" + self.portal_node_name_attachment)
-    Portal.portal_group_node.Children.value.append(self.portal_node)
-    self.NET_TRANS_NODE.distribute_object(self.portal_node)
-
-    ## @var settings_node
-    # Node whose group names store information about the portal settings, such as viewing mode, etc.
-    self.settings_node = avango.gua.nodes.TransformNode(Name = "settings")
-    self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
-    self.portal_node.Children.value.append(self.settings_node)
-    self.NET_TRANS_NODE.distribute_object(self.settings_node)
-
-    ## @var portal_matrix_node
-    # Scenegraph node representing the location where the portal display is located (entry).
-    self.portal_matrix_node = avango.gua.nodes.TransformNode(Name = "portal_matrix")
-    self.portal_matrix_node.Transform.value = self.portal_matrix
-    self.portal_node.Children.value.append(self.portal_matrix_node)
-    self.NET_TRANS_NODE.distribute_object(self.portal_matrix_node)
-
-    ## @var scene_matrix_node
-    # Scenegraph node representing the location where the portal looks from (exit).
-    self.scene_matrix_node = avango.gua.nodes.TransformNode(Name = "scene_matrix")
-    self.scene_matrix_node.Transform.value = avango.gua.make_identity_mat()
-    self.portal_node.Children.value.append(self.scene_matrix_node)
-    self.NET_TRANS_NODE.distribute_object(self.scene_matrix_node)
-
-    ## @var portal_screen_node
-    # Screen node representing the portal's screen in the scene.
-    self.portal_screen_node = avango.gua.nodes.ScreenNode(Name = "portal_screen")
-    self.portal_screen_node.Width.value = self.size[0]
-    self.portal_screen_node.Height.value = self.size[1]
-    self.scene_matrix_node.Children.value.append(self.portal_screen_node)
-    self.NET_TRANS_NODE.distribute_object(self.portal_screen_node)
-
   ## Deletes all nodes below a given node.
   # @param NODE The node to start deleting from.
   def delete_downwards_from(self, NODE):
@@ -241,3 +149,4 @@ class Portal(Display):
 
     self.delete_downwards_from(self.portal_node)
     del self.portal_node
+  '''

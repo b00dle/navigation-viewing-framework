@@ -29,11 +29,13 @@ class ToolRepresentation(avango.script.Script):
   # @param DISPLAY_GROUP DisplayGroup instance for which this ToolRepresentation is responsible for.
   # @param USER_REPRESENTATION Corresponding UserRepresentation instance under which's view_transform_node the ToolRepresentation is appended.
   # @param TOOL_TRANSFORM_NODE_NAME String to be used as name for this ToolRepresentation's transform node.
+  # @param IN_VIRTUAL_DISPLAY Boolean value saying whether this ToolRepresentation is used within a virtual display group.
   def base_constructor(self
                    , TOOL_INSTANCE
                    , DISPLAY_GROUP
                    , USER_REPRESENTATION
-                   , TOOL_TRANSFORM_NODE_NAME):
+                   , TOOL_TRANSFORM_NODE_NAME
+                   , IN_VIRTUAL_DISPLAY = False):
     
     ## @var TOOL_INSTANCE
     # An instance of a subclass of Tool to which this ToolRepresentation is associated.
@@ -55,24 +57,43 @@ class ToolRepresentation(avango.script.Script):
     # Identification number of the workspace in which TOOL_INSTANCE is active.
     self.workspace_id = int(self.USER_REPRESENTATION.view_transform_node.Name.value.split("_")[0].replace("w", ""))
 
-
     ## @var tool_transform_node
     # Scenegraph transformation node representing this ToolRepresentation.
     self.tool_transform_node = avango.gua.nodes.TransformNode(Name = TOOL_TRANSFORM_NODE_NAME)
     self.USER_REPRESENTATION.view_transform_node.Children.value.append(self.tool_transform_node)
 
-    # set evaluation policy
-    self.always_evaluate(True)
+    ## @var in_virtual_display
+    # Boolean value saying whether this ToolRepresentation is used within a virtual display group.
+    self.in_virtual_display = IN_VIRTUAL_DISPLAY
+
+    ## @var frame_trigger
+    # Triggers framewise evaluation of frame_callback method.
+    self.frame_trigger = avango.script.nodes.Update(Callback = self.frame_callback, Active = True)
+
+  ## Determines whether this ToolRepresentation is responsible for a virtual display group.
+  def in_virtual_display(self):
+
+    return self.in_virtual_display
 
   ## Computes the world transformation of the tool_transform_node.
   def get_world_transform(self):
 
     return self.tool_transform_node.WorldTransform.value
 
-  ## Performs the necessary tool node transformation in the display group.
-  def perform_tool_node_transformation(self):
+  ## Transforms the tool node according to the display group offset and the tracking matrix.
+  def perform_physical_tool_node_transformation(self):
 
     self.tool_transform_node.Transform.value = self.DISPLAY_GROUP.offset_to_workspace * self.TOOL_INSTANCE.tracking_reader.sf_abs_mat.value
+
+  ## Transforms the tool node according to the tool - portal entry relation.
+  def perform_virtual_tool_node_transformation(self):
+
+    # we just need one tool representation per virtual display group
+    # thus we can use self.DISPLAY_GROUP.displays[0] for the transformation
+
+    self.tool_transform_node.Transform.value = self.DISPLAY_GROUP.displays[0].portal_screen_node.Transform.value * \
+                                               avango.gua.make_inverse_mat(self.DISPLAY_GROUP.displays[0].portal_matrix_node.Transform.value) * \
+                                               self.USER_REPRESENTATION.view_transform_node.Children.value[1].WorldTransform.value # untransformed tracking data of tool
 
   ## Appends a string to the GroupNames field of this ToolRepresentation's visualization.
   # @param STRING The string to be appended.
@@ -89,9 +110,12 @@ class ToolRepresentation(avango.script.Script):
     raise NotImplementedError( "To be implemented by a subclass." )
 
   ## Evaluated every frame.
-  def evaluate(self):
+  def frame_callback(self):
 
-    self.perform_tool_node_transformation()
+    if not self.in_virtual_display():
+      self.perform_physical_tool_node_transformation()
+    else:
+      self.perform_virtual_tool_node_transformation()
 
 
 ###############################################################################################

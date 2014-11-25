@@ -118,13 +118,21 @@ class UserRepresentation:
     # Boolean indicating if the portal if a default viewing setup is activated although the portal might suggest it differently.
     self.thumbnail_mode = False
 
+  ## Determines whether this UserRepresentation is repsonsible for a virtual display.
+  def in_virtual_display(self):
+
+    if self.virtual_user_repr_display_index != -1:
+      return True
+    
+    return False
+
 
   ## Evaluated every frame.
   def frame_callback(self):
   
     if self.execute_transformation_policy:
       
-      if self.virtual_user_repr_display_index == -1:
+      if not self.in_virtual_display():
         self.perform_physical_user_head_transformation()
 
       else:

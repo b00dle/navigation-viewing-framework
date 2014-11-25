@@ -95,6 +95,9 @@ class PhysicalDisplay(Display):
     # A string supplying additional render mask constraints.
     self.render_mask = render_mask
 
+  ## Returns a boolean value saying if this display is virtual.
+  def is_virtual(self):
+    return False
 
   ## Registers a new view at this display and returns the display string assigned to the new view.
   def register_view(self):
