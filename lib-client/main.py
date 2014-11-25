@@ -17,7 +17,6 @@ from examples_common.GuaVE import GuaVE
 
 # import python libraries
 import sys
-
 # Command line parameters:
 # main.py SERVER_IP WORKSPACE_CONFIG_FILE WORKSPACE_ID DISPLAY_GROUP_ID SCREEN_ID DISPLAY_NAME
 
@@ -49,7 +48,7 @@ def start():
   # get own hostname
   hostname = open('/etc/hostname', 'r').readline()
   hostname = hostname.strip(" \n")
-
+  
   print("This client is running on", hostname, "and listens to server", server_ip)
   print("It is responsible for workspace", workspace_id, ", display group", display_group_id, "and screen", screen_id)
 
@@ -79,88 +78,6 @@ def start():
   water_updater.MaterialName.value = "data/materials/Water.gmd"
   water_updater.UniformName.value = "time"
   water_updater.TimeIn.connect_from(timer.Time)
-
-  #'''
-  # PLOD Stuff
-  _loader = avango.gua.nodes.PLODLoader()
-  _loader.UploadBudget.value = 512
-  _loader.RenderBudget.value = 4*1024
-  _loader.OutOfCoreBudget.value = 32*1024
-
-  # Valcamonica
-  _path = "/mnt/ssd_pitoti/pitoti/valley/seradina_flyover/" # ssd path
-
-  _node = _loader.create_geometry_from_file("valley1", _path + "sera_part_01.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley2", _path + "sera_part_02.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley3", _path + "sera_part_03.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley4", _path + "sera_part_04.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley5", _path + "sera_part_05.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley6", _path + "sera_part_06.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley7", _path + "sera_part_07.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley8", _path + "sera_part_08.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley9", _path + "sera_part_09.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley10", _path + "sera_part_10.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley11", _path + "sera_part_11.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley12", _path + "sera_part_12.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley13", _path + "sera_part_13.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley14", _path + "sera_part_14.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley15", _path + "sera_part_15.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("valley16", _path + "sera_part_16.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  
-  _path = "/mnt/ssd_pitoti/pitoti/valley/nadro_flyover/" # ssd path
-  _node = _loader.create_geometry_from_file("valley17", _path + "foppe_di_nadro_const.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-
-  # seradina 12c rock
-  _path = "/mnt/ssd_pitoti/pitoti/seradina_12c/rock/" # pitoti ssd path
-  _node = _loader.create_geometry_from_file("seradina_12c_rock", _path + "TLS_Seradina_Rock-12C.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-
-  # seradina 12c motives
-  _path = "/mnt/ssd_pitoti/pitoti/seradina_12c/motives/" # pitoti ssd path
-  _node = _loader.create_geometry_from_file("seradina_motive1", _path + "Area-1_Warrior-scene_P01-1.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive2", _path + "Area-1_Warrior-scene_P01-2.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive3", _path + "Area-1_Warrior-scene_P01-3.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive4", _path + "Area-1_Warrior-scene_P01-4.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive5", _path + "Area-1_Warrior-scene_P02-1.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive6", _path + "Area-1_Warrior-scene_P02-2.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive7", _path + "Area-1_Warrior-scene_P02-3.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive8", _path + "Area-1_Warrior-scene_P02-4.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive9", _path + "Area-1_Warrior-scene_P03-1.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive10", _path + "Area-1_Warrior-scene_P03-2.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive11", _path + "Area-1_Warrior-scene_P03-3.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive12", _path + "Area-1_Warrior-scene_P03-4.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-
-  _node = _loader.create_geometry_from_file("seradina_motive13", _path + "Area-2_Plowing-scene_P01-1.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive14", _path + "Area-2_Plowing-scene_P01-2.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)  
-  _node = _loader.create_geometry_from_file("seradina_motive15", _path + "Area-2_Plowing-scene_P01-3.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)  
-  _node = _loader.create_geometry_from_file("seradina_motive16", _path + "Area-2_Plowing-scene_P01-4.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive17", _path + "Area-2_Plowing-scene_P02-1.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive18", _path + "Area-2_Plowing-scene_P02-2.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)  
-  _node = _loader.create_geometry_from_file("seradina_motive19", _path + "Area-2_Plowing-scene_P02-3.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)  
-  _node = _loader.create_geometry_from_file("seradina_motive20", _path + "Area-2_Plowing-scene_P02-4.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-    
-  _node = _loader.create_geometry_from_file("seradina_motive21", _path + "Area-10_Hunting_Scene_P01.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive22", _path + "Area-10_Hunting_Scene_P02.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive23", _path + "Area-10_Hunting_Scene_P03.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)    
-
-  _node = _loader.create_geometry_from_file("seradina_motive24", _path + "Area-6_house_P01.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive25", _path + "Area-6_house_P02.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)  
-
-  _node = _loader.create_geometry_from_file("seradina_motive26", _path + "Area-3_Archers_P01.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _node = _loader.create_geometry_from_file("seradina_motive27", _path + "Area-3_Archers_P02.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)    
-  
-  _node = _loader.create_geometry_from_file("seradina_motive28", _path + "Area_4_hunter_with_bow.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-
-  _node = _loader.create_geometry_from_file("seradina_motive29", _path + "Area-5_hunter_with_speer_P01.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)              
-  _node = _loader.create_geometry_from_file("seradina_motive30", _path + "Area-5_hunter_with_speer_P02.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)        
-
-  # nadro 24 rock
-  _path = "/mnt/ssd_pitoti/pitoti/nadro_24/rock/" # pitoti ssd path
-  _node = _loader.create_geometry_from_file("nadro_24_rock", _path + "TLS_Foppe-di-Nadro_Rock-24.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-
-  _path = "/mnt/ssd_pitoti/pitoti/nadro_24/motives/" # pitoti ssd path
-  _loader.create_geometry_from_file("nadro_24_motive1", _path + "Area-7_Rosa-Camuna.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  _loader.create_geometry_from_file("nadro_24_motive2", _path + "Area-7_Warrior.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  #'''
 
   # get the display instance
   for _display in displays:
@@ -200,4 +117,5 @@ def start():
   viewer.run()
 
 if __name__ == '__main__':
+  print("client_main", sys.argv)
   start()

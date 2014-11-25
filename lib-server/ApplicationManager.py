@@ -103,7 +103,8 @@ class ApplicationManager(avango.script.Script):
           for _display in _display_group.displays:
 
             if _display.hostname != _own_hostname:
-              _ssh_kill = subprocess.Popen(["ssh", _display.hostname, "killall python -9"], universal_newlines=True)
+              #_ssh_kill = subprocess.Popen(["ssh", _display.hostname, "killall python -9"], universal_newlines=True)
+              _ssh_kill = subprocess.Popen(["ssh", _display.hostname, "killall python3 -9"], universal_newlines=True)
 
 
     # viewing setup and start of client processes #
@@ -114,11 +115,13 @@ class ApplicationManager(avango.script.Script):
       _server_ip = subprocess.Popen(["hostname", "-I"], stdout=subprocess.PIPE, universal_newlines=True).communicate()[0]
       _server_ip = _server_ip.strip(" \n")
       _server_ip = _server_ip.rsplit(" ")
-      _server_ip = str(_server_ip[-1])
+      #_server_ip = str(_server_ip[-1])
+      _server_ip = str(_server_ip[0])
 
       # get own hostname
       _hostname = open('/etc/hostname', 'r').readline()
       _hostname = _hostname.strip(" \n")
+      #print(_server_ip, _hostname)
 
       # get directory name
       _directory_name = os.path.dirname(os.path.dirname(__file__))
@@ -243,6 +246,7 @@ class ApplicationManager(avango.script.Script):
                 , stderr=subprocess.PIPE, universal_newlines=True)
                 time.sleep(1)
 
+                #print("ssh", _display.hostname, _directory_name, _server_ip)
                 #print("ssh", _display.hostname, _directory_name + \
                 #"/start-client.sh " + _server_ip + " " + str(WORKSPACE_CONFIG) + " " + str(_w_id) + " " + \
                 #str(_dg_id) + " " + str(_s_id) + " " + _display.name)
