@@ -66,12 +66,11 @@ class ToolRepresentation(avango.script.Script):
     # Boolean value saying whether this ToolRepresentation is used within a virtual display group.
     self.in_virtual_display = IN_VIRTUAL_DISPLAY
 
-    ## @var frame_trigger
-    # Triggers framewise evaluation of frame_callback method.
-    self.frame_trigger = avango.script.nodes.Update(Callback = self.frame_callback, Active = True)
+    # set evaluation policy
+    self.always_evaluate(True)
 
   ## Determines whether this ToolRepresentation is responsible for a virtual display group.
-  def in_virtual_display(self):
+  def is_in_virtual_display(self):
 
     return self.in_virtual_display
 
@@ -79,6 +78,14 @@ class ToolRepresentation(avango.script.Script):
   def get_world_transform(self):
 
     return self.tool_transform_node.WorldTransform.value
+
+  ## Has to be evaluated every frame.
+  def perform_tool_node_transformation(self):
+
+    if not self.is_in_virtual_display():
+      self.perform_physical_tool_node_transformation()
+    else:
+      self.perform_virtual_tool_node_transformation()
 
   ## Transforms the tool node according to the display group offset and the tracking matrix.
   def perform_physical_tool_node_transformation(self):
@@ -108,14 +115,6 @@ class ToolRepresentation(avango.script.Script):
   ## Resets the GroupNames field of this ToolRepresentation's visualization to the user representation's view_transform_node.
   def reset_visualization_group_names(self):
     raise NotImplementedError( "To be implemented by a subclass." )
-
-  ## Evaluated every frame.
-  def frame_callback(self):
-
-    if not self.in_virtual_display():
-      self.perform_physical_tool_node_transformation()
-    else:
-      self.perform_virtual_tool_node_transformation()
 
 
 ###############################################################################################

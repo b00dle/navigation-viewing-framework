@@ -125,6 +125,7 @@ class PortalCameraRepresentation(ToolRepresentation):
     # 
     self.entry_matrix_connected = False
 
+
   ## Computes the WorldTransform of a scenegraph node manually without using the pre-defined field.
   # @param NODE The scenegraph node to compute the world transformation for.
   def compute_world_transform(self, NODE):
@@ -182,7 +183,7 @@ class PortalCameraRepresentation(ToolRepresentation):
       self.assigned_shot.sf_scale.disconnect()
 
     # copy shot values to navigation
-    self.portal_nav.set_navigation_values(SHOT.sf_abs_mat.value, SHOT.sf_scale.value)
+    self.virtual_nav.set_navigation_values(SHOT.sf_abs_mat.value, SHOT.sf_scale.value)
 
     # copy shot values to portal
     if SHOT.sf_viewing_mode.value != self.virtual_display_group.viewing_mode:
@@ -196,9 +197,9 @@ class PortalCameraRepresentation(ToolRepresentation):
 
     # establish field connections to copy updates done by the PortalCameraNavigation.
     SHOT.sf_abs_mat.disconnect()
-    SHOT.sf_abs_mat.connect_from(self.portal_nav.sf_abs_mat)
+    SHOT.sf_abs_mat.connect_from(self.virtual_nav.sf_abs_mat)
     SHOT.sf_scale.disconnect()
-    SHOT.sf_scale.connect_from(self.portal_nav.sf_scale)
+    SHOT.sf_scale.connect_from(self.virtual_nav.sf_scale)
 
     self.assigned_shot = SHOT
     self.virtual_display_group.set_visibility(True)
@@ -474,9 +475,7 @@ class PortalCamera(Tool):
   def evaluate(self):
 
     # do not start until virtual display nodes are present
-    try:
-      self.virtual_display_group.entry_node
-    except:
+    if len(self.tool_representations) == 0:
       return
 
     # update user assignment
@@ -492,15 +491,18 @@ class PortalCamera(Tool):
 
         self.capture_tool_representation = _active_tool_representation
 
+      print(self.tool_representations, len(self.tool_representations))
+      print(_active_tool_representation)
+
       # compute shot parameters and assign them
       _active_navigation = _active_tool_representation.DISPLAY_GROUP.navigations[_active_tool_representation.USER_REPRESENTATION.connected_navigation_id]
 
       # compute matrix
-      _shot_platform_matrix = _active_tool_representation.sf_portal_matrix.value * \
+      _shot_platform_matrix = _active_tool_representation.sf_entry_matrix.value * \
                               avango.gua.make_inverse_mat(avango.gua.make_scale_mat(_active_navigation.sf_scale.value))
 
       for _tool_repr in self.tool_representations:
-        _tool_repr.portal_nav.set_navigation_values(_shot_platform_matrix, _active_navigation.sf_scale.value)
+        _tool_repr.virtual_nav.set_navigation_values(_shot_platform_matrix, _active_navigation.sf_scale.value)
 
     
 
@@ -542,7 +544,7 @@ class PortalCamera(Tool):
       self.current_shot.sf_scale.value = SCALE
 
       for _tool_repr in self.tool_representations:
-        _tool_repr.portal_nav.set_navigation_values(_tool_repr.portal_nav.sf_abs_mat.value, SCALE)
+        _tool_repr.virtual_nav.set_navigation_values(_tool_repr.virtual_nav.sf_abs_mat.value, SCALE)
 
   ## Loads a given Shot instances to all representations.
   # @param SHOT The Shot instance to be loaded.
@@ -581,7 +583,7 @@ class PortalCamera(Tool):
       _active_navigation = _active_tool_representation.DISPLAY_GROUP.navigations[_active_tool_representation.USER_REPRESENTATION.connected_navigation_id]
 
       # compute matrix
-      _shot_platform_matrix = _active_tool_representation.sf_portal_matrix.value * \
+      _shot_platform_matrix = _active_tool_representation.sf_entry_matrix.value * \
                               avango.gua.make_inverse_mat(avango.gua.make_scale_mat(_active_navigation.sf_scale.value))
 
       _shot = Shot()

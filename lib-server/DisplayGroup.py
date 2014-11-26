@@ -255,7 +255,7 @@ class VirtualDisplayGroup(DisplayGroup):
 
   ##
   #
-  def connect_portal_matrix(self, SF_MATRIX):
+  def connect_entry_matrix(self, SF_MATRIX):
 
     self.entry_node.Transform.disconnect()
     

@@ -145,14 +145,6 @@ class ClientPortal:
 # perspective for the view within the portal.
 class PortalPreView(avango.script.Script):
 
-  ## @var sf_screen_width
-  # Field containing the current width of the portal screen.
-  sf_screen_width = avango.SFFloat()
-
-  ## @var sf_screen_height
-  # Field containing the current height of the portal screen.
-  sf_screen_height = avango.SFFloat()
-
   ## @var mf_portal_modes
   # Field containing the GroupNames of the associated portal node. Used for transferring portal mode settings.
   mf_portal_modes = avango.MFString()
@@ -219,9 +211,14 @@ class PortalPreView(avango.script.Script):
     #
     self.screen_nodes = []
 
+    ##
+    #
+    self.screen_sizes = []
+
     for _exit_child in self.exit_node.Children.value:
       if _exit_child.Name.value.startswith("screen"):
         self.screen_nodes.append(_exit_child)
+        self.screen_sizes.append( (_exit_child.Width.value, _exit_child.Height.value) )
 
 
     # debug screen visualization TO BE REDONE
@@ -345,8 +342,6 @@ class PortalPreView(avango.script.Script):
 
     # init field connections
     self.mf_portal_modes.connect_from(VIEW.SCENEGRAPH["/net/virtual_displays/" + SERVER_PORTAL_NODE.Name.value + "/settings"].GroupNames)
-    #self.sf_screen_width.connect_from(self.screen_node.Width)
-    #self.sf_screen_height.connect_from(self.screen_node.Height)
 
     # set evaluation policy
     self.always_evaluate(True)
@@ -359,19 +354,6 @@ class PortalPreView(avango.script.Script):
 
     return False
 
-  ## Updates the size of the portal according to the screen node.
-  def update_size(self):
-    
-    pass
-    #try:
-    #  self.textured_quad
-    #except:
-    #  return
-
-    #self.textured_quad.Width.value = self.screen_node.Width.value
-    #self.textured_quad.Height.value = self.screen_node.Height.value
-    #self.back_geometry.Transform.value = avango.gua.make_trans_mat(0.0, 0.0, 0.0) * avango.gua.make_rot_mat(90, 1, 0, 0) * avango.gua.make_scale_mat(self.screen_node.Width.value, 1.0, self.screen_node.Height.value)
-    #self.portal_border.Transform.value = avango.gua.make_scale_mat(self.screen_node.Width.value, self.screen_node.Height.value, 1.0)
 
   ## Removes this portal from the local portal group and destroys all the scenegraph nodes.
   def delete(self):
@@ -505,6 +487,23 @@ class PortalPreView(avango.script.Script):
   ## Evaluated every frame when active.
   def frame_callback(self):
 
+    # update size
+    for _screen_node in self.screen_nodes:
+
+      _index = self.screen_nodes.index(_screen_node)
+      _old_size = self.screen_sizes[_index]
+      _new_size = (_screen_node.Width.value, _screen_node.Height.value)
+
+      if _old_size != _new_size:
+        self.screen_sizes[_index] = _new_size
+        self.textured_quads[_index].Width.value = _new_size[0]
+        self.textured_quads[_index].Height.value = _new_size[1]
+        self.back_geometries[_index].Transform.value = avango.gua.make_trans_mat(0.0, 0.0, 0.0) * \
+                                                       avango.gua.make_rot_mat(90, 1, 0, 0) * \
+                                                       avango.gua.make_scale_mat(_screen_node.Width.value, 1.0, _screen_node.Height.value)
+        self.border_geometries[_index].Transform.value = avango.gua.make_scale_mat(_screen_node.Width.value, _screen_node.Height.value, 1.0)
+
+
     # update global clipping plane when negative parallax is false
     if self.mf_portal_modes.value[2] == "2-False":
 
@@ -554,14 +553,3 @@ class PortalPreView(avango.script.Script):
             self.textured_quads[_index].GroupNames.value.remove("portal_invisible_group")
             self.border_geometries[_index].GroupNames.value.remove("portal_invisible_group")
             self.back_geometries[_index].GroupNames.value.append("portal_invisible_group")
-
-
-  ## Called whenever sf_screen_width changes.
-  @field_has_changed(sf_screen_width)
-  def sf_screen_width_changed(self):
-    self.update_size()
-
-  ## Called whenever sf_screen_height changes.
-  @field_has_changed(sf_screen_height)
-  def sf_screen_height_changed(self):
-    self.update_size()

@@ -184,9 +184,9 @@ vr_lab_rear.create_ray_pointer( POINTER_TRACKING_STATION = 'tracking-dlp-pointer
                               , POINTER_DEVICE_STATION = 'device-pointer1'
                               , VISIBILITY_TABLE = tool_visibility_table)
 
-#vr_lab_rear.create_portal_cam(  CAMERA_TRACKING_STATION = 'tracking-portal-camera-32'
-#                             ,  CAMERA_DEVICE_STATION = 'device-portal-camera-32'
-#                             ,  VISIBILITY_TABLE = tool_visibility_table)
+vr_lab_rear.create_portal_cam(  CAMERA_TRACKING_STATION = 'tracking-portal-camera-32'
+                             ,  CAMERA_DEVICE_STATION = 'device-portal-camera-32'
+                             ,  VISIBILITY_TABLE = tool_visibility_table)
 
 ## Create portal navigations. ##
 #'''
