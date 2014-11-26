@@ -187,9 +187,6 @@ class UserRepresentation:
                                 avango.gua.make_inverse_mat(self.DISPLAY_GROUP.entry_node.Transform.value) * \
                                 self.dependent_nodes[0].WorldTransform.value
 
-    print("Perform virtual user transformation")
-
-
 
   ## Deactivates the evaluation of the transformation policy and assigns fixed matrices
   # for the eye and head nodes.

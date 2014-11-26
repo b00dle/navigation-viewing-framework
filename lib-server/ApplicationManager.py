@@ -261,9 +261,7 @@ class ApplicationManager(avango.script.Script):
     for _display_group in self.virtual_display_groups:
 
       _display_group.add_virtual_display_nodes()
-
-      #if _display_group.transitable = True:
-      #  self.transit_display_groups.append(_display_group)
+      _transit_entry_added = False
 
       # create user representations
       for _physical_user_repr in ApplicationManager.all_user_representations:
@@ -272,7 +270,6 @@ class ApplicationManager(avango.script.Script):
         if _display_group.viewing_mode == "2D":
           _complex = False
 
-        print("complex", _complex)
         _virtual_user_repr = _physical_user_repr.USER.create_user_representation_for(
                              _display_group
                            , _display_group.exit_node
@@ -282,11 +279,13 @@ class ApplicationManager(avango.script.Script):
         _virtual_user_repr.add_dependent_node(_physical_user_repr.head)
         _virtual_user_representations.append(_virtual_user_repr)
 
-
         # collect transit portals
-        #if _display.transitable and _transit_entry_added == False:
-        #  self.transit_display_groups.append( (_display_group, _display, _virtual_user_repr) )
-        #  _transit_entry_added = True
+        if _display_group.transitable and _transit_entry_added == False:
+          
+          # add tuple of (display_group, one_virtual_user_repr)
+          # one user representation is needed to capture the connected navigation
+          self.transit_display_groups.append( (_display_group, _virtual_user_repr) )
+          _transit_entry_added = True
 
     for _virtual_user_representation in _virtual_user_representations:
       ApplicationManager.all_user_representations.append(_virtual_user_representation)
@@ -582,40 +581,47 @@ class ApplicationManager(avango.script.Script):
       for _tuple in self.transit_display_groups:
 
         _portal_display_group = _tuple[0]
-        _portal = _tuple[1]
-        _first_virtual_user_repr = _tuple[2]
+        _first_virtual_user_repr = _tuple[1]
 
-        _active_navigation = _portal_display_group.navigations[_first_virtual_user_repr.connected_navigation_id]
-        _mat = avango.gua.make_inverse_mat(_portal.portal_matrix_node.Transform.value)
+        # only allow teleportation when in 3D mode
+        if _portal_display_group.viewing_mode != "3D":
+          continue
 
-        _nav_device_portal_space_mat = _mat * _nav_device_mat
-        _nav_device_portal_space_pos = _mat * _nav_device_pos
-        _nav_device_portal_space_pos2 = _mat * _nav_device_pos2
-        _nav_device_portal_space_pos = avango.gua.Vec3(_nav_device_portal_space_pos.x, _nav_device_portal_space_pos.y, _nav_device_portal_space_pos.z)
+        # check for transit in every single virtual display
+        for _display in _portal_display_group.displays:
 
-        # do a teleportation if navigation enters portal
-        if  _nav_device_portal_space_pos.x > -_portal.size[0]/2     and \
-            _nav_device_portal_space_pos.x <  _portal.size[0]/2     and \
-            _nav_device_portal_space_pos.y > -_portal.size[1]/2     and \
-            _nav_device_portal_space_pos.y <  _portal.size[1]/2     and \
-            _nav_device_portal_space_pos.z < 0.0                    and \
-            _nav_device_portal_space_pos2.z >= 0.0                  and \
-            _portal.viewing_mode == "3D":
+          _index = _portal_display_group.displays.index(_display)
 
-          _nav.inputmapping.set_abs_mat(avango.gua.make_trans_mat(_portal.portal_screen_node.Transform.value.get_translate()) * \
-                                        _active_navigation.sf_abs_mat.value * \
-                                        avango.gua.make_rot_mat(_portal.portal_screen_node.Transform.value.get_rotate()) * \
-                                        avango.gua.make_scale_mat(_active_navigation.sf_scale.value) * \
-                                        avango.gua.make_trans_mat(_nav_device_portal_space_pos) * \
-                                        avango.gua.make_rot_mat(_nav_device_portal_space_mat.get_rotate_scale_corrected()) * \
-                                        avango.gua.make_trans_mat(_nav.device.sf_station_mat.value.get_translate() * -1.0) * \
-                                        avango.gua.make_inverse_mat(avango.gua.make_scale_mat(_active_navigation.sf_scale.value)))
+          _active_navigation = _portal_display_group.navigations[_first_virtual_user_repr.connected_navigation_id]
+          _mat = avango.gua.make_inverse_mat(_portal_display_group.entry_node.Transform.value * _portal_display_group.screen_nodes[_index].Transform.value)
 
-          if _nav.trace != None:
-            _nav.trace.clear(_nav.inputmapping.sf_abs_mat.value)
-          
-          _nav.inputmapping.scale_stop_time = None
-          _nav.inputmapping.set_scale(_active_navigation.sf_scale.value, False)
+          _nav_device_portal_space_mat = _mat * _nav_device_mat
+          _nav_device_portal_space_pos = _mat * _nav_device_pos
+          _nav_device_portal_space_pos2 = _mat * _nav_device_pos2
+          _nav_device_portal_space_pos = avango.gua.Vec3(_nav_device_portal_space_pos.x, _nav_device_portal_space_pos.y, _nav_device_portal_space_pos.z)
+
+          # do a teleportation if navigation enters portal
+          if  _nav_device_portal_space_pos.x > -_display.size[0]/2     and \
+              _nav_device_portal_space_pos.x <  _display.size[0]/2     and \
+              _nav_device_portal_space_pos.y > -_display.size[1]/2     and \
+              _nav_device_portal_space_pos.y <  _display.size[1]/2     and \
+              _nav_device_portal_space_pos.z < 0.0                    and \
+              _nav_device_portal_space_pos2.z >= 0.0:
+
+            _nav.inputmapping.set_abs_mat(avango.gua.make_trans_mat(_portal_display_group.screen_nodes[_index].Transform.value.get_translate()) * \
+                                          _active_navigation.sf_abs_mat.value * \
+                                          avango.gua.make_rot_mat(_portal_display_group.screen_nodes[_index].Transform.value.get_rotate()) * \
+                                          avango.gua.make_scale_mat(_active_navigation.sf_scale.value) * \
+                                          avango.gua.make_trans_mat(_nav_device_portal_space_pos) * \
+                                          avango.gua.make_rot_mat(_nav_device_portal_space_mat.get_rotate_scale_corrected()) * \
+                                          avango.gua.make_trans_mat(_nav.device.sf_station_mat.value.get_translate() * -1.0) * \
+                                          avango.gua.make_inverse_mat(avango.gua.make_scale_mat(_active_navigation.sf_scale.value)))
+
+            if _nav.trace != None:
+              _nav.trace.clear(_nav.inputmapping.sf_abs_mat.value)
+            
+            _nav.inputmapping.scale_stop_time = None
+            _nav.inputmapping.set_scale(_active_navigation.sf_scale.value, False)
 
 
     # handle requestable navigations
