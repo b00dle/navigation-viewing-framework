@@ -215,8 +215,8 @@ class ApplicationManager(avango.script.Script):
 
             # register portal display groups if this tool representation is a PortalCameraRepresentation
             try:
-              _tool_repr.portal_dg
-              self.virtual_display_groups.append(_tool_repr.portal_dg)
+              _tool_repr.virtual_display_group
+              self.virtual_display_groups.append(_tool_repr.virtual_display_group)
             except:
               pass
 
@@ -250,8 +250,6 @@ class ApplicationManager(avango.script.Script):
                 #print("ssh", _display.hostname, _directory_name + \
                 #"/start-client.sh " + _server_ip + " " + str(WORKSPACE_CONFIG) + " " + str(_w_id) + " " + \
                 #str(_dg_id) + " " + str(_s_id) + " " + _display.name)
-
-
 
 
     ## Handle virtual viewing setups ##

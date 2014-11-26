@@ -374,21 +374,39 @@ class PortalPreView(avango.script.Script):
     #self.portal_border.Transform.value = avango.gua.make_scale_mat(self.screen_node.Width.value, self.screen_node.Height.value, 1.0)
 
   ## Removes this portal from the local portal group and destroys all the scenegraph nodes.
-  def deactivate(self):
+  def delete(self):
 
     # disable pipeline and evaluation loop
     self.frame_trigger.Active.value = False
-    self.pipeline.Enabled.value = False
 
-    #self.portal_matrix_node.Children.value.remove(self.portal_border)
-    #del self.portal_border
+    for _border in self.border_geometries:
+      self.entry_node.Children.value.remove(_border)
+      del _border
+
+    del self.border_geometries
     
-    #self.portal_matrix_node.Children.value.remove(self.textured_quad)
-    #del self.textured_quad
-    #del self.back_geometry
+    for _textured_quad in self.textured_quads:
+      self.entry_node.Children.value.remove(_textured_quad)
+      del _textured_quad
 
-    #del self.pipeline
-    #del self.camera
+    del self.textured_quads
+
+    for _back_geometry in self.back_geometries:
+      self.entry_node.Children.value.remove(_back_geometry)
+      del _back_geometry
+
+    del self.back_geometries
+
+    for _pipeline in self.pipelines:
+      _pipeline.Enabled.value = False
+      del _pipeline
+
+    del self.pipelines
+
+    for _camera in self.cameras:
+      del _camera
+
+    del self.cameras
 
   ## Called whenever mf_portal_modes changes.
   @field_has_changed(mf_portal_modes)
@@ -440,6 +458,12 @@ class PortalPreView(avango.script.Script):
   ## Evaluated every frame.
   def evaluate(self):
 
+    # check for deletion
+    try:
+      self.pipelines
+    except:
+      return
+
     # trigger frame callback activity
     _server_view_node_name = "w" + str(self.VIEW.workspace_id) + "_dg" + str(self.VIEW.display_group_id) + "_u" + str(self.VIEW.user_id)
 
@@ -453,7 +477,7 @@ class PortalPreView(avango.script.Script):
         for _pipeline in self.pipelines:
           _pipeline.Enabled.value = False
         
-        for _texture in self.textured_quads:
+        for _textured_quad in self.textured_quads:
           _textured_quad.GroupNames.value.append("portal_invisible_group")
 
         for _border in self.border_geometries:

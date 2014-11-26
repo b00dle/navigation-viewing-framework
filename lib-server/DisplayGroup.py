@@ -8,6 +8,7 @@ import avango
 import avango.gua
 
 # import framework libraries
+from ApplicationManager import *
 from scene_config import scenegraphs
 
 
@@ -214,3 +215,93 @@ class VirtualDisplayGroup(DisplayGroup):
       self.exit_node.Children.value.append(_screen_node)
       self.NET_TRANS_NODE.distribute_object(_screen_node)
       self.screen_nodes.append(_screen_node)
+
+
+  ## Switches viewing_mode to the other state.
+  def switch_viewing_mode(self):
+    if self.viewing_mode == "2D":
+      self.viewing_mode = "3D"
+    else:
+      self.viewing_mode = "2D"
+
+    for _user_repr in ApplicationManager.all_user_representations:
+      if _user_repr.DISPLAY_GROUP == self:
+
+        if self.viewing_mode == "2D":
+          _user_repr.make_default_viewing_setup()
+        else:
+          _user_repr.make_complex_viewing_setup()
+
+    self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
+
+  ## Switches camera_mode to the other state.
+  def switch_camera_mode(self):
+    if self.camera_mode == "PERSPECTIVE":
+      self.camera_mode = "ORTHOGRAPHIC"
+    else:
+      self.camera_mode = "PERSPECTIVE"
+
+    self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
+
+  ## Switches negative_parallax to the other state.
+  def switch_negative_parallax(self):
+    if self.negative_parallax == "True":
+      self.negative_parallax = "False"
+    else:
+      self.negative_parallax = "True"
+
+    self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
+
+
+  ##
+  #
+  def connect_portal_matrix(self, SF_MATRIX):
+
+    self.entry_node.Transform.disconnect()
+    
+    if SF_MATRIX != None:
+      self.entry_node.Transform.connect_from(SF_MATRIX)
+
+  ## Sets the border material to be used for the portal.
+  # @param BORDER_MATERIAL The material string to be set.
+  def set_border_material(self, BORDER_MATERIAL):
+    self.border_material = BORDER_MATERIAL
+    self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
+
+  ## Sets the visiblity of this portal.
+  # @param VISIBLE Boolean describing the visibility to be set.
+  def set_visibility(self, VISIBLE):
+    if VISIBLE:
+      self.visible = "True"
+    else:
+      self.visible = "False"
+
+    self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
+
+  ##
+  #
+  def set_size(self, INDEX, WIDTH, HEIGHT):
+    self.size = (WIDTH, HEIGHT)
+    self.screen_nodes[INDEX].Width.value = WIDTH
+    self.screen_nodes[INDEX].Height.value = HEIGHT
+
+  ## Removes this portal from the portal group and destroys all the scenegraph nodes.
+  def delete(self):
+
+    VirtualDisplayGroup.portal_group_node.Children.value.remove(self.portal_node)
+
+    for _user_repr in ApplicationManager.all_user_representations:
+      if _user_repr.DISPLAY_GROUP == self:
+        ApplicationManager.all_user_representations.remove(_user_repr)
+        del _user_repr
+
+    self.delete_downwards_from(self.portal_node)
+    del self.portal_node
+
+  ## Deletes all nodes below a given node.
+  # @param NODE The node to start deleting from.
+  def delete_downwards_from(self, NODE):
+
+    for _child in NODE.Children.value:
+      self.delete_downwards_from(_child)
+      del _child
