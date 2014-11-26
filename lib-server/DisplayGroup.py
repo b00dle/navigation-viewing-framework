@@ -69,7 +69,7 @@ class VirtualDisplayGroup(DisplayGroup):
 
   ## @var portal_group_node
   # Scenegraph node on server side to which all portal relevant nodes are appended to.
-  portal_group_node = avango.gua.nodes.TransformNode(Name = "portal_group")
+  portal_group_node = avango.gua.nodes.TransformNode(Name = "virtual_displays")
 
   ## Custom constructor.
   # @param DISPLAY_LIST List of Display instances to be assigned to the new display group.
@@ -210,6 +210,7 @@ class VirtualDisplayGroup(DisplayGroup):
       _screen_node = avango.gua.nodes.ScreenNode(Name = "screen_" + str(_index))
       _screen_node.Width.value = self.displays[_index].size[0]
       _screen_node.Height.value = self.displays[_index].size[1]
+      _screen_node.Transform.value = _offset
       self.exit_node.Children.value.append(_screen_node)
       self.NET_TRANS_NODE.distribute_object(_screen_node)
       self.screen_nodes.append(_screen_node)

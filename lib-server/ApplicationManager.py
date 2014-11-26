@@ -272,10 +272,10 @@ class ApplicationManager(avango.script.Script):
         if _display_group.viewing_mode == "2D":
           _complex = False
 
+        print("complex", _complex)
         _virtual_user_repr = _physical_user_repr.USER.create_user_representation_for(
                              _display_group
                            , _display_group.exit_node
-                           , 0
                            , 'head_' + _physical_user_repr.view_transform_node.Name.value
                            , _complex)
 
