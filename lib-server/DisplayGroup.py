@@ -148,8 +148,8 @@ class VirtualDisplayGroup(DisplayGroup):
       if self.displays.index(_display) == 0:
         _offsets.append(avango.gua.make_identity_mat())
       else:
-        _offsets.append(avango.gua.make_inverse_mat(self.displays[0].portal_matrix) * \
-                        _display.portal_matrix)
+        _offsets.append(avango.gua.make_inverse_mat(self.displays[0].entry_matrix) * \
+                        _display.entry_matrix)
 
 
     # append the viewing setup for this display group to the scenegraph
@@ -176,7 +176,7 @@ class VirtualDisplayGroup(DisplayGroup):
     ## @var entry_node
     # 
     self.entry_node = avango.gua.nodes.TransformNode(Name = "entry")
-    self.entry_node.Transform.value = self.displays[0].portal_matrix
+    self.entry_node.Transform.value = self.displays[0].entry_matrix
     self.portal_node.Children.value.append(self.entry_node)
     self.NET_TRANS_NODE.distribute_object(self.entry_node)
 

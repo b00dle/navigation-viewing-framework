@@ -11,11 +11,11 @@ from avango.script import field_has_changed
 
 # import framework libraries
 from DisplayGroup import *
-from Portal import *
 from PortalCameraNavigation import *
 from TrackingReader import *
 from Tool import *
 import Utilities
+from VirtualDisplay import *
 
 # import python libraries
 import time
@@ -91,9 +91,9 @@ class PortalCameraRepresentation(ToolRepresentation):
 
     ##
     #
-    self.virtual_display = Portal(PORTAL_MATRIX = avango.gua.make_identity_mat()
-                                , WIDTH = PORTAL_CAMERA_INSTANCE.portal_width
-                                , HEIGHT = PORTAL_CAMERA_INSTANCE.portal_height)
+    self.virtual_display = VirtualDisplay(ENTRY_MATRIX = avango.gua.make_identity_mat()
+                                        , WIDTH = PORTAL_CAMERA_INSTANCE.portal_width
+                                        , HEIGHT = PORTAL_CAMERA_INSTANCE.portal_height)
 
     ## @var virtual_nav
     # Instance of PortalCameraNavigation in which the captured shots are to be loaded.
@@ -491,8 +491,8 @@ class PortalCamera(Tool):
 
         self.capture_tool_representation = _active_tool_representation
 
-      print(self.tool_representations, len(self.tool_representations))
-      print(_active_tool_representation)
+      #print(self.tool_representations, len(self.tool_representations))
+      #print(_active_tool_representation)
 
       # compute shot parameters and assign them
       _active_navigation = _active_tool_representation.DISPLAY_GROUP.navigations[_active_tool_representation.USER_REPRESENTATION.connected_navigation_id]
