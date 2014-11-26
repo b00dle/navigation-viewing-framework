@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 ## @file
-# Contains class ClientPortal.
+# Contains classes ClientPortalManager, ClientPortal and PortalPreView.
 
 # import avango-guacamole libraries
 import avango

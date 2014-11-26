@@ -162,7 +162,7 @@ class VirtualDisplayGroup(DisplayGroup):
 
     ## @var portal_node
     # Grouping node for this portal below the group node for all portals.
-    self.portal_node = avango.gua.nodes.TransformNode(Name = "portal_dg" + str(self.id) + "_" + self.portal_node_name_attachment)
+    self.portal_node = avango.gua.nodes.TransformNode(Name = "vir_dg" + str(self.id) + "_" + self.portal_node_name_attachment)
     VirtualDisplayGroup.portal_group_node.Children.value.append(self.portal_node)
     self.NET_TRANS_NODE.distribute_object(self.portal_node)
 
