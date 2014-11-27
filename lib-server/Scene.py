@@ -63,25 +63,6 @@ class SceneMedievalTown(SceneObject):
     self.enable_ssao = False
     self.enable_fxaa = True
 
-
-class ScenePitoti(SceneObject):
-
-  # constructor
-  def __init__(self, SCENE_MANAGER, SCENEGRAPH, NET_TRANS_NODE):
-    SceneObject.__init__(self, "ScenePitotiTest", SCENE_MANAGER, SCENEGRAPH, NET_TRANS_NODE) # call base class constructor
-
-    # navigation parameters
-    # nice navigation starting mat is avango.gua.make_trans_mat(0.092, 4.922, 22.049)
-
-    # geometry
-    _mat = avango.gua.make_identity_mat()
-    self.init_point_cloud("spacemonkey", "/mnt/pitoti/KDN_LOD/PITOTI_KDN_LOD/Spacemonkey_new.kdn", _mat, self.scene_root, "main_scene")
-          
-    # lights
-    _mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)
-    self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(0.5, 0.5, 0.5), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = True) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
-
-
 class SceneVianden(SceneObject):
 
   # constructor
@@ -166,144 +147,199 @@ class SceneMonkey(SceneObject):
 
 
 
-class ScenePLOD(SceneObject):
+class SceneValcamonica(SceneObject):
 
   # constructor
   def __init__(self, SCENE_MANAGER, SCENEGRAPH, NET_TRANS_NODE):
-    SceneObject.__init__(self, "PLOD", SCENE_MANAGER, SCENEGRAPH, NET_TRANS_NODE) # call base class constructor
+    SceneObject.__init__(self, "Valcamonica", SCENE_MANAGER, SCENEGRAPH, NET_TRANS_NODE) # call base class constructor
 
-    # nice navigation starting mat is avango.gua.make_trans_mat(0.0, 0.0, 1.0)
+    #self.starting_matrix = avango.gua.make_identity_mat()
+    #self.starting_scale = 1.0
 
-    _mat = avango.gua.make_trans_mat(0.0,1.2,0.0) * avango.gua.make_scale_mat(0.25)
-    self.init_plod("pig", "/opt/3d_models/point_based/plod/pig.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
 
-    #_mat = avango.gua.make_trans_mat(1.0,2.5,0.0) * avango.gua.make_scale_mat(3.0)
-    #self.init_plod("pitoti", "/mnt/pitoti/KDN_LOD/PITOTI_KDN_LOD/Spacemonkey_new.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    # rotate whole scene upright
+    _rot_mat = avango.gua.make_identity_mat()
+    _rot_mat.set_element(0,0, 0.088)
+    _rot_mat.set_element(1,0, 0.016)
+    _rot_mat.set_element(2,0, 0.996)
+    _rot_mat.set_element(0,1, 0.996)
+    _rot_mat.set_element(1,1, 0.005)
+    _rot_mat.set_element(2,1, -0.088)
+    _rot_mat.set_element(0,2, -0.007)
+    _rot_mat.set_element(1,2, 1.0)
+    _rot_mat.set_element(2,2, -0.016)
 
-    #_mat = avango.gua.make_trans_mat(1.0,2.5,0.0) * avango.gua.make_scale_mat(3.0)
-    #self.init_plod("pitoti", "/mnt/pitoti/XYZ_ALL/new_pitoti_sampling/Area_4_hunter_with_bow.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-
-    #_mat = avango.gua.make_identity_mat()
-    #self.init_plod("pitoti", "/mnt/pitoti/XYZ_ALL/new_pitoti_sampling/TLS_Seradina_Rock-12C.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-
-    _mat = avango.gua.make_trans_mat(0.0, 1.0, 0.0) * avango.gua.make_scale_mat(3.0)
-    self.init_geometry("plane", "data/objects/plane.obj", _mat, 'data/materials/ComplexPhongTiles.gmd', False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-  
-    _mat = avango.gua.make_trans_mat(-1.1,1.3,0.0) * avango.gua.make_scale_mat(0.25)
-    self.init_geometry("monkey2", "data/objects/monkey.obj", _mat, "data/materials/AvatarBlue.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.scene_root.Transform.value = _rot_mat
     
-    # lights
-    _mat = avango.gua.make_trans_mat(0.0, 1.55, 0.0)
-    self.init_light(TYPE = 1, NAME = "point_light", COLOR = avango.gua.Color(0.0, 1.0, 0.0), MATRIX = _mat, PARENT_NODE = self.scene_root, MANIPULATION_PICK_FLAG = True, LIGHT_DIMENSIONS = avango.gua.Vec3(3.0,3.0,3.0)) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
+    ### valley
+    _offset_mat = avango.gua.make_trans_mat(-604050.0, -5098490.0, -400.0)
 
-    #_mat = avango.gua.make_trans_mat(0.0, 1.55, 0.0)
-    #self.init_light(TYPE = 2, NAME = "spot_light", COLOR = avango.gua.Color(1.0, 0.25, 0.25), MATRIX = _mat, PARENT_NODE = self.scene_root, MANIPULATION_PICK_FLAG = True, ENABLE_SHADOW = True, LIGHT_DIMENSIONS = avango.gua.Vec3(2.0,2.0,1.0), RENDER_GROUP = "main_scene") # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
-      
-class SceneValcamonicaOptimized(SceneObject):
-
-  # constructor
-  def __init__(self, SCENE_MANAGER, SCENEGRAPH, NET_TRANS_NODE):
-    SceneObject.__init__(self, "ValcamonicaOptimized", SCENE_MANAGER, SCENEGRAPH, NET_TRANS_NODE) # call base class constructor
-
-    # nice navigation starting mat is self.starting_matrix = avango.gua.make_trans_mat(0.0, 0.0, 0.0)
-
-    _mat = avango.gua.make_trans_mat(-473.909*2, 377.739*2, -399.864*2) * \
-            avango.gua.make_scale_mat(60.0, -60.0, -60.0)
-
+    # seradina flyover
+    _scale = 31.261682663898622
+   
+    _rot_mat = avango.gua.make_identity_mat()
+    _rot_mat.set_element(0,0, -0.57732352)
+    _rot_mat.set_element(1,0, 0.816437476)
+    _rot_mat.set_element(2,0, 0.0112872)
+    _rot_mat.set_element(0,1, 0.040792)
+    _rot_mat.set_element(1,1, 0.042645956)
+    _rot_mat.set_element(2,1, -0.998257147)
+    _rot_mat.set_element(0,2, -0.8154959)
+    _rot_mat.set_element(1,2, -0.5758569)
+    _rot_mat.set_element(2,2, -0.057924671)
+   
+    _pos = avango.gua.Vec3(603956.727956973, 5098223.502562742, 819.626837676)
     
-    _path = "/mnt/pitoti/Seradina_FULL_SCAN/Parts/"
+    _mat = avango.gua.make_trans_mat(_pos) * _rot_mat * avango.gua.make_scale_mat(_scale)
+    _mat = _offset_mat * _mat
+       
+    #_path = "/mnt/pitoti/Seradina_FULL_SCAN/sera_fixed/"
+    _path = "/mnt/ssd_pitoti/pitoti/valley/seradina_flyover/" # pitoti ssd path
     
-    self.init_plod("seradina1_", _path + "sera_part_01.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("seradina2_", _path + "sera_part_02.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina3_", _path + "sera_part_03.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina4_", _path + "sera_part_04.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina5_", _path + "sera_part_05.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina6_", _path + "sera_part_06.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina7_", _path + "sera_part_07.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina8_", _path + "sera_part_08.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina9_", _path + "sera_part_09.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina10_", _path + "sera_part_10.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina11_", _path + "sera_part_11.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina12_", _path + "sera_part_12.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina13_", _path + "sera_part_13.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina14_", _path + "sera_part_14.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina15_", _path + "sera_part_15.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("seradina16_", _path + "sera_part_16.kdn", _mat, True, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley1", _path + "sera_part_01.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("valley2", _path + "sera_part_02.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley3", _path + "sera_part_03.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley4", _path + "sera_part_04.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley5", _path + "sera_part_05.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley6", _path + "sera_part_06.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley7", _path + "sera_part_07.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley8", _path + "sera_part_08.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley9", _path + "sera_part_09.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley10", _path + "sera_part_10.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley11", _path + "sera_part_11.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley12", _path + "sera_part_12.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley13", _path + "sera_part_13.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley14", _path + "sera_part_14.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley15", _path + "sera_part_15.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley16", _path + "sera_part_16.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
  
+    # foppe di nadro flyover
+    #_path = "/mnt/ssd_pitoti/pitoti/valley/nadro_flyover/" # pitoti ssd path
+    _path = "/mnt/ssd_pitoti/pitoti/valley/nadro_flyover/new/" # pitoti ssd path        
 
-    _mat = avango.gua.make_identity_mat()
-    _mat.set_element(0,0,-0.01020285)
-    _mat.set_element(0,1,0.05133345)
-    _mat.set_element(0,2,-0.0041307)
-    _mat.set_element(0,3,-4.360018767)
-    _mat.set_element(1,0,0.0030513)
-    _mat.set_element(1,1,0.0048069)
-    _mat.set_element(1,2,0.05219025)
-    _mat.set_element(1,3,-17.288150233)
-    _mat.set_element(2,0,0.05140905)
-    _mat.set_element(2,1,0.00990255)
-    _mat.set_element(2,2,-0.00391755)
-    _mat.set_element(2,3,10.845176942)
+    _scale = 36.14874291170112
+  
+    _rot_mat = avango.gua.make_identity_mat()
+    _rot_mat.set_element(0,0, -0.230820615)
+    _rot_mat.set_element(1,0, -0.972716931)
+    _rot_mat.set_element(2,0, -0.0233156)
+    _rot_mat.set_element(0,1, -0.4758191)
+    _rot_mat.set_element(1,1, 0.0919426)
+    _rot_mat.set_element(2,1, 0.8747244)
+    _rot_mat.set_element(0,2, -0.848715517)
+    _rot_mat.set_element(1,2, 0.212998422)
+    _rot_mat.set_element(2,2, -0.484059545)
+  
+    _pos = avango.gua.Vec3(605535.577, 5097551.573, 1468.071)
+    
+    _mat = avango.gua.make_trans_mat(_pos) * _rot_mat * avango.gua.make_scale_mat(_scale)
+    _mat = _offset_mat * _mat
  
+    #self.init_plod("valley17", _path + "foppe_di_nadro_const.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    #self.init_plod("valley17", _path + "foppe_050713__3.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley18", _path + "foppe_050713__4.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley19", _path + "foppe_050713__7.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley20", _path + "foppe_050713__8.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley21", _path + "foppe_050713__9.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("valley22", _path + "foppe_050713__10.kdn", _mat, False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
 
-    self.init_group("group", _mat, False, True, self.scene_root, "main_scene")
 
-    _parent_object = self.get_interactive_object("group")
+    ### rocks
+    
+    # seradina 12c
+    _mat = avango.gua.make_trans_mat(604050.0, 5098490.0, 400.0)
+    _mat = _offset_mat * _mat
+    
+    self.init_group("seradina_12c_group", _mat, False, True, self.scene_root, "main_scene")
+
+    _parent_object = self.get_interactive_object("seradina_12c_group")
+    _mat = avango.gua.make_identity_mat()
+        
+    _path = "/mnt/ssd_pitoti/pitoti/seradina_12c/rock/" # pitoti ssd path
+
+    self.init_plod("seradina_12c_rock", _path + "TLS_Seradina_Rock-12C.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+
+
+    # seradina motives
+    _path = "/mnt/ssd_pitoti/pitoti/seradina_12c/motives/" # pitoti ssd path
+
+    self.init_plod("seradina_motive1", _path + "Area-1_Warrior-scene_P01-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive2", _path + "Area-1_Warrior-scene_P01-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive3", _path + "Area-1_Warrior-scene_P01-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive4", _path + "Area-1_Warrior-scene_P01-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive5", _path + "Area-1_Warrior-scene_P02-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive6", _path + "Area-1_Warrior-scene_P02-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive7", _path + "Area-1_Warrior-scene_P02-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive8", _path + "Area-1_Warrior-scene_P02-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive9", _path + "Area-1_Warrior-scene_P03-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive10", _path + "Area-1_Warrior-scene_P03-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive11", _path + "Area-1_Warrior-scene_P03-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive12", _path + "Area-1_Warrior-scene_P03-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+
+    self.init_plod("seradina_motive13", _path + "Area-2_Plowing-scene_P01-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("seradina_motive14", _path + "Area-2_Plowing-scene_P01-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive15", _path + "Area-2_Plowing-scene_P01-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive16", _path + "Area-2_Plowing-scene_P01-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("seradina_motive17", _path + "Area-2_Plowing-scene_P02-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("seradina_motive18", _path + "Area-2_Plowing-scene_P02-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive19", _path + "Area-2_Plowing-scene_P02-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive20", _path + "Area-2_Plowing-scene_P02-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+
+    self.init_plod("seradina_motive21", _path + "Area-10_Hunting_Scene_P01.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive22", _path + "Area-10_Hunting_Scene_P02.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    self.init_plod("seradina_motive23", _path + "Area-10_Hunting_Scene_P03.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+
+    self.init_plod("seradina_motive24", _path + "Area-6_house_P01.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("seradina_motive25", _path + "Area-6_house_P02.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE                            
+
+    self.init_plod("seradina_motive26", _path + "Area-3_Archers_P01.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
+    self.init_plod("seradina_motive27", _path + "Area-3_Archers_P02.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
+
+    self.init_plod("seradina_motive28", _path + "Area_4_hunter_with_bow.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
+
+    self.init_plod("seradina_motive29", _path + "Area-5_hunter_with_speer_P01.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
+    self.init_plod("seradina_motive30", _path + "Area-5_hunter_with_speer_P02.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE       
+
+
+    # nadro 24
+    _mat = avango.gua.make_trans_mat(604050.0, 5098490.0, 400.0)
+    _mat = _offset_mat * _mat
+
+    self.init_group("nadro_24_group", _mat, False, True, self.scene_root, "main_scene")
+
+    _parent_object = self.get_interactive_object("nadro_24_group")
     _mat = avango.gua.make_identity_mat()
     
-    _path = "/mnt/pitoti/XYZ_ALL/new_pitoti_sampling/" # opt path    
-    #_path = "/media/SSD_500GB/Pitoti_Resampled/" # ssd path
+    _path = "/mnt/ssd_pitoti/pitoti/nadro_24/rock/" # pitoti ssd path
+
+    self.init_plod("nadro_24_rock", _path + "TLS_Foppe-di-Nadro_Rock-24.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE        
+
+    # nadro 24 motives    
+    _path = "/mnt/ssd_pitoti/pitoti/nadro_24/motives/" # pitoti ssd path
+           
+    self.init_plod("nadro_24_motive1", _path + "Area-7_Rosa-Camuna.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_plod("nadro_24_motive2", _path + "Area-7_Warrior.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
 
 
-    self.init_plod("rock", _path + "TLS_Seradina_Rock-12C.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    #_mat = avango.gua.make_trans_mat(0.0, 0.0, 0.0)
+    #self.init_light(TYPE = 2, NAME = "spot_light", COLOR = avango.gua.Color(1.0, 0.0, 0.0), MATRIX = _mat, PARENT_NODE = self.scene_root, MANIPULATION_PICK_FLAG = True, RENDER_GROUP = "main_scene", ENABLE_SHADOW = False, LIGHT_DIMENSIONS = avango.gua.Vec3(10.0,10.0,10.0) ) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
 
-    self.init_plod("pitoti1", _path + "Area-1_Warrior-scene_P01-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti2", _path + "Area-1_Warrior-scene_P01-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti3", _path + "Area-1_Warrior-scene_P01-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti4", _path + "Area-1_Warrior-scene_P01-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti5", _path + "Area-1_Warrior-scene_P02-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti6", _path + "Area-1_Warrior-scene_P02-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti7", _path + "Area-1_Warrior-scene_P02-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti8", _path + "Area-1_Warrior-scene_P02-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti9", _path + "Area-1_Warrior-scene_P03-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti10", _path + "Area-1_Warrior-scene_P03-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti11", _path + "Area-1_Warrior-scene_P03-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti12", _path + "Area-1_Warrior-scene_P03-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
+    #_mat = avango.gua.make_trans_mat(0.0, 2.0, 0.0)
+    #self.init_light(TYPE = 1, NAME = "point_light", COLOR = avango.gua.Color(1.0, 1.0, 1.0), MATRIX = _mat, PARENT_NODE = self.scene_root, MANIPULATION_PICK_FLAG = True, RENDER_GROUP = "main_scene", LIGHT_DIMENSIONS = avango.gua.Vec3(50.0,50.0,50.0)) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
 
-    self.init_plod("pitoti13", _path + "Area-2_Plowing-scene_P01-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("pitoti14", _path + "Area-2_Plowing-scene_P01-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti15", _path + "Area-2_Plowing-scene_P01-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti16", _path + "Area-2_Plowing-scene_P01-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("pitoti17", _path + "Area-2_Plowing-scene_P02-1.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("pitoti18", _path + "Area-2_Plowing-scene_P02-2.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti19", _path + "Area-2_Plowing-scene_P02-3.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti20", _path + "Area-2_Plowing-scene_P02-4.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    #_mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)
+    #self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(1.0, 0.0, 1.0), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = False, RENDER_GROUP = "main_scene") # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
 
-    self.init_plod("pitoti21", _path + "Area-10_Hunting_Scene_P01.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti22", _path + "Area-10_Hunting_Scene_P02.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE    
-    self.init_plod("pitoti23", _path + "Area-10_Hunting_Scene_P03.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
 
-    self.init_plod("pitoti24", _path + "Area-6_house_P01.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_plod("pitoti25", _path + "Area-6_house_P02.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE                            
-
-    self.init_plod("pitoti26", _path + "Area-3_Archers_P01.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
-    self.init_plod("pitoti27", _path + "Area-3_Archers_P02.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
-
-    self.init_plod("pitoti28", _path + "Area_4_hunter_with_bow.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
-
-    self.init_plod("pitoti29", _path + "Area-5_hunter_with_speer_P01.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE            
-    self.init_plod("pitoti30", _path + "Area-5_hunter_with_speer_P02.kdn", _mat, False, True, _parent_object, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE       
-  
 
     # render pipeline parameters
     self.background_texture = "/opt/guacamole/resources/skymaps/DayLight_08.jpg"
-    #self.near_clip = 0.6 # at screen
-    #self.near_clip = 0.599 # at screen
-    self.near_clip = 0.1    
+    self.near_clip = 0.15
     self.far_clip = 10000.0
-
-
-
+    self.enable_backface_culling = True
+    self.enable_frustum_culling = True
+      
+'''
 class SceneWeimar(SceneObject):
 
   # constructor
@@ -332,5 +368,5 @@ class SceneWeimar(SceneObject):
 
     #_mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)
     #self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(0.5, 0.5, 0.5), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = True, SHADOW_MAP_SIZE = 2048) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
-    
+'''
     
