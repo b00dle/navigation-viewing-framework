@@ -247,6 +247,9 @@ class Tool(VisibilityHandler2D):
       for _display_group in self.WORKSPACE_INSTANCE.display_groups:
         self.handle_correct_visibility_groups_for(_display_group)
 
+      for _virtual_display_group in ApplicationManager.all_virtual_display_groups:
+        self.handle_correct_visibility_groups_for(_virtual_display_group)
+
 
   ## Changes the visibility table during runtime.
   # @param VISIBILITY_TABLE A matrix containing visibility rules according to the DisplayGroups' visibility tags. 
@@ -256,6 +259,9 @@ class Tool(VisibilityHandler2D):
 
     for _display_group in self.WORKSPACE_INSTANCE.display_groups:
       self.handle_correct_visibility_groups_for(_display_group)
+
+    for _virtual_display_group in ApplicationManager.all_virtual_display_groups:
+      self.handle_correct_visibility_groups_for(_virtual_display_group)
 
 
   ## Handles the correct GroupNames of all ToolRepresentations at a display group.
@@ -301,16 +307,17 @@ class Tool(VisibilityHandler2D):
 
     # check for all user representations outside the handled display group
     for _user_repr in ApplicationManager.all_user_representations:
+
       if _user_repr.DISPLAY_GROUP != _handled_display_group_instance:
 
         # consider visibility table
         _handled_display_group_tag = _handled_display_group_instance.visibility_tag
         _user_repr_display_group_tag = _user_repr.DISPLAY_GROUP.visibility_tag
         
+        #print("Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see", _handled_display_group_tag, "?")
         _visible = self.visibility_table[_user_repr_display_group_tag][_handled_display_group_tag]
+        #print("Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see", _handled_display_group_tag, "?", _visible)
 
-        #print "Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see"
-        #, _handled_display_group_tag, "?", _visible
         if _visible:
           if _user_repr.view_transform_node.Name.value == "exit":
             _assigned_user_tool_visible_for.append(_user_repr.view_transform_node.Parent.value.Name.value + "_" + _user_repr.head.Name.value)

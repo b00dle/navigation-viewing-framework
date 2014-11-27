@@ -37,9 +37,9 @@ class ApplicationManager(avango.script.Script):
   # List of all UserRepresentation instances active in the setup.
   all_user_representations = []
 
-  ## @var all_tool_reprsentations
-  # List of all ToolRepresentation instances active in the setup.
-  all_tool_representations = []
+  ## @var all_virtual_display_groups
+  # List of all VirtualDisplayGroup instances active in the setup.
+  all_virtual_display_groups = []
 
   ## @var all_workspaces
   # List of all Workspace instances active in the setup.
@@ -154,10 +154,7 @@ class ApplicationManager(avango.script.Script):
     # List of VirtualDisplayGroup instances that have the transitable flag set true.
     self.transit_display_groups = []
 
-    ## @var virtual_display_groups
-    # List of VirtualDisplayGroups that contain virtual displays from the configuration file. Is completed
-    # by virtual display groups created by PortalCameraRepresentations.
-    self.virtual_display_groups = virtual_display_groups
+    ApplicationManager.all_virtual_display_groups = virtual_display_groups
 
 
     ## Handle physical viewing setups ##
@@ -215,12 +212,11 @@ class ApplicationManager(avango.script.Script):
           # create tool representation in display_group
           for _tool in _workspace.tools:
             _tool_repr = _tool.create_tool_representation_for(_display_group, _user_repr, False)
-            ApplicationManager.all_tool_representations.append(_tool_repr)
 
             # register portal display groups if this tool representation is a PortalCameraRepresentation
             try:
               _tool_repr.virtual_display_group
-              self.virtual_display_groups.append(_tool_repr.virtual_display_group)
+              ApplicationManager.all_virtual_display_groups.append(_tool_repr.virtual_display_group)
             except:
               pass
 
@@ -260,7 +256,7 @@ class ApplicationManager(avango.script.Script):
 
     _virtual_user_representations = []
 
-    for _display_group in self.virtual_display_groups:
+    for _display_group in ApplicationManager.all_virtual_display_groups:
 
       _display_group.add_virtual_display_nodes()
       _transit_entry_added = False
@@ -336,7 +332,7 @@ class ApplicationManager(avango.script.Script):
         for _user in _workspace.users:
           _user.handle_correct_visibility_groups_for(_display_group)
 
-          for _portal_display_group in self.virtual_display_groups:
+          for _portal_display_group in ApplicationManager.all_virtual_display_groups:
             _user.handle_correct_visibility_groups_for(_portal_display_group)
 
     # connect proper navigations
