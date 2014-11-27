@@ -3,12 +3,12 @@
 ## @file
 # Contains class SteeringNavigation.
 
-# import avango-guacamole libraries
+### import avango-guacamole libraries
 import avango
 import avango.gua
 import avango.script
 
-# import framework libraries
+### import framework libraries
 from Device           import *
 from GroundFollowing  import *
 from InputMapping     import InputMapping
@@ -16,9 +16,9 @@ from Navigation       import *
 import Utilities
 from scene_config import scenegraphs
 
-# import python libraries
+### import python libraries
 import math
-import random
+
 
 ## Representation of a steering navigation controlled by a 6-DOF device. Creates the device,
 # an InputMapping instance and a GroundFollowing instance.
@@ -242,12 +242,12 @@ class SteeringNavigation(Navigation):
 
     # if in realistic mode, switch to unrealistic mode
     if self.inputmapping.realistic == True:
-      #print "GF off"
+      #print("GF off")
       self.deactivate_realistic_mode()
     
     # if in unrealistic mode, switch to realistic mode
     else:
-      #print "GF on"
+      #print("GF on")
       self.activate_realistic_mode()
   
   ## Evaluated every frame.

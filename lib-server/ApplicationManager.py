@@ -18,7 +18,7 @@ from   Video3D import *
 # import python libraries
 import os
 import subprocess
-import time
+#import time
 
 ## Class to build the scenegraph from the Workspaces, Display Groups and Users created.
 # Builds a server control monitor for debugging purposes.
@@ -103,7 +103,6 @@ class ApplicationManager(avango.script.Script):
           for _display in _display_group.displays:
 
             if _display.hostname != _own_hostname:
-              #_ssh_kill = subprocess.Popen(["ssh", _display.hostname, "killall python -9"], universal_newlines=True)
               _ssh_kill = subprocess.Popen(["ssh", _display.hostname, "killall python3 -9"], universal_newlines=True)
 
 
@@ -244,7 +243,7 @@ class ApplicationManager(avango.script.Script):
                 "/start-client.sh " + _server_ip + " " + str(WORKSPACE_CONFIG) + " " + str(_w_id) + " " + \
                 str(_dg_id) + " " + str(_s_id) + " " + _display.name]
                 , stderr=subprocess.PIPE, universal_newlines=True)
-                time.sleep(1)
+                #time.sleep(1)
 
                 #print("ssh", _display.hostname, _directory_name, _server_ip)
                 #print("ssh", _display.hostname, _directory_name + \
@@ -634,7 +633,7 @@ class ApplicationManager(avango.script.Script):
       _last_button_state = self.requestable_navigations_last_button_states[_requestable_nav_index]
 
       # if button change from negative to positive, trigger action
-      #print _navigation.sf_request_trigger.value
+      #print(_navigation.sf_request_trigger.value)
 
       if _navigation.sf_request_trigger.value == True and \
          _last_button_state == False:
