@@ -10,7 +10,7 @@ import avango.gua
 # import framework libraries
 from DisplayGroup import *
 from PhysicalDisplay import *
-from Portal import *
+from VirtualDisplay import *
 from Workspace import Workspace
 from SteeringNavigation import SteeringNavigation
 from StaticNavigation import StaticNavigation
@@ -142,4 +142,4 @@ vr_lab_rear.create_ray_pointer( POINTER_TRACKING_STATION = 'tracking-dlp-pointer
 #                             ,  CAMERA_DEVICE_STATION = 'device-portal-camera-32'
 #                             ,  VISIBILITY_TABLE = tool_visibility_table)
 
-portal_display_groups = []
+virtual_display_groups = []
