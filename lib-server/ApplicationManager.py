@@ -37,6 +37,10 @@ class ApplicationManager(avango.script.Script):
   # List of all UserRepresentation instances active in the setup.
   all_user_representations = []
 
+  ## @var all_tool_reprsentations
+  # List of all ToolRepresentation instances active in the setup.
+  all_tool_representations = []
+
   ## @var all_workspaces
   # List of all Workspace instances active in the setup.
   all_workspaces = []
@@ -210,7 +214,8 @@ class ApplicationManager(avango.script.Script):
 
           # create tool representation in display_group
           for _tool in _workspace.tools:
-            _tool_repr = _tool.create_tool_representation_for(_display_group, _user_repr)
+            _tool_repr = _tool.create_tool_representation_for(_display_group, _user_repr, False)
+            ApplicationManager.all_tool_representations.append(_tool_repr)
 
             # register portal display groups if this tool representation is a PortalCameraRepresentation
             try:
@@ -259,6 +264,7 @@ class ApplicationManager(avango.script.Script):
 
       _display_group.add_virtual_display_nodes()
       _transit_entry_added = False
+      _virtual_user_representations_of_dg = []
 
       # create user representations
       for _physical_user_repr in ApplicationManager.all_user_representations:
@@ -275,6 +281,7 @@ class ApplicationManager(avango.script.Script):
 
         _virtual_user_repr.add_dependent_node(_physical_user_repr.head)
         _virtual_user_representations.append(_virtual_user_repr)
+        _virtual_user_representations_of_dg.append(_virtual_user_repr)
 
         # collect transit portals
         if _display_group.transitable and _transit_entry_added == False:
@@ -284,6 +291,32 @@ class ApplicationManager(avango.script.Script):
           self.transit_display_groups.append( (_display_group, _virtual_user_repr) )
           _transit_entry_added = True
 
+
+        for _workspace in self.workspaces:
+          for _tool in _workspace.tools:
+
+            _w_id = _workspace.id
+            _t_id = _tool.id
+
+            # jump over PortalCameraRepresentations
+            try:
+              _tool.captured_shots
+              continue
+            except:
+              pass
+
+            # jump over tools outside the workspace of the currently handled physical user representation
+            if _tool.WORKSPACE_INSTANCE == _physical_user_repr.USER.WORKSPACE_INSTANCE:
+
+              _virtual_tool_repr = _tool.create_tool_representation_for(_display_group, _virtual_user_repr, True)
+
+              # find physical tool representation for the tool transform node
+              for _child in _physical_user_repr.view_transform_node.Children.value:
+                if _child.Name.value == "tool_" + str(_t_id):
+                  _virtual_tool_repr.add_dependent_node(_child)
+                  break
+
+            
     for _virtual_user_representation in _virtual_user_representations:
       ApplicationManager.all_user_representations.append(_virtual_user_representation)
 

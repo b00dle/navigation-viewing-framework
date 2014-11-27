@@ -81,13 +81,14 @@ class PortalCameraRepresentation(ToolRepresentation):
   # @param PORTAL_CAMERA_INSTANCE An instance of PortalCamera to which this PortalCameraRepresentation is associated.
   # @param DISPLAY_GROUP DisplayGroup instance for which this PortalCameraRepresentation is responsible for. 
   # @param USER_REPRESENTATION Corresponding UserRepresentation instance under which's view_transform_node the PortalCameraRepresentation is appended.
-  def my_constructor(self, PORTAL_CAMERA_INSTANCE, DISPLAY_GROUP, USER_REPRESENTATION):
+  # @param IN_VIRTUAL_DISPLAY Boolean saying if the ray pointer representation is valid in a virtual display.
+  def my_constructor(self, PORTAL_CAMERA_INSTANCE, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY):
     
     # call base class constructor
     self.base_constructor(PORTAL_CAMERA_INSTANCE
                         , DISPLAY_GROUP
                         , USER_REPRESENTATION
-                        , "portal_cam_" + str(PORTAL_CAMERA_INSTANCE.id))
+                        , IN_VIRTUAL_DISPLAY)
 
     ## @var virtual_display
     # A virtual display assigned to this PortalCameraRepresentation.
@@ -425,10 +426,11 @@ class PortalCamera(Tool):
   ## Creates a PortalCamearRepresentation for this RayPointer at a DISPLAY_GROUP.
   # @param DISPLAY_GROUP The DisplayGroup instance to create the representation for.
   # @param USER_REPRESENTATION The UserRepresentation this representation will belong to.
-  def create_tool_representation_for(self, DISPLAY_GROUP, USER_REPRESENTATION):
+  # @param IN_VIRTUAL_DISPLAY Boolean saying if the new tool representation is valid in a virtual display.
+  def create_tool_representation_for(self, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY):
 
     _portal_cam_repr = PortalCameraRepresentation()
-    _portal_cam_repr.my_constructor(self, DISPLAY_GROUP, USER_REPRESENTATION)
+    _portal_cam_repr.my_constructor(self, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY)
     self.tool_representations.append(_portal_cam_repr)
     return _portal_cam_repr
 

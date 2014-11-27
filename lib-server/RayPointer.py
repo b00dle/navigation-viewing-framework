@@ -35,13 +35,14 @@ class RayPointerRepresentation(ToolRepresentation):
   # @param RAY_POINTER_INSTANCE An instance of RayPointer to which this RayPointerRepresentation is associated.
   # @param DISPLAY_GROUP DisplayGroup instance for which this RayPointerRepresentation is responsible for. 
   # @param USER_REPRESENTATION Corresponding UserRepresentation instance under which's view_transform_node the RayPointerRepresentation is appended.
-  def my_constructor(self, RAY_POINTER_INSTANCE, DISPLAY_GROUP, USER_REPRESENTATION):
+  # @param IN_VIRTUAL_DISPLAY Boolean saying if the ray pointer representation is valid in a virtual display.
+  def my_constructor(self, RAY_POINTER_INSTANCE, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY):
     
     # call base class constructor
     self.base_constructor(RAY_POINTER_INSTANCE
                         , DISPLAY_GROUP
                         , USER_REPRESENTATION
-                        , "pick_ray_" + str(RAY_POINTER_INSTANCE.id))
+                        , IN_VIRTUAL_DISPLAY)
 
     _loader = avango.gua.nodes.TriMeshLoader()
 
@@ -51,7 +52,8 @@ class RayPointerRepresentation(ToolRepresentation):
                                                          , "data/objects/cylinder.obj"
                                                          , "data/materials/White.gmd"
                                                          , avango.gua.LoaderFlags.DEFAULTS)
-    self.ray_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+    #self.ray_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+    self.ray_geometry.GroupNames.value.append("main_scene")
     self.set_ray_distance(self.TOOL_INSTANCE.ray_length)
     self.tool_transform_node.Children.value.append(self.ray_geometry)
 
@@ -62,7 +64,7 @@ class RayPointerRepresentation(ToolRepresentation):
                                                                        , "data/materials/White.gmd"
                                                                        , avango.gua.LoaderFlags.DEFAULTS)
     self.intersection_point_geometry.GroupNames.value.append("do_not_display_group")
-    self.intersection_point_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+    #self.intersection_point_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
     self.tool_transform_node.Children.value.append(self.intersection_point_geometry)
 
     ## @var ray_start_geometry
@@ -72,7 +74,7 @@ class RayPointerRepresentation(ToolRepresentation):
                                                                , "data/materials/White.gmd"
                                                                , avango.gua.LoaderFlags.DEFAULTS)
     self.ray_start_geometry.Transform.value = avango.gua.make_scale_mat(0.015, 0.015, 0.015)
-    self.ray_start_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value) 
+    #self.ray_start_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value) 
     self.tool_transform_node.Children.value.append(self.ray_start_geometry)
 
     ## @var highlighted
@@ -256,10 +258,11 @@ class RayPointer(Tool):
   ## Creates a RayPointerRepresentation for this RayPointer at a DISPLAY_GROUP.
   # @param DISPLAY_GROUP The DisplayGroup instance to create the representation for.
   # @param USER_REPRESENTATION The UserRepresentation this representation will belong to.
-  def create_tool_representation_for(self, DISPLAY_GROUP, USER_REPRESENTATION):
+  # @param IN_VIRTUAL_DISPLAY Boolean saying if the new tool representation is valid in a virtual display.
+  def create_tool_representation_for(self, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY):
 
     _ray_pointer_repr = RayPointerRepresentation()
-    _ray_pointer_repr.my_constructor(self, DISPLAY_GROUP, USER_REPRESENTATION)
+    _ray_pointer_repr.my_constructor(self, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY)
     self.tool_representations.append(_ray_pointer_repr)
     return _ray_pointer_repr
 

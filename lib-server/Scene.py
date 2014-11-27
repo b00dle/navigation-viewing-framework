@@ -59,7 +59,7 @@ class SceneMedievalTown(SceneObject):
 
     # render pipeline parameters
     self.enable_backface_culling = False
-    self.enable_frustum_culling = True
+    self.enable_frustum_culling = False
     self.enable_ssao = False
     self.enable_fxaa = True
 
