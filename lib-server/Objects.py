@@ -3,13 +3,13 @@
 ## @file
 # Contains classes SceneObject and InteractiveObject.
 
-# import avango-guacamole libraries
+### import avango-guacamole libraries
 import avango
 import avango.gua
 import avango.script
 from avango.script import field_has_changed
 
-# import framework libraries
+### import framework libraries
 from Visualization import *
 
 ## Abstract base class to represent a scene which is a collection of interactive objects.
@@ -103,11 +103,11 @@ class SceneObject:
 
     ## @var ambient_color
     # Mapping of pipeline value AmbientColor.
-    self.ambient_color = avango.gua.Color(0.4, 0.4, 0.4)
+    self.ambient_color = avango.gua.Color(0.3, 0.3, 0.3)
 
     ## @var enable_fog
     # Mapping of pipeline value EnableFog.
-    self.enable_fog = True
+    self.enable_fog = False
 
     ## @var fog_start
     # Mapping of pipeline value FogStart.
@@ -119,7 +119,7 @@ class SceneObject:
 
     ## @var near_clip
     # Mapping of pipeline value NearClip.
-    self.near_clip = 0.1
+    self.near_clip = 0.15
 
     ## @var far_clip
     # Mapping of pipeline value FarClip.
@@ -187,7 +187,7 @@ class SceneObject:
     _node = _loader.create_geometry_from_file(NAME, FILENAME, MATERIAL, eval(_loader_flags))
     _node.Transform.value = MATRIX
   
-    #print "LOADED", _node, _node.Name.value#, _loader_flags
+    #print("LOADED", _node, _node.Name.value) #, _loader_flags)
   
     self.init_interactive_objects(_node, PARENT_NODE, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, RENDER_GROUP, True)
 
@@ -339,7 +339,7 @@ class SceneObject:
   ## Creates and initializes an interactive object.
   def init_interactive_objects(self, NODE, PARENT_OBJECT, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, RENDER_GROUP, RECURSIVE_FLAG):
 
-    #print "!!!!!!!", NODE.get_type(), NODE.Name.value, len(NODE.Children.value), NODE.Path.value, RENDER_GROUP
+    #print("!!!!!!!", NODE.get_type(), NODE.Name.value, len(NODE.Children.value), NODE.Path.value, RENDER_GROUP)
 
     #_object = InteractiveObject()
     #_object.base_constructor(self, NODE, PARENT_OBJECT, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, RENDER_GROUP)
@@ -496,14 +496,14 @@ class InteractiveObject(avango.script.Script):
     self.man_pick_flag = MANIPULATION_PICK_FLAG
 
     if self.parent_object.get_type() == "Objects::InteractiveObject": # interactive object
-      #print "append to IO"
+      #print("append to IO")
       self.parent_object.append_child_object(self)
 
     else: # scene root
-      #print "append to scene root"
+      #print("append to scene root")
       self.parent_object.Children.value.append(self.node)
     
-    #print "new object", self, self.hierarchy_level, self.node, self.node.Name.value, self.node.Transform.value.get_translate(), self.parent_object
+    #print("new object", self, self.hierarchy_level, self.node, self.node.Name.value, self.node.Transform.value.get_translate(), self.parent_object)
 
     # init sub classes
     ## @var bb_vis
@@ -596,16 +596,19 @@ class InteractiveObject(avango.script.Script):
   ## Sets the world ransformation of the handled scenegraph node.
   def set_world_transform(self, MATRIX):
 
-    if self.parent_object.get_type() == "Objects::InteractiveObject": # interactive object    
+    _parent_type = self.parent_object.get_type()
+
+    if _parent_type == "Objects::InteractiveObject": # interactive object    
       _parent_world_transform = self.parent_object.get_world_transform()
   
       _mat = avango.gua.make_inverse_mat(_parent_world_transform) * MATRIX # matrix is transformed into world coordinate system of parent object in scenegraph
   
       self.set_local_transform(_mat)
     
-    else: # scene root
+    elif _parent_type == "av::gua::TransformNode": # scene root
+      _mat = avango.gua.make_inverse_mat(self.parent_object.Transform.value) * MATRIX # matrix is transformed into scene root coordinate system
       
-      self.set_local_transform(MATRIX)
+      self.set_local_transform(_mat)
 
   ## Resets the interactive object to the initial matrix.
   def reset(self):
@@ -646,21 +649,3 @@ class InteractiveObject(avango.script.Script):
       else: # scene root
         return None
 
-
-'''
-class GeometryObject(InteractiveObject):
-
-  def init(self, SCENE, NODE, PARENT_OBJECT, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, RENDER_GROUP):
-
-    self.base_constructor(SCENE, NODE, PARENT_OBJECT, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, RENDER_GROUP)
-
-
-
-class LightObject(InteractiveObject):
-
-  def init(self, SCENE, NODE, PARENT_OBJECT, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, RENDER_GROUP):
-    
-    self.base_constructor(SCENE, NODE, PARENT_OBJECT, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, RENDER_GROUP)
-'''
-
-    

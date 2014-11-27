@@ -18,61 +18,9 @@ from examples_common.GuaVE import GuaVE
 # import python libraries
 import sys
 
-# Command line parameters:
-# main.py SERVER_IP WORKSPACE_CONFIG_FILE WORKSPACE_ID DISPLAY_GROUP_ID SCREEN_ID DISPLAY_NAME
 
-## Main method for the client application.
-def start():
+def prepare_medieval():
 
-  # disable logger warningss
-  logger = avango.gua.nodes.Logger(EnableWarning = False)
-
-  # get the server ip
-  server_ip = str(sys.argv[1])
-
-  # get the workspace config file #
-  workspace_config_file = str(sys.argv[2])
-  exec('from ' + workspace_config_file.replace("/", ".").replace(".py", "") + ' import displays', globals())
-
-  # get the workspace id
-  workspace_id = int(sys.argv[3])
-
-  # get the display group id
-  display_group_id = int(sys.argv[4])
-
-  # get the screen id
-  screen_id = int(sys.argv[5])
-
-  # get the display name
-  display_name = str(sys.argv[6])
-
-  # get own hostname
-  hostname = open('/etc/hostname', 'r').readline()
-  hostname = hostname.strip(" \n")
-
-  print("This client is running on", hostname, "and listens to server", server_ip)
-  print("It is responsible for workspace", workspace_id, ", display group", display_group_id, "and screen", screen_id)
-
-  # preload materials and shading models
-  avango.gua.load_shading_models_from("data/materials")
-  avango.gua.load_materials_from("data/materials")
-  
-  # create distribution node
-  nettrans = avango.gua.nodes.NetTransform(
-                Name = "net",
-                # specify role, ip, and port
-                Groupname = "AVCLIENT|{0}|7432".format(server_ip)
-                )
-
-  # create a dummy scenegraph to be extended by distribution
-  graph = avango.gua.nodes.SceneGraph(Name = "scenegraph")
-
-  graph.Root.value.Children.value = [nettrans]
-
-  # create material updaters as this cannot be distributed
-  avango.gua.load_shading_models_from("data/materials")
-  avango.gua.load_materials_from("data/materials")
-  
   timer = avango.nodes.TimeSensor()
   
   water_updater = ClientMaterialUpdaters.TimedMaterialUniformUpdate()
@@ -80,14 +28,20 @@ def start():
   water_updater.UniformName.value = "time"
   water_updater.TimeIn.connect_from(timer.Time)
 
-  #'''
-  # PLOD Stuff
+
+def prepare_pitoti():
+
   _loader = avango.gua.nodes.PLODLoader()
   _loader.UploadBudget.value = 512
   _loader.RenderBudget.value = 4*1024
   _loader.OutOfCoreBudget.value = 32*1024
 
   # Valcamonica
+  #_path = "/mnt/pitoti/KDN_LOD/PITOTI_KDN_LOD/01_SFM-Befliegung_Seradina_PointCloud/" # opt path
+  #_path = "/media/SSD_500GB/CONVERTED_Seradina_Parts/" # ssd path
+  
+  #_path = "/mnt/pitoti/Seradina_FULL_SCAN/Parts/"
+  #_path = "/mnt/pitoti/Seradina_FULL_SCAN/sera_fixed/"
   _path = "/mnt/ssd_pitoti/pitoti/valley/seradina_flyover/" # ssd path
 
   _node = _loader.create_geometry_from_file("valley1", _path + "sera_part_01.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
@@ -107,8 +61,16 @@ def start():
   _node = _loader.create_geometry_from_file("valley15", _path + "sera_part_15.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
   _node = _loader.create_geometry_from_file("valley16", _path + "sera_part_16.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
   
-  _path = "/mnt/ssd_pitoti/pitoti/valley/nadro_flyover/" # ssd path
-  _node = _loader.create_geometry_from_file("valley17", _path + "foppe_di_nadro_const.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
+  #_path = "/mnt/ssd_pitoti/pitoti/valley/nadro_flyover/" # ssd path
+  #_node = _loader.create_geometry_from_file("valley17", _path + "foppe_di_nadro_const.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
+
+  _path = "/mnt/ssd_pitoti/pitoti/valley/nadro_flyover/new/" # ssd path
+  #_node = _loader.create_geometry_from_file("valley17", _path + "foppe_050713__3.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
+  _node = _loader.create_geometry_from_file("valley18", _path + "foppe_050713__4.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
+  _node = _loader.create_geometry_from_file("valley19", _path + "foppe_050713__7.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
+  _node = _loader.create_geometry_from_file("valley20", _path + "foppe_050713__8.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
+  _node = _loader.create_geometry_from_file("valley21", _path + "foppe_050713__9.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
+  _node = _loader.create_geometry_from_file("valley22", _path + "foppe_050713__10.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)        
 
   # seradina 12c rock
   _path = "/mnt/ssd_pitoti/pitoti/seradina_12c/rock/" # pitoti ssd path
@@ -160,7 +122,75 @@ def start():
   _path = "/mnt/ssd_pitoti/pitoti/nadro_24/motives/" # pitoti ssd path
   _loader.create_geometry_from_file("nadro_24_motive1", _path + "Area-7_Rosa-Camuna.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
   _loader.create_geometry_from_file("nadro_24_motive2", _path + "Area-7_Warrior.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
-  #'''
+
+  '''
+  (3.636 1.717 35.555 113.341
+   35.593 0.357 -3.657 316.284
+   -0.530 35.739 -1.672 24.145
+   0.000 0.000 0.000 1.000)
+  '''
+
+# Command line parameters:
+# main.py SERVER_IP WORKSPACE_CONFIG_FILE WORKSPACE_ID DISPLAY_GROUP_ID SCREEN_ID DISPLAY_NAME
+
+## Main method for the client application.
+def start():
+
+  # disable logger warningss
+  logger = avango.gua.nodes.Logger(EnableWarning = False)
+
+  # get the server ip
+  server_ip = str(sys.argv[1])
+
+  # get the workspace config file #
+  workspace_config_file = str(sys.argv[2])
+  exec('from ' + workspace_config_file.replace("/", ".").replace(".py", "") + ' import displays', globals())
+
+  # get the workspace id
+  workspace_id = int(sys.argv[3])
+
+  # get the display group id
+  display_group_id = int(sys.argv[4])
+
+  # get the screen id
+  screen_id = int(sys.argv[5])
+
+  # get the display name
+  display_name = str(sys.argv[6])
+
+  # get own hostname
+  hostname = open('/etc/hostname', 'r').readline()
+  hostname = hostname.strip(" \n")
+
+  print("This client is running on", hostname, "and listens to server", server_ip)
+  print("It is responsible for workspace", workspace_id, ", display group", display_group_id, "and screen", screen_id)
+
+  # preload materials and shading models
+  avango.gua.load_shading_models_from("data/materials")
+  avango.gua.load_materials_from("data/materials")
+  
+  # create distribution node
+  nettrans = avango.gua.nodes.NetTransform(
+                Name = "net",
+                # specify role, ip, and port
+                Groupname = "AVCLIENT|{0}|7432".format(server_ip)
+                )
+
+  # create a dummy scenegraph to be extended by distribution
+  graph = avango.gua.nodes.SceneGraph(Name = "scenegraph")
+  graph.Root.value.Children.value = [nettrans]
+
+  # create material updaters as this cannot be distributed
+  avango.gua.load_shading_models_from("data/materials")
+  avango.gua.load_materials_from("data/materials")
+  
+  '''
+  # Volume Stuff
+  _loader = avango.gua.nodes.VolumeLoader()
+  _node = _loader.load("volume_test", "/mnt/data_internal/volume_data/general/backpack16_w512_h512_d373_c1_b16.raw", avango.gua.VolumeLoaderFlags.DEFAULTS)
+  '''
+  prepare_medieval()
+  #prepare_plod()
 
   # get the display instance
   for _display in displays:
