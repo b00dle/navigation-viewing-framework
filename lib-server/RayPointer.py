@@ -52,8 +52,6 @@ class RayPointerRepresentation(ToolRepresentation):
                                                          , "data/objects/cylinder.obj"
                                                          , "data/materials/White.gmd"
                                                          , avango.gua.LoaderFlags.DEFAULTS)
-    #self.ray_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
-    self.ray_geometry.GroupNames.value.append("main_scene")
     self.set_ray_distance(self.TOOL_INSTANCE.ray_length)
     self.tool_transform_node.Children.value.append(self.ray_geometry)
 
@@ -64,7 +62,7 @@ class RayPointerRepresentation(ToolRepresentation):
                                                                        , "data/materials/White.gmd"
                                                                        , avango.gua.LoaderFlags.DEFAULTS)
     self.intersection_point_geometry.GroupNames.value.append("do_not_display_group")
-    #self.intersection_point_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+    
     self.tool_transform_node.Children.value.append(self.intersection_point_geometry)
 
     ## @var ray_start_geometry
@@ -74,7 +72,21 @@ class RayPointerRepresentation(ToolRepresentation):
                                                                , "data/materials/White.gmd"
                                                                , avango.gua.LoaderFlags.DEFAULTS)
     self.ray_start_geometry.Transform.value = avango.gua.make_scale_mat(0.015, 0.015, 0.015)
-    #self.ray_start_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value) 
+    
+    if IN_VIRTUAL_DISPLAY:
+      _virtual_display_group_name = self.USER_REPRESENTATION.view_transform_node.Parent.value.Name.value
+      _head_name = self.USER_REPRESENTATION.head.Name.value
+      _identifier = _virtual_display_group_name + "_" + _head_name
+
+      self.ray_geometry.GroupNames.value.append(_identifier)
+      self.intersection_point_geometry.GroupNames.value.append(_identifier)
+      self.ray_start_geometry.GroupNames.value.append(_identifier)
+
+    else:
+      self.ray_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+      self.intersection_point_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+      self.ray_start_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+
     self.tool_transform_node.Children.value.append(self.ray_start_geometry)
 
     ## @var highlighted
@@ -124,9 +136,21 @@ class RayPointerRepresentation(ToolRepresentation):
 
   ## Resets the GroupNames field of this RayPointerRepresentation's visualization to the user representation's view_transform_node.
   def reset_visualization_group_names(self):
-    self.ray_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
-    self.intersection_point_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
-    self.ray_start_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
+
+    if self.is_in_virtual_display():
+
+      _virtual_display_group_name = self.USER_REPRESENTATION.view_transform_node.Parent.value.Name.value
+      _head_name = self.USER_REPRESENTATION.head.Name.value
+      _identifier = _virtual_display_group_name + "_" + _head_name
+
+      self.ray_geometry.GroupNames.value = [_identifier]
+      self.intersection_point_geometry.GroupNames.value = [_identifier]
+      self.ray_start_geometry.GroupNames.value = [_identifier]
+
+    else:
+      self.ray_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
+      self.intersection_point_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
+      self.ray_start_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
 
   ## Enables a highlight for this RayPointerRepresentation.
   def enable_highlight(self):

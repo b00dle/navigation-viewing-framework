@@ -309,12 +309,12 @@ class UserRepresentation:
 
       self.connected_navigation_id = ID
 
-      try:
-        print_message("User " + str(self.USER.id) + " at display group " + str(self.DISPLAY_GROUP.id) + \
-         ": Switch navigation to " + str(ID) + " (" + _new_navigation.input_device_name + ")")
-      except:
-        print_message("User " + str(self.USER.id) + " at display group " + str(self.DISPLAY_GROUP.id) + \
-         ": Switch navigation to " + str(ID) + " (no input device)")
+      #try:
+      #  print_message("User " + str(self.USER.id) + " at display group " + str(self.DISPLAY_GROUP.id) + \
+      #   ": Switch navigation to " + str(ID) + " (" + _new_navigation.input_device_name + ")")
+      #except:
+      #  print_message("User " + str(self.USER.id) + " at display group " + str(self.DISPLAY_GROUP.id) + \
+      #   ": Switch navigation to " + str(ID) + " (no input device)")
 
       # trigger avatar and screen geometry visibilities
       self.avatar.set_material('data/materials/' + _new_navigation.trace_material + ".gmd"
