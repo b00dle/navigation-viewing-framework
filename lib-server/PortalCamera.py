@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 ## @file
-# Contains classes Shot and PortalCamera.
+# Contains classes Shot, PortalCameraRepresentation and PortalCamera.
 
 # import avango-guacamole libraries
 import avango
@@ -89,8 +89,8 @@ class PortalCameraRepresentation(ToolRepresentation):
                         , USER_REPRESENTATION
                         , "portal_cam_" + str(PORTAL_CAMERA_INSTANCE.id))
 
-    ##
-    #
+    ## @var virtual_display
+    # A virtual display assigned to this PortalCameraRepresentation.
     self.virtual_display = VirtualDisplay(ENTRY_MATRIX = avango.gua.make_identity_mat()
                                         , WIDTH = PORTAL_CAMERA_INSTANCE.portal_width
                                         , HEIGHT = PORTAL_CAMERA_INSTANCE.portal_height)
@@ -100,8 +100,8 @@ class PortalCameraRepresentation(ToolRepresentation):
     self.virtual_nav = PortalCameraNavigation()
     self.virtual_nav.my_constructor(PORTAL_CAMERA_INSTANCE = self.TOOL_INSTANCE)
 
-    ##
-    #
+    ## @var virtual_display_group
+    # Virtual display group for the virtual displays needed by this PortalCameraRepresentation.
     self.virtual_display_group = VirtualDisplayGroup(DISPLAY_LIST = [self.virtual_display]
                                                    , NAVIGATION_LIST = [self.virtual_nav]
                                                    , VISIBILITY_TAG = "portal"
@@ -122,7 +122,7 @@ class PortalCameraRepresentation(ToolRepresentation):
     self.highlighted = False
 
     ## @var entry_matrix_connected
-    # 
+    # Boolean indicating if the virtual display group was already connected sf_entry_matrix.
     self.entry_matrix_connected = False
 
 
@@ -141,7 +141,7 @@ class PortalCameraRepresentation(ToolRepresentation):
     # base class evaluate
     self.perform_tool_node_transformation()
 
-    # wait for entry matrix node, then connect it if not already done
+    # wait for entry node, then connect it if not already done
     if self.entry_matrix_connected == False:
 
       try:

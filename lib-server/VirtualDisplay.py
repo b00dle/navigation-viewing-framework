@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 ## @file
-# Contains classes VirtualDisplay.
+# Contains class VirtualDisplay.
 
 # import avango-guacamole libraries
 import avango
@@ -16,7 +16,7 @@ from ConsoleIO import *
 from scene_config import scenegraphs
 
 
-## A VirtualDisplay is the display of another location in the scene on a texture.
+## A VirtualDisplay is a display medium of another location in the scene in the form of a texture.
 class VirtualDisplay(Display):
 
   ## @var num_instances_created
@@ -24,9 +24,9 @@ class VirtualDisplay(Display):
   num_instances_created = 0
 
   ## Custom constructor.
-  # @param ENTRY_MATRIX Matrix where the portal display is located (entry).
-  # @param WIDTH Width of the portal in meters.
-  # @param HEIGHT Height of the portal in meters.
+  # @param ENTRY_MATRIX Matrix where the virtual display is located in the scene (entry).
+  # @param WIDTH Width of the virtual display in meters.
+  # @param HEIGHT Height of the virtual display in meters.
   def __init__(self
              , ENTRY_MATRIX
              , WIDTH
@@ -36,12 +36,12 @@ class VirtualDisplay(Display):
     self.base_constructor("portal_" + str(VirtualDisplay.num_instances_created), (1000, 1000), (WIDTH, HEIGHT), _stereo)
 
     ## @var id
-    # The portal ID assigned to the portal.
+    # The ID assigned to the virtual display.
     self.id = VirtualDisplay.num_instances_created
     VirtualDisplay.num_instances_created += 1
 
     ## @var entry_matrix
-    # Matrix where the portal display is located (entry).
+    # Matrix where the virtual display is located in the scene (entry).
     self.entry_matrix = ENTRY_MATRIX
 
   ## Returns a boolean value saying if this display is virtual.

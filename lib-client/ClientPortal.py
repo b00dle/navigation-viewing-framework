@@ -15,7 +15,7 @@ from ConsoleIO import *
 # import python libraries
 import math
 
-## Class to create, handle and destroy Portal instances on client side.
+## Class to create, handle and destroy ClientPortal instances.
 class ClientPortalManager(avango.script.Script):
 
   ## @var mf_portal_group_children
@@ -121,7 +121,7 @@ class ClientPortalManager(avango.script.Script):
         del _portal_to_delete
 
 
-## Client counterpart for the server Portal class.
+## When a virtual display group node was found in the scenegraph, a ClientPortal instance is created for it.
 class ClientPortal:
 
   ## Custom constructor.
@@ -142,7 +142,7 @@ class ClientPortal:
 
 
 ## A PortalPreView is instantiated for each View for each ClientPortal and displays the correct 
-# perspective for the view within the portal.
+# perspective for the view within a virtual display group.
 class PortalPreView(avango.script.Script):
 
   ## @var mf_portal_modes
@@ -159,7 +159,7 @@ class PortalPreView(avango.script.Script):
   def my_constructor(self, SERVER_PORTAL_NODE, VIEW):
     
     ## @var SERVER_PORTAL_NODE
-    # The portal scenegraph node on server side to be associated with this instance.
+    # The portal scenegraph node to be associated with this instance.
     self.SERVER_PORTAL_NODE = SERVER_PORTAL_NODE
 
     ## @var VIEW
@@ -195,8 +195,8 @@ class PortalPreView(avango.script.Script):
     # Server portal node containing the portal matrix (entry transformation).
     self.entry_node = VIEW.SCENEGRAPH["/net/virtual_displays/" + SERVER_PORTAL_NODE.Name.value + "/entry"]
 
-    ##
-    #
+    ## @var textrue_offset_nodes
+    # List of texture offset nodes below the entry node of the virtual display group.
     self.texture_offset_nodes = []
 
     for _entry_child in self.entry_node.Children.value:
@@ -207,12 +207,12 @@ class PortalPreView(avango.script.Script):
     # Server portal node containing the scene matrix (exit transformation).
     self.exit_node = VIEW.SCENEGRAPH["/net/virtual_displays/" + SERVER_PORTAL_NODE.Name.value + "/exit"]
 
-    ##
-    #
+    ## @var screen_nodes
+    # List of screen nodes below the exit node of the virtual display group.
     self.screen_nodes = []
 
-    ##
-    #
+    ## @var screen_sizes
+    # Current (width, height) tuples for each screen node in self.screen_nodes. Used to detect changes.
     self.screen_sizes = []
 
     for _exit_child in self.exit_node.Children.value:
@@ -221,31 +221,40 @@ class PortalPreView(avango.script.Script):
         self.screen_sizes.append( (_exit_child.Width.value, _exit_child.Height.value) )
 
 
-    # debug screen visualization TO BE REDONE
-    #_loader = avango.gua.nodes.TriMeshLoader()
-    #_node = _loader.create_geometry_from_file("screen_visualization", "data/objects/screen.obj", "data/materials/ShadelessBlack.gmd", avango.gua.LoaderFlags.DEFAULTS | avango.gua.LoaderFlags.LOAD_MATERIALS)
-    #_node.Transform.value = self.screen_node.Transform.value * \
-    #                        avango.gua.make_scale_mat(self.screen_node.Width.value, self.screen_node.Height.value, 1.0)
-    #self.scene_matrix_node.Children.value.append(_node)
+    # debug screen visualizations
+    '''
+    _loader = avango.gua.nodes.TriMeshLoader()
 
-    ##
-    #
+    for _screen_node in self.screen_nodes:
+
+      _index = self.screen_nodes.index(_screen_node)
+      _node = _loader.create_geometry_from_file("screen_visualization_" + str(_index)
+                                              , "data/objects/screen.obj"
+                                              , "data/materials/ShadelessBlack.gmd"
+                                              , avango.gua.LoaderFlags.DEFAULTS | avango.gua.LoaderFlags.LOAD_MATERIALS)
+      _node.Transform.value = _screen_node.Transform.value * \
+                              avango.gua.make_scale_mat(_screen_node.Width.value, _screen_node.Height.value, 1.0)
+      self.exit_node.Children.value.append(_node)
+    '''
+
+    ## @var cameras
+    # List of Camera instances used to render the pre-pipelines.
     self.cameras = []
 
-    ##
-    #
+    ## @var pipelines
+    # List of Pipeline instances used to render the contents of this virtual display group.
     self.pipelines = []
 
-    ##
-    #
+    ## @var textured_quads
+    # List of TexturedQuad instances used to display the contents of this virtual display group.
     self.textured_quads = []
 
-    ##
-    #
+    ## @var back_geometries
+    # List of geometry nodes representing the backside planes of the virtual displays.
     self.back_geometries = []
 
-    ##
-    #
+    ## @var border_geometries
+    # List of geometry nodes representing the border frames of the virtual displays.
     self.border_geometries = []
 
     for _screen_node in self.screen_nodes:

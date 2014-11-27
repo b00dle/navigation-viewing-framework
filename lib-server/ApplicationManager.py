@@ -553,7 +553,8 @@ class ApplicationManager(avango.script.Script):
   ## Evaluated every frame.
   def evaluate(self):
 
-    # handle portal transitions
+    ## handle portal transitions ##
+
     for _nav in self.workspace_navigations:
 
       # if navigation does not allow portal transit, go to next loop iteration
@@ -622,7 +623,8 @@ class ApplicationManager(avango.script.Script):
             _nav.inputmapping.set_scale(_active_navigation.sf_scale.value, False)
 
 
-    # handle requestable navigations
+    ## handle requestable navigations ##
+
     for _requestable_nav in self.requestable_navigations:
 
       _workspace = _requestable_nav[0]
@@ -667,8 +669,6 @@ class ApplicationManager(avango.script.Script):
         self.requestable_navigations_last_button_states[_requestable_nav_index] = False
 
 
-
-
   ## Initializes the GroupNames field of all UserRepresentation's avatars.
   # Users cannot see the avatars in own display group, but the ones in others.
   def init_avatar_group_names(self):
@@ -680,6 +680,7 @@ class ApplicationManager(avango.script.Script):
         if _user_repr_2.DISPLAY_GROUP != _user_repr_1.DISPLAY_GROUP:
 
           _user_repr_1.append_to_avatar_group_names(_user_repr_2.view_transform_node.Name.value)
+  
 
   ## Switches the navigation for a user at a display group. 
   # @param WORKSPACE_ID The workspace id in which the user is active.

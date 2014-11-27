@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 ## @file
-# Contains class DisplayGroup.
+# Contains classes DisplayGroup and VirtualDisplayGroup.
 
 # import avango-guacamole libraries
 import avango
@@ -23,7 +23,6 @@ class DisplayGroup:
   # @param VISIBILITY_TAG Tag used by the Tools' visibility matrices to define if they are visible for this display group.
   # @param OFFSET_TO_WORKSPACE Offset describing the origin of this display group with respect to the origin of the workspace.
   # @param WORKSPACE_TRANSMITTER_OFFSET Transmitter offset applied in the workspace.
-  # @param PORTAL_NODE_NAME_ATTACHMENT Additional string information passed in the name of the virtual display node, if virtual displays are present.
   def __init__(self
              , ID
              , DISPLAY_LIST
@@ -61,7 +60,8 @@ class DisplayGroup:
         pass
 
 
-
+## Collection of virtual displays that are semantically one navigational unit, although users
+# might have individual navigations assigned.
 class VirtualDisplayGroup(DisplayGroup):
 
   ## @var num_instances_created
@@ -76,8 +76,12 @@ class VirtualDisplayGroup(DisplayGroup):
   # @param DISPLAY_LIST List of Display instances to be assigned to the new display group.
   # @param NAVIGATION_LIST List of (Steering-)Navigation instances to be assigned to the display group.
   # @param VISIBILITY_TAG Tag used by the Tools' visibility matrices to define if they are visible for this display group.
-  # @param WORKSPACE_TRANSMITTER_OFFSET Transmitter offset applied in the workspace.
-  # @param PORTAL_NODE_NAME_ATTACHMENT Additional string information passed in the name of the virtual display node, if virtual displays are present.
+  # @param VIEWING_MODE Viewing mode of the virtual displays in the group, can be either "2D" or "3D".
+  # @param CAMERA_MODE Projection mode of the virtual displays in the group, can be either "PERSPECTIVE" or "ORTHOGRAPHIC".
+  # @param NEGATIVE_PARALLAX Indicating if negative parallax is allowed in the the virtual displays of the group, can be either "True" or "False".
+  # @param BORDER_MATERIAL The material string to be used for the the virtual displays' border.
+  # @param TRANSITABLE Boolean saying if teleportation for the virtual displays in the group is enabled.
+  # @param PORTAL_NODE_NAME_ATTACHMENT Additional string information passed in the name of portal_node.
   def __init__(self
              , DISPLAY_LIST
              , NAVIGATION_LIST
@@ -102,28 +106,28 @@ class VirtualDisplayGroup(DisplayGroup):
                         , avango.gua.make_identity_mat()
                         , avango.gua.make_identity_mat())
 
-    ##
-    #
+    ## @var NET_TRANS_NODE
+    # Reference to the nettrans node of the scenegraph for portal_group_node to attach.
     self.NET_TRANS_NODE = scenegraphs[0]["/net"]
 
     ## @var portal_node_name_attachment
-    # Additional string information passed in the name of the virtual display node, if virtual displays are present.
+    # Additional string information passed in the name of the virtual display group node.
     self.portal_node_name_attachment = PORTAL_NODE_NAME_ATTACHMENT
 
     ## @var viewing_mode
-    # Viewing mode of the portal, can be either "2D" or "3D".
+    # Viewing mode of the virtual displays in the group, can be either "2D" or "3D".
     self.viewing_mode = VIEWING_MODE
 
     ## @var camera_mode
-    # Projection mode of the portal camera, can be either "PERSPECTIVE" or "ORTHOGRAPHIC".
+    # Projection mode of the virtual displays in the group, can be either "PERSPECTIVE" or "ORTHOGRAPHIC".
     self.camera_mode = CAMERA_MODE
 
     ## @var negative_parallax
-    # Indicating if negative parallax is allowed in the portal, can be either "True" or "False".
+    # Indicating if negative parallax is allowed in the the virtual displays of the group, can be either "True" or "False".
     self.negative_parallax = NEGATIVE_PARALLAX
 
     ## @var border_material
-    # The material string to be used for the portal's border.
+    # The material string to be used for the the virtual displays' border.
     self.border_material = BORDER_MATERIAL
 
     ## @var visible
@@ -131,12 +135,11 @@ class VirtualDisplayGroup(DisplayGroup):
     self.visible = "True"
 
     ## @var transitable
-    # Boolean saying if teleportation for is portal is enabled.
+    # Boolean saying if teleportation for the virtual displays in the group is enabled.
     self.transitable = TRANSITABLE
 
 
-  ## 
-  #
+  ## Appends the necessary virtual display group nodes to the scenegraph.
   def add_virtual_display_nodes(self):
 
     # determine offsets for all virtual displays
@@ -161,27 +164,27 @@ class VirtualDisplayGroup(DisplayGroup):
       self.NET_TRANS_NODE.distribute_object(VirtualDisplayGroup.portal_group_node)
 
     ## @var portal_node
-    # Grouping node for this portal below the group node for all portals.
+    # Grouping node for this virtual display group below the group node for all virtual displays.
     self.portal_node = avango.gua.nodes.TransformNode(Name = "vir_dg" + str(self.id) + "_" + self.portal_node_name_attachment)
     VirtualDisplayGroup.portal_group_node.Children.value.append(self.portal_node)
     self.NET_TRANS_NODE.distribute_object(self.portal_node)
 
     ## @var settings_node
-    # Node whose group names store information about the portal settings, such as viewing mode, etc.
+    # Node whose group names store information about the virtual display group settings, such as viewing mode, etc.
     self.settings_node = avango.gua.nodes.TransformNode(Name = "settings")
     self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
     self.portal_node.Children.value.append(self.settings_node)
     self.NET_TRANS_NODE.distribute_object(self.settings_node)
 
     ## @var entry_node
-    # 
+    # Node storing the matrix of the virtual display group's primary display's entry.
     self.entry_node = avango.gua.nodes.TransformNode(Name = "entry")
     self.entry_node.Transform.value = self.displays[0].entry_matrix
     self.portal_node.Children.value.append(self.entry_node)
     self.NET_TRANS_NODE.distribute_object(self.entry_node)
 
     ## @var exit_node
-    # 
+    # Node storing the matrix of the virtual display group's exit.
     self.exit_node = avango.gua.nodes.TransformNode(Name = "exit")
     self.exit_node.Transform.value = avango.gua.make_identity_mat()
     self.portal_node.Children.value.append(self.exit_node)
@@ -190,12 +193,12 @@ class VirtualDisplayGroup(DisplayGroup):
 
     # add texture offset nodes and screen nodes
     
-    ##
-    #
+    ## @var texture_offset_nodes
+    # Scenegraph nodes below entry that offset the textures by the virtual screen transformations.
     self.texture_offset_nodes = []
     
-    ##
-    #
+    ## @var screen_nodes
+    # List of screen nodes belonging to this virtual display group.
     self.screen_nodes = []
 
     for _offset in _offsets:
@@ -253,8 +256,8 @@ class VirtualDisplayGroup(DisplayGroup):
     self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
 
 
-  ##
-  #
+  ## Connects the virtual display group's primary entry matrix to a given field.
+  # @param SF_MATRIX The matrix field to be connected.
   def connect_entry_matrix(self, SF_MATRIX):
 
     self.entry_node.Transform.disconnect()
@@ -278,14 +281,16 @@ class VirtualDisplayGroup(DisplayGroup):
 
     self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
 
-  ##
-  #
+  ## Sets the size of a screen node of this virtual display group.
+  # @param INDEX Index of the screen node to set a new size for.
+  # @param WIDTH The new width in meters to be set.
+  # @param HEIGHT The new height in meters to be set.
   def set_size(self, INDEX, WIDTH, HEIGHT):
     self.size = (WIDTH, HEIGHT)
     self.screen_nodes[INDEX].Width.value = WIDTH
     self.screen_nodes[INDEX].Height.value = HEIGHT
 
-  ## Removes this portal from the portal group and destroys all the scenegraph nodes.
+  ## Deletes the scenegraph representation of this virtual display group.
   def delete(self):
 
     VirtualDisplayGroup.portal_group_node.Children.value.remove(self.portal_node)

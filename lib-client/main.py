@@ -17,6 +17,7 @@ from examples_common.GuaVE import GuaVE
 
 # import python libraries
 import sys
+
 # Command line parameters:
 # main.py SERVER_IP WORKSPACE_CONFIG_FILE WORKSPACE_ID DISPLAY_GROUP_ID SCREEN_ID DISPLAY_NAME
 
