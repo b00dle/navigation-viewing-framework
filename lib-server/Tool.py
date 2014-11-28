@@ -326,4 +326,5 @@ class Tool(VisibilityHandler2D):
 
     # make tool holder tool representation visible for all others on different navigations and display groups
     for _string in _assigned_user_tool_visible_for:
-      _tool_repr_of_assigned_user.append_to_visualization_group_names(_string)
+      if _tool_repr_of_assigned_user != None:
+        _tool_repr_of_assigned_user.append_to_visualization_group_names(_string)

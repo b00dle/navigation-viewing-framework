@@ -417,6 +417,7 @@ class RayPointer(Tool):
             _user_nav_mat = _user_repr.view_transform_node.Transform.value
 
             # pick is visible when visible in one of the display group's screens
+            print(_user_repr.screens)
             for _screen in _user_repr.screens:
               
               _visible = self.is_inside_frustum(_pick_world_position

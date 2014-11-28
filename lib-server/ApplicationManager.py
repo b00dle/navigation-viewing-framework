@@ -276,6 +276,11 @@ class ApplicationManager(avango.script.Script):
                            , _complex)
 
         _virtual_user_repr.add_dependent_node(_physical_user_repr.head)
+
+        # add screen nodes to user representation
+        for _screen in _display_group.screen_nodes:
+          _virtual_user_repr.add_existing_screen_node(_screen)
+
         _virtual_user_representations.append(_virtual_user_repr)
         _virtual_user_representations_of_dg.append(_virtual_user_repr)
 

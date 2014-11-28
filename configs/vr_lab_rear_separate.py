@@ -133,7 +133,7 @@ vr_lab_rear.create_user( VIP = False
 tool_visibility_table = {
                           "dlp_wall"  : {"table" : False, "portal" : False}
                         , "table" : {"dlp_wall" : True, "portal" : False}  
-                        , "portal" : {"dlp_wall" : True, "table" : False}
+                        , "portal" : {"dlp_wall" : True, "table" : False, "portal" : False}
                        }
 
 vr_lab_rear.create_ray_pointer( POINTER_TRACKING_STATION = 'tracking-dlp-pointer1' 
