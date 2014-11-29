@@ -149,6 +149,10 @@ class MultiTouchDevice(avango.script.Script):
         self.hand_tracking_trans = avango.gua.nodes.TransformNode(Name = "hand_tracking")
         self.hand_tracking_trans.Transform.connect_from(self.hand_tracking.sf_tracking_mat)
         self._screenTransformNode.Children.value.append(self.hand_tracking_trans)
+
+        """ cut away uniform info """
+        self.cut_sphere_node = avango.gua.nodes.TransformNode(Name = "cut_sphere")
+        self._sceneGraph["/net"].Children.value.append(self.cut_sphere_node)
         ############        
 
         """ define Input display size """
@@ -245,6 +249,7 @@ class MultiTouchDevice(avango.script.Script):
                                                 avango.gua.make_rot_mat(90,1,0,0) * \
                                                 avango.gua.make_scale_mat( 0.5*lengthVecMinMax, 0.5*lengthVecMinMax, 0.5*lengthVecMinMax)
 
+        self.setCutSphereUniforms(avango.gua.Vec3(mappedPos.x,mappedPos.z,-mappedPos.y), 0.5*lengthVecMinMax)
         #self.touch_hand_geometries[index].Transform.value = avango.gua.make_trans_mat(self.mapInputPosition(fPos1)) * \
         #                                                    avango.gua.make_scale_mat(0.025, 0.025, 0.025)
 
@@ -252,6 +257,18 @@ class MultiTouchDevice(avango.script.Script):
         rayLength = 1        
         self.touch_ray_geometries[index].Transform.value = avango.gua.make_trans_mat(mappedPos.x, mappedPos.y, -0.5 * rayLength) * \
                                                 avango.gua.make_scale_mat(0.01, 0.01, rayLength)
+
+    def setCutSphereUniforms(self, sphereCenter, sphereRadius):
+        _mat = avango.gua.make_identity_mat()
+        
+        _mat.set_element(0,0,sphereCenter.x)
+        _mat.set_element(1,0,sphereCenter.y)
+        _mat.set_element(2,0,sphereCenter.z)
+        
+        _mat.set_element(0,1,sphereRadius)
+        
+        self.cut_sphere_node.Transform.value = _mat
+
 
     def getDisplay(self):
         return self._display

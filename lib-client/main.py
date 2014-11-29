@@ -10,7 +10,7 @@ import avango.gua
 import avango.oculus
 
 # import framework libraries
-import ClientMaterialUpdaters
+from ClientMaterialUpdaters import *
 from View import *
 from ClientPortal import *
 from examples_common.GuaVE import GuaVE
@@ -21,6 +21,37 @@ import sys
 # Command line parameters:
 # main.py SERVER_IP WORKSPACE_CONFIG_FILE WORKSPACE_ID DISPLAY_GROUP_ID SCREEN_ID DISPLAY_NAME
 
+class Test:
+
+  ## Default constructor.
+  def __init__(self, GRAPH):
+
+    self.graph = GRAPH
+
+    ## @var frame_trigger
+    # Triggers framewise evaluation of frame_callback method.
+    self.frame_trigger = avango.script.nodes.Update(Callback = self.frame_callback, Active = True)    
+
+    
+  ## Evaluated every frame.
+  def frame_callback(self):
+
+    #print("in function frame_callback")
+   
+    _node = self.graph["/net/cut_sphere"]
+    
+    #print(_node != None)
+    if _node != None:
+      
+      #print("inside", self.frame_trigger.Active.value)
+      self.cut_sphere_updater = TimedCutSphereUpdate()
+      self.cut_sphere_updater.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
+      self.cut_sphere_updater.UniformMat.connect_from(_node.Transform)
+
+      self.frame_trigger.Active.value = False # disable frame callback
+    
+      print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    
 ## Main method for the client application.
 def start():
 
@@ -68,17 +99,38 @@ def start():
   graph = avango.gua.nodes.SceneGraph(Name = "scenegraph")
 
   graph.Root.value.Children.value = [nettrans]
-
+  
   # create material updaters as this cannot be distributed
   avango.gua.load_shading_models_from("data/materials")
   avango.gua.load_materials_from("data/materials")
   
   timer = avango.nodes.TimeSensor()
   
-  water_updater = ClientMaterialUpdaters.TimedMaterialUniformUpdate()
+  water_updater = TimedMaterialUniformUpdate()
   water_updater.MaterialName.value = "data/materials/Water.gmd"
   water_updater.UniformName.value = "time"
   water_updater.TimeIn.connect_from(timer.Time)
+
+  '''
+  avango.gua.set_material_uniform("data/materials/SimplePhongWhiteCut.gmd",
+                                    "sphere_center",
+                                    avango.gua.Vec3(0,0,0))
+    
+  avango.gua.set_material_uniform("data/materials/SimplePhongWhiteCut.gmd",
+                                    "sphere_radius",
+                                    0.01)
+  '''
+  #cut_sphere_updater = TimedCutSphereUpdate()
+  #cut_sphere_updater.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
+
+
+  test = Test(graph)
+
+  #i = 0
+  #for i == 0:
+  #  if graph["/net/cut_sphere"] != None:
+  #    cut_sphere_updater.UniformMat.connect_from(graph["/net/cut_sphere"].Transform)
+  #    break
 
   '''
   # PLOD Stuff

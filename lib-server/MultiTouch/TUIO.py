@@ -68,6 +68,7 @@ class TUIODevice(MultiTouchDevice):
 
     #@field_has_changed(PosChanged)
     def processChange(self):
+        
         # reset all visualizations
         self.fingercenterpos_geometry.GroupNames.value = ["do_not_display_group"]
         
@@ -81,6 +82,8 @@ class TUIODevice(MultiTouchDevice):
             rayGeom.GroupNames.value = ["do_not_display_group"]
         
         self.ray_geometry.GroupNames.value = ["do_not_display_group"]
+
+        self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0)
 
         if -1.0 == self.PosChanged.value:
             return
@@ -122,16 +125,34 @@ class TUIODevice(MultiTouchDevice):
                 if len(self._activeHands[handID]) == 1:
                     fingerPos = avango.gua.Vec3(self._activeHands[handID][0].PosX.value, self._activeHands[handID][0].PosY.value, 0)
                     self.visualizeTouchFinger(fingerPos, 5*handID)
+                    mappedPos = self.mapInputPosition(fingerPos)
+                    self.setCutSphereUniforms(avango.gua.Vec3(mappedPos.x,mappedPos.z,-mappedPos.y), 0.07)
 
-                if len(self._activeHands[handID]) < 5 and len(self._activeHands[handID]) > 0:
+                elif len(self._activeHands[handID]) < 5 and len(self._activeHands[handID]) > 0:
+                    xMin = 100000.0
+                    yMin = 100000.0
+                    xMax = -100000.0
+                    yMax = -100000.0
+
                     fingerID = 0
-                    centerPos = avango.gua.Vec3(0,0,0)
+                    #centerPos = avango.gua.Vec3(0,0,0)
                     for finger in self._activeHands[handID]:
                         fingerPos = avango.gua.Vec3(finger.PosX.value, finger.PosY.value, 0)
+                        xMin = min(xMin, fingerPos.x)
+                        xMax = max(xMax, fingerPos.x)
+                        yMin = min(yMin, fingerPos.y)
+                        yMax = max(yMax, fingerPos.y)
                         self.visualizeTouchFinger(fingerPos, 5*handID + fingerID)
-                        centerPos += fingerPos
+                        #centerPos += fingerPos
                         fingerID += 1
-                    centerPos = centerPos / fingerID
+
+                    #centerPos = centerPos / fingerID
+                    vecMinMax = avango.gua.Vec3((xMax-xMin), (yMax-yMin), 0.0)
+                    lengthVecMinMax = math.sqrt(math.pow(vecMinMax.x,2) + math.pow(vecMinMax.y,2))
+                    centerPos = avango.gua.Vec3(xMin, yMin, 0.0) + avango.gua.Vec3(0.5*vecMinMax.x, 0.5*vecMinMax.y, 0.0)
+                    mappedPos = self.mapInputPosition(centerPos)
+
+                    self.setCutSphereUniforms(avango.gua.Vec3(mappedPos.x,mappedPos.z,-mappedPos.y), 0.5*lengthVecMinMax)
                 
                 elif len(self._activeHands[handID]) == 5:
                     fingerPos1 = avango.gua.Vec3(self._activeHands[handID][0].PosX.value, self._activeHands[handID][0].PosY.value, 0)
