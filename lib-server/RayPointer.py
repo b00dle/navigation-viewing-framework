@@ -72,6 +72,8 @@ class RayPointerRepresentation(ToolRepresentation):
                                                                , "data/materials/White.gmd"
                                                                , avango.gua.LoaderFlags.DEFAULTS)
     self.ray_start_geometry.Transform.value = avango.gua.make_scale_mat(0.015, 0.015, 0.015)
+
+    self.tool_transform_node.Children.value.append(self.ray_start_geometry)
     
     if IN_VIRTUAL_DISPLAY:
       _virtual_display_group_name = self.USER_REPRESENTATION.view_transform_node.Parent.value.Name.value
@@ -86,8 +88,6 @@ class RayPointerRepresentation(ToolRepresentation):
       self.ray_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
       self.intersection_point_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
       self.ray_start_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
-
-    self.tool_transform_node.Children.value.append(self.ray_start_geometry)
 
     ## @var highlighted
     # Boolean indicating if this representation is highlighted. Usually used to color the assigned user's representation.
@@ -393,6 +393,9 @@ class RayPointer(Tool):
       # iterate over all tool representations of the tool
       for _tool_repr in self.tool_representations:
 
+        if _tool_repr.is_in_virtual_display():
+          continue
+
         if _tool_repr.user_id == self.assigned_user.id: # check only tool representations of the assigned user
        
           # compute pick result for current tool representation
@@ -479,6 +482,7 @@ class RayPointer(Tool):
 
   ## Evaluated every frame.
   def evaluate(self):
+    
 
     if self.dragged_interactive_object == None:
       
@@ -487,6 +491,7 @@ class RayPointer(Tool):
 
       # compute active pick result
       _pick_result_tuple = self.get_pick_result_tuple()
+      #_pick_result_tuple = None
 
       # a pick was found and selected
       if _pick_result_tuple != None:
@@ -530,6 +535,7 @@ class RayPointer(Tool):
     else:
 
       self.drag_object()
+
 
 
   ## Function called on a framewise basis when dragging is in progress.

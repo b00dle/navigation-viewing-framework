@@ -112,7 +112,6 @@ class ToolRepresentation(avango.script.Script):
 
     # we just need one tool representation per virtual display group
     # thus we can use self.DISPLAY_GROUP.displays[0] for the transformation
-
     self.tool_transform_node.Transform.value = self.DISPLAY_GROUP.screen_nodes[0].Transform.value * \
                                                avango.gua.make_inverse_mat(self.DISPLAY_GROUP.entry_node.Transform.value) * \
                                                self.dependent_nodes[0].WorldTransform.value # untransformed tracking data of tool

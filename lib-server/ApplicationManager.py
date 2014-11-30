@@ -311,8 +311,6 @@ class ApplicationManager(avango.script.Script):
 
               print("Create tool representation for", _tool)
 
-              pass
-              '''
               _virtual_tool_repr = _tool.create_tool_representation_for(_display_group, _virtual_user_repr, True)
 
               # find physical tool representation for the tool transform node
@@ -320,7 +318,6 @@ class ApplicationManager(avango.script.Script):
                 if _child.Name.value == "tool_" + str(_t_id):
                   _virtual_tool_repr.add_dependent_node(_child)
                   break
-              '''
 
             
     for _virtual_user_representation in _virtual_user_representations:
@@ -468,7 +465,7 @@ class ApplicationManager(avango.script.Script):
                             "dlp_wall"  : {"table" : False, "portal" : False}
                           , "table" : {"dlp_wall" : True, "portal" : False}  
                           , "lcd_wall" : {"dlp_wall" : True, "table" : False, "portal" : False}
-                          , "portal" : {"dlp_wall" : True, "table" : False, "lcd_wall" : True}
+                          , "portal" : {"dlp_wall" : True, "table" : False, "lcd_wall" : True, "portal" : False}
                               }
 
       for _workspace in ApplicationManager.all_workspaces:
@@ -508,7 +505,7 @@ class ApplicationManager(avango.script.Script):
                             "dlp_wall"  : {"table" : True, "portal" : False}
                           , "table" : {"dlp_wall" : True, "portal" : False}  
                           , "lcd_wall" : {"dlp_wall" : True, "table" : True, "portal" : False}
-                          , "portal" : {"dlp_wall" : True, "table" : False, "lcd_wall" : True}
+                          , "portal" : {"dlp_wall" : True, "table" : False, "lcd_wall" : True, "portal" : False}
                               }
 
       for _workspace in ApplicationManager.all_workspaces:

@@ -235,6 +235,6 @@ tower_portal_2_dg = VirtualDisplayGroup(DISPLAY_LIST = [tower_portal_2]
                                       )
 
 #virtual_display_groups = [tower_portal_1_dg, tower_portal_2_dg]
-virtual_display_groups = [tower_portal_1_dg]
+#virtual_display_groups = [tower_portal_1_dg]
 #'''
-#virtual_display_groups = []
+virtual_display_groups = []
