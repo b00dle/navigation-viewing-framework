@@ -505,7 +505,6 @@ class PortalCamera(Tool):
 
       for _tool_repr in self.tool_representations:
         _tool_repr.virtual_nav.set_navigation_values(_shot_platform_matrix, _active_navigation.sf_scale.value)
-
     
 
     # apply size changes

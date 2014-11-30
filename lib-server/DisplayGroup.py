@@ -94,12 +94,9 @@ class VirtualDisplayGroup(DisplayGroup):
              , PORTAL_NODE_NAME_ATTACHMENT = "wa_dga"):
 
 
-    _id = VirtualDisplayGroup.num_instances_created
-    VirtualDisplayGroup.num_instances_created += 1
-
     # call base class constructor
     DisplayGroup.__init__(self
-                        , _id
+                        , None # id is set properly when nodes are attached to the scenegraph
                         , DISPLAY_LIST
                         , NAVIGATION_LIST
                         , VISIBILITY_TAG
@@ -141,6 +138,9 @@ class VirtualDisplayGroup(DisplayGroup):
 
   ## Appends the necessary virtual display group nodes to the scenegraph.
   def add_virtual_display_nodes(self):
+
+    self.id = VirtualDisplayGroup.num_instances_created
+    VirtualDisplayGroup.num_instances_created += 1
 
     # determine offsets for all virtual displays
 

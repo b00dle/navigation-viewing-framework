@@ -309,6 +309,10 @@ class ApplicationManager(avango.script.Script):
             # jump over tools outside the workspace of the currently handled physical user representation
             if _tool.WORKSPACE_INSTANCE == _physical_user_repr.USER.WORKSPACE_INSTANCE:
 
+              print("Create tool representation for", _tool)
+
+              pass
+              '''
               _virtual_tool_repr = _tool.create_tool_representation_for(_display_group, _virtual_user_repr, True)
 
               # find physical tool representation for the tool transform node
@@ -316,6 +320,7 @@ class ApplicationManager(avango.script.Script):
                 if _child.Name.value == "tool_" + str(_t_id):
                   _virtual_tool_repr.add_dependent_node(_child)
                   break
+              '''
 
             
     for _virtual_user_representation in _virtual_user_representations:
