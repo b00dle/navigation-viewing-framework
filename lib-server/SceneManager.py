@@ -75,7 +75,6 @@ class TimedSwayingUpdate(avango.script.Script):
     self.SFRotMat.value = avango.gua.make_rot_mat( self.max_rot_offset * math.sin( (20 * self.frequency * self.TimeIn.value) / math.pi ),
                           0, 0, 1)
 
-
 ## Helper class to create a rotation matrix with resepect to the current time.
 class DayAnimationUpdate(avango.script.Script):
 

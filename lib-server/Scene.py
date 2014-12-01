@@ -5,6 +5,12 @@
 
 # import avango-guacamole libraries
 import avango
+import avango.gua
+import avango.script
+from avango.script import field_has_changed
+
+import math
+import time
 
 # import framework libraries
 from Objects import *
@@ -12,7 +18,32 @@ from Objects import *
 # import python libraries
 # ...
 
+class TimedHoverUpdate(avango.script.Script):
+  ## @var TimeIn
+  # Field containing the current time in seconds.
+  TimeIn = avango.SFFloat()
 
+  ## @var MatOut
+  # Field containing the input matrix.
+  MatIn = avango.gua.SFMatrix4()
+
+
+  ## @var MatOut
+  # Field containing the output matrix being calculated by this class.
+  MatOut = avango.gua.SFMatrix4()
+
+  Offset = avango.SFFloat()
+  
+  def set_timer(self):
+    self.timer = avango.nodes.TimeSensor()
+    self.TimeIn.connect_from(self.timer.Time)
+
+  ## Called whenever TimeIn changes.
+  @field_has_changed(TimeIn)
+  def update(self):
+    #calculate rotation of the ship
+    self.MatOut.value = self.MatIn.value * avango.gua.make_trans_mat(0, 0.8*math.sin(self.Offset.value + self.TimeIn.value), 0)
+    
 class Passat(SceneObject):
 
   # dummy testing scene with just the passat object
@@ -51,13 +82,13 @@ class SceneSimpleCut(SceneObject):
     self.init_geometry("monkey4", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(-0.4, 0.025, 0) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey5", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    _mat = avango.gua.make_trans_mat(0.2, 0.025, 0.2) * avango.gua.make_scale_mat(0.1)
+    _mat = avango.gua.make_trans_mat(0.2, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey6", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    _mat = avango.gua.make_trans_mat(-0.2, 0.025, 0.2) * avango.gua.make_scale_mat(0.1)
+    _mat = avango.gua.make_trans_mat(-0.2, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey7", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    _mat = avango.gua.make_trans_mat(0.4, 0.025, 0.2) * avango.gua.make_scale_mat(0.1)
+    _mat = avango.gua.make_trans_mat(0.4, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey8", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    _mat = avango.gua.make_trans_mat(-0.4, 0.025, 0.2) * avango.gua.make_scale_mat(0.1)
+    _mat = avango.gua.make_trans_mat(-0.4, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey9", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.2, 0.025, -0.2) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey10", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
@@ -67,11 +98,45 @@ class SceneSimpleCut(SceneObject):
     self.init_geometry("monkey12", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(-0.4, 0.025, -0.2) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey13", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    _mat = avango.gua.make_trans_mat(0.0, 0.025, 0.2) * avango.gua.make_scale_mat(0.1)
+    _mat = avango.gua.make_trans_mat(0.0, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey14", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.0, 0.025, -0.2) * avango.gua.make_scale_mat(0.1)
     self.init_geometry("monkey15", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     
+    hoverUpdate1 = TimedHoverUpdate()
+    hoverUpdate1.MatIn.value = self.scene_root.Children.value[0].Transform.value
+    self.scene_root.Children.value[0].Transform.connect_from(hoverUpdate1.MatOut)
+    
+    hoverUpdate2 = TimedHoverUpdate()
+    hoverUpdate2.MatIn.value = self.scene_root.Children.value[1].Transform.value
+    self.scene_root.Children.value[1].Transform.connect_from(hoverUpdate2.MatOut)
+    
+    hoverUpdate3 = TimedHoverUpdate()
+    hoverUpdate3.MatIn.value = self.scene_root.Children.value[2].Transform.value
+    self.scene_root.Children.value[2].Transform.connect_from(hoverUpdate3.MatOut)
+    
+    hoverUpdate4 = TimedHoverUpdate()
+    hoverUpdate4.MatIn.value = self.scene_root.Children.value[3].Transform.value
+    self.scene_root.Children.value[3].Transform.connect_from(hoverUpdate4.MatOut)
+    
+    hoverUpdate5 = TimedHoverUpdate()
+    hoverUpdate5.MatIn.value = self.scene_root.Children.value[4].Transform.value
+    self.scene_root.Children.value[4].Transform.connect_from(hoverUpdate5.MatOut)
+    
+    pi = 3.14159265359
+
+    hoverUpdate1.Offset.value = 0.0 * pi
+    hoverUpdate2.Offset.value = 0.33 * pi
+    hoverUpdate3.Offset.value = 0.33 * pi
+    hoverUpdate4.Offset.value = 0.66 * pi
+    hoverUpdate5.Offset.value = 0.66 * pi
+
+    hoverUpdate1.set_timer()
+    hoverUpdate2.set_timer()
+    hoverUpdate3.set_timer()
+    hoverUpdate4.set_timer()
+    hoverUpdate5.set_timer()
+
     '''
     avango.gua.set_material_uniform("data/materials/SimplePhongWhiteCut.gmd",
                                     "sphere_center",
