@@ -260,7 +260,6 @@ class RayPointer(Tool):
     ## @var picking_options
     # Picking options for intersection
     self.picking_options = avango.gua.PickingOptions.PICK_ONLY_FIRST_OBJECT \
-                          | avango.gua.PickingOptions.PICK_ONLY_FIRST_FACE \
                           | avango.gua.PickingOptions.GET_WORLD_POSITIONS \
                           | avango.gua.PickingOptions.GET_WORLD_NORMALS
 
@@ -393,8 +392,8 @@ class RayPointer(Tool):
       # iterate over all tool representations of the tool
       for _tool_repr in self.tool_representations:
 
-        if _tool_repr.is_in_virtual_display():
-          continue
+        #if _tool_repr.is_in_virtual_display():
+        #  continue
 
         if _tool_repr.user_id == self.assigned_user.id: # check only tool representations of the assigned user
        
@@ -414,19 +413,20 @@ class RayPointer(Tool):
             #print(_pick_world_position)
             
             # is pick position in frustum of assigned user?
-            _user_repr = self.assigned_user.get_user_representation_at(_tool_repr.DISPLAY_GROUP.id)
+            _user_repr = self.assigned_user.get_user_representation_at(_tool_repr.DISPLAY_GROUP)
 
             _user_head_world_mat = _user_repr.head.WorldTransform.value
             _user_nav_mat = _user_repr.view_transform_node.Transform.value
 
             # pick is visible when visible in one of the display group's screens
             #print(_user_repr.screens)
+            _visible = False
+
             for _screen in _user_repr.screens:
-              
+
               _visible = self.is_inside_frustum(_pick_world_position
-                                      , _user_head_world_mat
-                                      , _user_nav_mat
-                                      , _screen)
+                                    , _user_repr
+                                    , _screen)
 
               if _visible == True:
                 # append to candidate list if visible
@@ -473,8 +473,9 @@ class RayPointer(Tool):
       
   ## Create candidate list and select one of the candidates.
   def get_pick_result_tuple(self):
-
+   
     _candidate_representations = self.create_candidate_list()
+
     #print("candidates", _candidate_representations)
     _chosen_pick_result_tuple = self.choose_from_candidate_list(_candidate_representations)
     #print("selected", _chosen_pick_result_tuple)
@@ -491,7 +492,6 @@ class RayPointer(Tool):
 
       # compute active pick result
       _pick_result_tuple = self.get_pick_result_tuple()
-      #_pick_result_tuple = None
 
       # a pick was found and selected
       if _pick_result_tuple != None:
@@ -677,22 +677,30 @@ class RayPointer(Tool):
 
   ## Checks if a point is inside the viewing frustum of a user.
   # @param POINT The point to be checked.
-  # @param USER_HEAD_WORLD_MAT The user's headtracking matrix in world coordinates.
-  # @param USER_NAV_WORLD_MAT The user's navigation matrix in world coordinates.
+  # @param USER_REPRESENTATION The UserRepresentation instance to which SCREEN is belonging to.
   # @param SCREEN The screen to create the viewing frustum for. 
-  def is_inside_frustum(self, POINT, USER_HEAD_WORLD_MAT, USER_NAV_WORLD_MAT, SCREEN):
-      
-    _user_head_world_pos = USER_HEAD_WORLD_MAT.get_translate()
-  
-    # check if intersection point is between near and far plane
-    _near_clip = SceneManager.current_near_clip
+  def is_inside_frustum(self, POINT, USER_REPRESENTATION, SCREEN):
+
+    _user_head_world_mat = USER_REPRESENTATION.head.WorldTransform.value
+    _user_nav_mat = USER_REPRESENTATION.view_transform_node.Transform.value
+
+    _user_head_world_pos = _user_head_world_mat.get_translate()
+    _mat = SCREEN.WorldTransform.value
+
+    # if user representation is in virtual display, start intersecting from the virtual display plane
+    if USER_REPRESENTATION.is_in_virtual_display():
+      _head_in_screen = avango.gua.make_inverse_mat(_mat) * _user_head_world_pos
+      _near_clip = abs(_head_in_screen.z)
+    else:
+      _near_clip = SceneManager.current_near_clip
+
     _far_clip = SceneManager.current_far_clip
 
-    _mat = SCREEN.WorldTransform.value
     _mat.set_translate(_user_head_world_pos)
     
     _point = avango.gua.make_inverse_mat(_mat) * POINT # point in head space
     _depth = abs(_point.z)
+
     if (_depth < _near_clip) or (_depth > _far_clip):
       return False
 

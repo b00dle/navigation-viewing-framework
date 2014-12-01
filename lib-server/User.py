@@ -114,7 +114,7 @@ class UserRepresentation:
     self.thumbnail_mode = False
 
   ## Determines whether this UserRepresentation is repsonsible for a virtual display.
-  def in_virtual_display(self):
+  def is_in_virtual_display(self):
 
     if self.view_transform_node.Name.value == "exit":
       return True
@@ -127,7 +127,7 @@ class UserRepresentation:
   
     if self.execute_transformation_policy:
       
-      if not self.in_virtual_display():
+      if not self.is_in_virtual_display():
         self.perform_physical_user_head_transformation()
 
       else:
@@ -466,10 +466,13 @@ class User(VisibilityHandler2D):
     self.user_representations.append(_user_repr)
     return _user_repr
 
-  ## Returns the UserRepresentation instance at a diven DISPLAY_GROUP_ID.
-  # @param DISPLAY_GROUP_ID The id of the DisplayGroup to retrieve the UserRepresentation for.
-  def get_user_representation_at(self, DISPLAY_GROUP_ID):
-    return self.user_representations[DISPLAY_GROUP_ID]
+  ## Returns the UserRepresentation instance at a given DISPLAY_GROUP.
+  # @param DISPLAY_GROUP The  DisplayGroup to retrieve the UserRepresentation for.
+  def get_user_representation_at(self, DISPLAY_GROUP):
+
+    for _user_repr in self.user_representations:
+      if _user_repr.DISPLAY_GROUP == DISPLAY_GROUP:
+        return _user_repr
 
   ## Switches the navigation for a display group.
   # @param DISPLAY_GROUP_ID Identification number of the display group to switch the navigation for.
@@ -568,7 +571,7 @@ class User(VisibilityHandler2D):
               _visible = False
             
             if _visible:
-              if _user_repr.view_transform_node.Name.value == "scene_matrix":
+              if _user_repr.view_transform_node.Name.value == "exit":
                 _user_visible_for.append(_user_repr.view_transform_node.Parent.value.Name.value + "_" + _user_repr.head.Name.value)
               else:
                 _user_visible_for.append(_user_repr.view_transform_node.Name.value)

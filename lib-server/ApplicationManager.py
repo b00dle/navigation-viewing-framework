@@ -18,7 +18,7 @@ from   Video3D import *
 # import python libraries
 import os
 import subprocess
-#import time
+import time
 
 ## Class to build the scenegraph from the Workspaces, Display Groups and Users created.
 # Builds a server control monitor for debugging purposes.
@@ -244,7 +244,7 @@ class ApplicationManager(avango.script.Script):
                 "/start-client.sh " + _server_ip + " " + str(WORKSPACE_CONFIG) + " " + str(_w_id) + " " + \
                 str(_dg_id) + " " + str(_s_id) + " " + _display.name]
                 , stderr=subprocess.PIPE, universal_newlines=True)
-                #time.sleep(1)
+                time.sleep(1)
 
                 #print("ssh", _display.hostname, _directory_name, _server_ip)
                 #print("ssh", _display.hostname, _directory_name + \
