@@ -68,10 +68,16 @@ class Shot(avango.script.Script):
 ## Geometric representation of a PortalCamera in a DisplayGroup.
 class PortalCameraRepresentation(ToolRepresentation):
 
+  ## @var sf_prior_entry_matrix
+  # Field containing the entry matrix of the last frame in order to avoid latency.
+  sf_prior_entry_matrix = avango.gua.SFMatrix4()
+  sf_prior_entry_matrix.value = avango.gua.make_identity_mat()
+
   ## @var sf_entry_matrix
   # Field to which the portal entry matrices are connected to in order to appear above the PortalCamera.
   sf_entry_matrix = avango.gua.SFMatrix4()
   sf_entry_matrix.value = avango.gua.make_identity_mat()
+
 
   ## Default constructor.
   def __init__(self):
@@ -96,15 +102,10 @@ class PortalCameraRepresentation(ToolRepresentation):
                                         , WIDTH = PORTAL_CAMERA_INSTANCE.portal_width
                                         , HEIGHT = PORTAL_CAMERA_INSTANCE.portal_height)
 
-    ## @var virtual_nav
-    # Instance of PortalCameraNavigation in which the captured shots are to be loaded.
-    self.virtual_nav = PortalCameraNavigation()
-    self.virtual_nav.my_constructor(PORTAL_CAMERA_INSTANCE = self.TOOL_INSTANCE)
-
     ## @var virtual_display_group
     # Virtual display group for the virtual displays needed by this PortalCameraRepresentation.
     self.virtual_display_group = VirtualDisplayGroup(DISPLAY_LIST = [self.virtual_display]
-                                                   , NAVIGATION_LIST = [self.virtual_nav]
+                                                   , NAVIGATION_LIST = [PORTAL_CAMERA_INSTANCE.virtual_nav]
                                                    , VISIBILITY_TAG = "portal"
                                                    , VIEWING_MODE = PORTAL_CAMERA_INSTANCE.capture_viewing_mode
                                                    , CAMERA_MODE = "PERSPECTIVE"
@@ -126,6 +127,10 @@ class PortalCameraRepresentation(ToolRepresentation):
     # Boolean indicating if the virtual display group was already connected sf_entry_matrix.
     self.entry_matrix_connected = False
 
+    ## @var frame_trigger
+    # Triggers framewise evaluation of frame_callback method
+    self.frame_trigger = avango.script.nodes.Update(Callback = self.frame_callback, Active = True)
+
 
   ## Computes the WorldTransform of a scenegraph node manually without using the pre-defined field.
   # @param NODE The scenegraph node to compute the world transformation for.
@@ -137,10 +142,18 @@ class PortalCameraRepresentation(ToolRepresentation):
       return self.compute_world_transform(NODE.Parent.value) * NODE.Transform.value
 
   ## Evaluated every frame.
-  def evaluate(self):
+  def frame_callback(self):
+
+    # update sf_entry_matrix
+    self.sf_entry_matrix.value = self.compute_world_transform(self.tool_transform_node) * \
+                                 avango.gua.make_trans_mat(0.0, self.TOOL_INSTANCE.portal_height/2, 0.0)
 
     # base class evaluate
     self.perform_tool_node_transformation()
+
+
+    self.sf_prior_entry_matrix.value = self.compute_world_transform(self.tool_transform_node) * \
+                                       avango.gua.make_trans_mat(0.0, self.TOOL_INSTANCE.portal_height/2, 0.0)
 
     # wait for entry node, then connect it if not already done
     if self.entry_matrix_connected == False:
@@ -154,10 +167,6 @@ class PortalCameraRepresentation(ToolRepresentation):
       self.virtual_display_group.entry_node.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
       self.entry_matrix_connected = True
       self.virtual_display_group.set_visibility(False)
-
-    # update sf_entry_matrix
-    self.sf_entry_matrix.value = self.compute_world_transform(self.tool_transform_node) * \
-                                 avango.gua.make_trans_mat(0.0, self.TOOL_INSTANCE.portal_height/2, 0.0)
 
     # update border color according to highlight enabled
     if self.highlighted:
@@ -178,14 +187,6 @@ class PortalCameraRepresentation(ToolRepresentation):
   # @param SHOT The Shot instance to be loaded.
   def assign_shot(self, SHOT):
 
-    # disconnect fields when a shot is already assigned
-    if self.assigned_shot != None:
-      self.assigned_shot.sf_abs_mat.disconnect()
-      self.assigned_shot.sf_scale.disconnect()
-
-    # copy shot values to navigation
-    self.virtual_nav.set_navigation_values(SHOT.sf_abs_mat.value, SHOT.sf_scale.value)
-
     # copy shot values to portal
     if SHOT.sf_viewing_mode.value != self.virtual_display_group.viewing_mode:
       self.virtual_display_group.switch_viewing_mode()
@@ -195,12 +196,6 @@ class PortalCameraRepresentation(ToolRepresentation):
 
     if SHOT.sf_negative_parallax.value != self.virtual_display_group.negative_parallax:
       self.virtual_display_group.switch_negative_parallax()
-
-    # establish field connections to copy updates done by the PortalCameraNavigation.
-    SHOT.sf_abs_mat.disconnect()
-    SHOT.sf_abs_mat.connect_from(self.virtual_nav.sf_abs_mat)
-    SHOT.sf_scale.disconnect()
-    SHOT.sf_scale.connect_from(self.virtual_nav.sf_scale)
 
     self.assigned_shot = SHOT
     self.virtual_display_group.set_visibility(True)
@@ -234,7 +229,7 @@ class PortalCameraRepresentation(ToolRepresentation):
   def append_to_visualization_group_names(self, STRING):
     
     # do not add portal head group nodes for visibility of this portal
-    if not STRING.startswith("portal"):
+    if not STRING.startswith("vir_"):
       self.virtual_display_group.entry_node.GroupNames.value.append(STRING)
 
 
@@ -385,6 +380,11 @@ class PortalCamera(Tool):
     # Factor with which the size of the portals will be multiplied when in gallery mode.
     self.gallery_magnification_factor = 1.5
 
+    ## @var virtual_nav
+    # Instance of PortalCameraNavigation in which the captured shots are to be loaded for all tool representations.
+    self.virtual_nav = PortalCameraNavigation()
+    self.virtual_nav.my_constructor(PORTAL_CAMERA_INSTANCE = self)
+
 
   ## Custom constructor.
   # @param WORKSPACE_INSTANCE The instance of Workspace to which this Tool belongs to.
@@ -419,8 +419,9 @@ class PortalCamera(Tool):
     self.sf_negative_parallax_on_button.connect_from(self.device_sensor.Button12)
     self.sf_negative_parallax_off_button.connect_from(self.device_sensor.Button13)
 
-    # set evaluation policy
-    self.always_evaluate(True)
+    ## @var frame_trigger
+    # Triggers framewise evaluation of frame_callback method
+    self.frame_trigger = avango.script.nodes.Update(Callback = self.frame_callback, Active = True)
 
 
   ## Creates a PortalCamearRepresentation for this RayPointer at a DISPLAY_GROUP.
@@ -472,16 +473,12 @@ class PortalCamera(Tool):
     _chosen_tool_representation = self.choose_from_candidate_list(_candidate_representations)
     return _chosen_tool_representation
 
-
   ## Evaluated every frame.
-  def evaluate(self):
+  def frame_callback(self):
 
     # do not start until virtual display nodes are present
     if len(self.tool_representations) == 0:
       return
-
-    # update user assignment
-    self.check_for_user_assignment()
 
     # handle portal updates in capture mode
     if self.in_capture_mode:
@@ -493,19 +490,17 @@ class PortalCamera(Tool):
 
         self.capture_tool_representation = _active_tool_representation
 
-      #print(self.tool_representations, len(self.tool_representations))
-      #print(_active_tool_representation)
-
       # compute shot parameters and assign them
       _active_navigation = _active_tool_representation.DISPLAY_GROUP.navigations[_active_tool_representation.USER_REPRESENTATION.connected_navigation_id]
 
       # compute matrix
-      _shot_platform_matrix = _active_tool_representation.sf_entry_matrix.value * \
+      _shot_platform_matrix = _active_tool_representation.sf_prior_entry_matrix.value * \
                               avango.gua.make_inverse_mat(avango.gua.make_scale_mat(_active_navigation.sf_scale.value))
 
-      for _tool_repr in self.tool_representations:
-        _tool_repr.virtual_nav.set_navigation_values(_shot_platform_matrix, _active_navigation.sf_scale.value)
-    
+      self.virtual_nav.set_navigation_values(_shot_platform_matrix, _active_navigation.sf_scale.value)
+
+    # update user assignment
+    self.check_for_user_assignment()
 
     # apply size changes
     if self.sf_size_up_button.value == True:
@@ -534,6 +529,16 @@ class PortalCamera(Tool):
       for _tool_repr in self.tool_representations:
         _tool_repr.update_size()
 
+    # feed back changes to current shot
+    if self.current_shot != None:
+      
+      if self.current_shot.sf_abs_mat.value != self.virtual_nav.sf_abs_mat.value:
+        self.current_shot.sf_abs_mat.value = self.virtual_nav.sf_abs_mat.value
+      
+      if self.current_shot.sf_scale.value != self.virtual_nav.sf_scale.value:
+        self.current_shot.sf_scale.value = self.virtual_nav.sf_scale.value
+
+
   ## Sets the scale of the currently active shot or returns when no shot is active.
   # @param SCALE The new scale to be set.
   def set_current_shot_scale(self, SCALE):
@@ -544,12 +549,14 @@ class PortalCamera(Tool):
 
       self.current_shot.sf_scale.value = SCALE
 
-      for _tool_repr in self.tool_representations:
-        _tool_repr.virtual_nav.set_navigation_values(_tool_repr.virtual_nav.sf_abs_mat.value, SCALE)
+      self.virtual_nav.set_navigation_values(self.virtual_nav.sf_abs_mat.value, SCALE)
 
   ## Loads a given Shot instances to all representations.
   # @param SHOT The Shot instance to be loaded.
   def set_current_shot(self, SHOT):
+
+    # copy shot values to navigation
+    self.virtual_nav.set_navigation_values(SHOT.sf_abs_mat.value, SHOT.sf_scale.value)
 
     for _tool_repr in self.tool_representations:
       _tool_repr.assign_shot(SHOT)
@@ -594,7 +601,7 @@ class PortalCamera(Tool):
                            "PERSPECTIVE",
                            self.capture_parallax_mode)
 
-      self.set_current_shot(_shot)              
+      self.set_current_shot(_shot)             
 
       self.in_capture_mode = True
 
