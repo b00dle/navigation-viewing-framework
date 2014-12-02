@@ -37,6 +37,10 @@ class ApplicationManager(avango.script.Script):
   # List of all UserRepresentation instances active in the setup.
   all_user_representations = []
 
+  ## @var all_virtual_display_groups
+  # List of all VirtualDisplayGroup instances active in the setup.
+  all_virtual_display_groups = []
+
   ## @var all_workspaces
   # List of all Workspace instances active in the setup.
   all_workspaces = []
@@ -73,7 +77,7 @@ class ApplicationManager(avango.script.Script):
     _workspace_config_file_name = WORKSPACE_CONFIG.replace(".py", "")
     _workspace_config_file_name = _workspace_config_file_name.replace("/", ".")
     exec('from ' + _workspace_config_file_name + ' import workspaces', globals())
-    exec('from ' + _workspace_config_file_name + ' import portal_display_groups', globals())
+    exec('from ' + _workspace_config_file_name + ' import virtual_display_groups', globals())
     
     # parameters
     ## @var background_texture
@@ -103,7 +107,7 @@ class ApplicationManager(avango.script.Script):
           for _display in _display_group.displays:
 
             if _display.hostname != _own_hostname:
-              _ssh_kill = subprocess.Popen(["ssh", _display.hostname, "killall python -9"], universal_newlines=True)
+              _ssh_kill = subprocess.Popen(["ssh", _display.hostname, "killall python3 -9"], universal_newlines=True)
 
 
     # viewing setup and start of client processes #
@@ -122,6 +126,7 @@ class ApplicationManager(avango.script.Script):
       # get own hostname
       _hostname = open('/etc/hostname', 'r').readline()
       _hostname = _hostname.strip(" \n")
+      #print(_server_ip, _hostname)
 
       # get directory name
       _directory_name = os.path.dirname(os.path.dirname(__file__))
@@ -147,14 +152,11 @@ class ApplicationManager(avango.script.Script):
     # Used for portal teleportation checks.
     self.workspace_navigations = []
 
-    ## @var transit_portals
-    # List of Portal instances that have the transitable flag set true.
-    self.transit_portals = []
+    ## @var transit_display_groups
+    # List of VirtualDisplayGroup instances that have the transitable flag set true.
+    self.transit_display_groups = []
 
-    ## @var portal_display_groups
-    # List of DisplayGroups that contain portals from the configuration file. Is completed
-    # by portal display groups created by PortalCameraRepresentations.
-    self.portal_display_groups = portal_display_groups
+    ApplicationManager.all_virtual_display_groups = virtual_display_groups
 
 
     ## Handle physical viewing setups ##
@@ -211,12 +213,12 @@ class ApplicationManager(avango.script.Script):
 
           # create tool representation in display_group
           for _tool in _workspace.tools:
-            _tool_repr = _tool.create_tool_representation_for(_display_group, _user_repr)
+            _tool_repr = _tool.create_tool_representation_for(_display_group, _user_repr, False)
 
             # register portal display groups if this tool representation is a PortalCameraRepresentation
             try:
-              _tool_repr.portal_dg
-              self.portal_display_groups.append(_tool_repr.portal_dg)
+              _tool_repr.virtual_display_group
+              ApplicationManager.all_virtual_display_groups.append(_tool_repr.virtual_display_group)
             except:
               pass
 
@@ -246,57 +248,80 @@ class ApplicationManager(avango.script.Script):
                 , stderr=subprocess.PIPE, universal_newlines=True)
                 time.sleep(1)
 
+                #print("ssh", _display.hostname, _directory_name, _server_ip)
                 #print("ssh", _display.hostname, _directory_name + \
                 #"/start-client.sh " + _server_ip + " " + str(WORKSPACE_CONFIG) + " " + str(_w_id) + " " + \
                 #str(_dg_id) + " " + str(_s_id) + " " + _display.name)
-
-
 
 
     ## Handle virtual viewing setups ##
 
     _virtual_user_representations = []
 
-    for _display_group in self.portal_display_groups:
+    for _display_group in ApplicationManager.all_virtual_display_groups:
 
-      for _display in _display_group.displays:
+      _display_group.add_virtual_display_nodes()
+      _transit_entry_added = False
+      _virtual_user_representations_of_dg = []
 
-        # index within display group
-        _display_index = _display_group.displays.index(_display)
+      # create user representations
+      for _physical_user_repr in ApplicationManager.all_user_representations:
 
-        # create portal nodes
-        _display.append_portal_nodes()
+        _complex = True
+        if _display_group.viewing_mode == "2D":
+          _complex = False
 
-        # express secondary displays with respect to first display
-        if _display_index > 0:
-          _display.set_display_group_offset(avango.gua.make_inverse_mat(_display_group.displays[0].portal_matrix_node.Transform.value) * _display.portal_matrix_node.Transform.value)
+        _virtual_user_repr = _physical_user_repr.USER.create_user_representation_for(
+                             _display_group
+                           , _display_group.exit_node
+                           , 'head_' + _physical_user_repr.view_transform_node.Name.value
+                           , _complex)
 
-        _transit_entry_added = False
+        _virtual_user_repr.add_dependent_node(_physical_user_repr.head)
 
-        # create user representations
-        for _physical_user_repr in ApplicationManager.all_user_representations:
+        # add screen nodes to user representation
+        for _screen in _display_group.screen_nodes:
+          _virtual_user_repr.add_existing_screen_node(_screen)
 
-          _complex = True
-          if _display.viewing_mode == "2D":
-            _complex = False
+        _virtual_user_representations.append(_virtual_user_repr)
+        _virtual_user_representations_of_dg.append(_virtual_user_repr)
+
+        # collect transit portals
+        if _display_group.transitable and _transit_entry_added == False:
+          
+          # add tuple of (display_group, one_virtual_user_repr)
+          # one user representation is needed to capture the connected navigation
+          self.transit_display_groups.append( (_display_group, _virtual_user_repr) )
+          _transit_entry_added = True
 
 
-          _virtual_user_repr = _physical_user_repr.USER.create_user_representation_for(
-                               _display_group
-                             , _display.scene_matrix_node
-                             , _display_index
-                             , 'head_' + _physical_user_repr.view_transform_node.Name.value
-                             , _complex)
+        for _workspace in self.workspaces:
+          for _tool in _workspace.tools:
 
-          _virtual_user_repr.add_dependent_node(_physical_user_repr.head)
-          _virtual_user_repr.add_existing_screen_node(_display.portal_screen_node)
-          _virtual_user_representations.append(_virtual_user_repr)
+            _w_id = _workspace.id
+            _t_id = _tool.id
 
-          # collect transit portals
-          if _display.transitable and _transit_entry_added == False:
-            self.transit_portals.append( (_display_group, _display, _virtual_user_repr) )
-            _transit_entry_added = True
+            # jump over PortalCameraRepresentations
+            try:
+              _tool.captured_shots
+              continue
+            except:
+              pass
 
+            # jump over tools outside the workspace of the currently handled physical user representation
+            if _tool.WORKSPACE_INSTANCE == _physical_user_repr.USER.WORKSPACE_INSTANCE:
+
+              #print("Create tool representation for", _tool)
+
+              _virtual_tool_repr = _tool.create_tool_representation_for(_display_group, _virtual_user_repr, True)
+
+              # find physical tool representation for the tool transform node
+              for _child in _physical_user_repr.view_transform_node.Children.value:
+                if _child.Name.value == "tool_" + str(_t_id):
+                  _virtual_tool_repr.add_dependent_node(_child)
+                  break
+
+            
     for _virtual_user_representation in _virtual_user_representations:
       ApplicationManager.all_user_representations.append(_virtual_user_representation)
 
@@ -316,7 +341,7 @@ class ApplicationManager(avango.script.Script):
         for _user in _workspace.users:
           _user.handle_correct_visibility_groups_for(_display_group)
 
-          for _portal_display_group in self.portal_display_groups:
+          for _portal_display_group in ApplicationManager.all_virtual_display_groups:
             _user.handle_correct_visibility_groups_for(_portal_display_group)
 
     # connect proper navigations
@@ -442,7 +467,7 @@ class ApplicationManager(avango.script.Script):
                             "dlp_wall"  : {"table" : False, "portal" : False}
                           , "table" : {"dlp_wall" : True, "portal" : False}  
                           , "lcd_wall" : {"dlp_wall" : True, "table" : False, "portal" : False}
-                          , "portal" : {"dlp_wall" : True, "table" : False, "lcd_wall" : True}
+                          , "portal" : {"dlp_wall" : True, "table" : False, "lcd_wall" : True, "portal" : False}
                               }
 
       for _workspace in ApplicationManager.all_workspaces:
@@ -482,7 +507,7 @@ class ApplicationManager(avango.script.Script):
                             "dlp_wall"  : {"table" : True, "portal" : False}
                           , "table" : {"dlp_wall" : True, "portal" : False}  
                           , "lcd_wall" : {"dlp_wall" : True, "table" : True, "portal" : False}
-                          , "portal" : {"dlp_wall" : True, "table" : False, "lcd_wall" : True}
+                          , "portal" : {"dlp_wall" : True, "table" : False, "lcd_wall" : True, "portal" : False}
                               }
 
       for _workspace in ApplicationManager.all_workspaces:
@@ -565,7 +590,8 @@ class ApplicationManager(avango.script.Script):
   ## Evaluated every frame.
   def evaluate(self):
 
-    # handle portal transitions
+    ## handle portal transitions ##
+
     for _nav in self.workspace_navigations:
 
       # if navigation does not allow portal transit, go to next loop iteration
@@ -588,46 +614,54 @@ class ApplicationManager(avango.script.Script):
       _nav_device_pos2 = _nav_device_mat * avango.gua.Vec3(0.0,0.0,1.0)
       _nav_device_pos2 = avango.gua.Vec3(_nav_device_pos2.x, _nav_device_pos2.y, _nav_device_pos2.z)
 
-      for _tuple in self.transit_portals:
+      for _tuple in self.transit_display_groups:
 
         _portal_display_group = _tuple[0]
-        _portal = _tuple[1]
-        _first_virtual_user_repr = _tuple[2]
+        _first_virtual_user_repr = _tuple[1]
 
-        _active_navigation = _portal_display_group.navigations[_first_virtual_user_repr.connected_navigation_id]
-        _mat = avango.gua.make_inverse_mat(_portal.portal_matrix_node.Transform.value)
+        # only allow teleportation when in 3D mode
+        if _portal_display_group.viewing_mode != "3D":
+          continue
 
-        _nav_device_portal_space_mat = _mat * _nav_device_mat
-        _nav_device_portal_space_pos = _mat * _nav_device_pos
-        _nav_device_portal_space_pos2 = _mat * _nav_device_pos2
-        _nav_device_portal_space_pos = avango.gua.Vec3(_nav_device_portal_space_pos.x, _nav_device_portal_space_pos.y, _nav_device_portal_space_pos.z)
+        # check for transit in every single virtual display
+        for _display in _portal_display_group.displays:
 
-        # do a teleportation if navigation enters portal
-        if  _nav_device_portal_space_pos.x > -_portal.size[0]/2     and \
-            _nav_device_portal_space_pos.x <  _portal.size[0]/2     and \
-            _nav_device_portal_space_pos.y > -_portal.size[1]/2     and \
-            _nav_device_portal_space_pos.y <  _portal.size[1]/2     and \
-            _nav_device_portal_space_pos.z < 0.0                    and \
-            _nav_device_portal_space_pos2.z >= 0.0                  and \
-            _portal.viewing_mode == "3D":
+          _index = _portal_display_group.displays.index(_display)
 
-          _nav.inputmapping.set_abs_mat(avango.gua.make_trans_mat(_portal.portal_screen_node.Transform.value.get_translate()) * \
-                                        _active_navigation.sf_abs_mat.value * \
-                                        avango.gua.make_rot_mat(_portal.portal_screen_node.Transform.value.get_rotate()) * \
-                                        avango.gua.make_scale_mat(_active_navigation.sf_scale.value) * \
-                                        avango.gua.make_trans_mat(_nav_device_portal_space_pos) * \
-                                        avango.gua.make_rot_mat(_nav_device_portal_space_mat.get_rotate_scale_corrected()) * \
-                                        avango.gua.make_trans_mat(_nav.device.sf_station_mat.value.get_translate() * -1.0) * \
-                                        avango.gua.make_inverse_mat(avango.gua.make_scale_mat(_active_navigation.sf_scale.value)))
+          _active_navigation = _portal_display_group.navigations[_first_virtual_user_repr.connected_navigation_id]
+          _mat = avango.gua.make_inverse_mat(_portal_display_group.entry_node.Transform.value * _portal_display_group.screen_nodes[_index].Transform.value)
 
-          if _nav.trace != None:
-            _nav.trace.clear(_nav.inputmapping.sf_abs_mat.value)
-          
-          _nav.inputmapping.scale_stop_time = None
-          _nav.inputmapping.set_scale(_active_navigation.sf_scale.value, False)
+          _nav_device_portal_space_mat = _mat * _nav_device_mat
+          _nav_device_portal_space_pos = _mat * _nav_device_pos
+          _nav_device_portal_space_pos2 = _mat * _nav_device_pos2
+          _nav_device_portal_space_pos = avango.gua.Vec3(_nav_device_portal_space_pos.x, _nav_device_portal_space_pos.y, _nav_device_portal_space_pos.z)
+
+          # do a teleportation if navigation enters portal
+          if  _nav_device_portal_space_pos.x > -_display.size[0]/2     and \
+              _nav_device_portal_space_pos.x <  _display.size[0]/2     and \
+              _nav_device_portal_space_pos.y > -_display.size[1]/2     and \
+              _nav_device_portal_space_pos.y <  _display.size[1]/2     and \
+              _nav_device_portal_space_pos.z < 0.0                    and \
+              _nav_device_portal_space_pos2.z >= 0.0:
+
+            _nav.inputmapping.set_abs_mat(avango.gua.make_trans_mat(_portal_display_group.screen_nodes[_index].Transform.value.get_translate()) * \
+                                          _active_navigation.sf_abs_mat.value * \
+                                          avango.gua.make_rot_mat(_portal_display_group.screen_nodes[_index].Transform.value.get_rotate()) * \
+                                          avango.gua.make_scale_mat(_active_navigation.sf_scale.value) * \
+                                          avango.gua.make_trans_mat(_nav_device_portal_space_pos) * \
+                                          avango.gua.make_rot_mat(_nav_device_portal_space_mat.get_rotate_scale_corrected()) * \
+                                          avango.gua.make_trans_mat(_nav.device.sf_station_mat.value.get_translate() * -1.0) * \
+                                          avango.gua.make_inverse_mat(avango.gua.make_scale_mat(_active_navigation.sf_scale.value)))
+
+            if _nav.trace != None:
+              _nav.trace.clear(_nav.inputmapping.sf_abs_mat.value)
+            
+            _nav.inputmapping.scale_stop_time = None
+            _nav.inputmapping.set_scale(_active_navigation.sf_scale.value, False)
 
 
-    # handle requestable navigations
+    ## handle requestable navigations ##
+
     for _requestable_nav in self.requestable_navigations:
 
       _workspace = _requestable_nav[0]
@@ -637,7 +671,7 @@ class ApplicationManager(avango.script.Script):
       _last_button_state = self.requestable_navigations_last_button_states[_requestable_nav_index]
 
       # if button change from negative to positive, trigger action
-      #print _navigation.sf_request_trigger.value
+      #print(_navigation.sf_request_trigger.value)
 
       if _navigation.sf_request_trigger.value == True and \
          _last_button_state == False:
@@ -672,8 +706,6 @@ class ApplicationManager(avango.script.Script):
         self.requestable_navigations_last_button_states[_requestable_nav_index] = False
 
 
-
-
   ## Initializes the GroupNames field of all UserRepresentation's avatars.
   # Users cannot see the avatars in own display group, but the ones in others.
   def init_avatar_group_names(self):
@@ -685,6 +717,7 @@ class ApplicationManager(avango.script.Script):
         if _user_repr_2.DISPLAY_GROUP != _user_repr_1.DISPLAY_GROUP:
 
           _user_repr_1.append_to_avatar_group_names(_user_repr_2.view_transform_node.Name.value)
+  
 
   ## Switches the navigation for a user at a display group. 
   # @param WORKSPACE_ID The workspace id in which the user is active.

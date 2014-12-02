@@ -37,3 +37,7 @@ class Display:
     ## @var stereo
     # Boolean indicating if the stereo mode is to be used.
     self.stereo = stereo
+
+  ## Returns a boolean value saying if this display is virtual.
+  def is_virtual(self):
+    raise NotImplementedError( "To be implemented by a subclass." )

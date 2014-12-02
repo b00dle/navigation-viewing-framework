@@ -95,6 +95,9 @@ class PhysicalDisplay(Display):
     # A string supplying additional render mask constraints.
     self.render_mask = render_mask
 
+  ## Returns a boolean value saying if this display is virtual.
+  def is_virtual(self):
+    return False
 
   ## Registers a new view at this display and returns the display string assigned to the new view.
   def register_view(self):
@@ -188,8 +191,8 @@ class LargePowerwall(PhysicalDisplay):
                     , hostname = "kerberos"
                     , name = "large_powerwall"
                     , resolution = (1920, 1200)
-                    , displaystrings = [":0.0", ":0.1", ":0.2", ":0.3"]
-                    #, displaystrings = [":0.0", ":0.1", ":0.2"]
+                    #, displaystrings = [":0.0", ":0.1", ":0.2", ":0.3"]
+                    , displaystrings = [":0.0", ":0.1", ":0.2"]
                     , size = (4.16, 2.61)
                     , transformation = avango.gua.make_trans_mat(0, 1.57, 0)
                     #, shutter_timings = [ [(0,2400), (100,2500)],
@@ -291,49 +294,7 @@ class SmallPowerwall(PhysicalDisplay):
       return None
 
 
-## Display configuration for the small powerwall in the VR lab.
-class SmallPowerwall2(PhysicalDisplay):
 
-  ## Default constructor.
-  def __init__(self, render_mask = ""):
-    PhysicalDisplay.__init__( self
-                    , hostname = "pandora"
-                    , name = "small_powerwall2"
-                    , resolution = (1920, 1200)
-                    , displaystrings = [":0.0"]
-                    , size = (3.0, 1.98)
-                    , transformation = avango.gua.make_trans_mat(0, 1.42, 0)
-                    , stereo = True
-                    , stereomode = "SIDE_BY_SIDE"
-                    , shutter_timings = [  [(100, 200, 2900, 3000), (8400, 8500, 11400, 11500)],
-                                           [(2600, 2700, 5700, 5800), (11000, 11100, 14600, 14700)],
-                                           [(6000, 6100, 8200, 8300), (14300, 14400, 15900, 16000)]
-                                        ]
-                    , shutter_values =  [  [(20, 80, 40, 10), (2, 8, 4, 1)],
-                                           [(20, 80, 40, 10), (2, 8, 4, 1)],
-                                           [(20, 80, 40, 10), (2, 8, 4, 1)]
-                                        ]                    
-                    , render_mask = render_mask
-                    )
-
-  ## Registers a new view at this display and returns the display string
-  # and the warp matrices assigned to the new view.
-  def register_view(self):
-    view_num = self.num_views
-    if view_num < 2:
-      warpmatrices = [
-          "/opt/lcd-warpmatrices/lcd_4_warp_P{0}.warp".format(2 * view_num + 2)
-        , "/opt/lcd-warpmatrices/lcd_4_warp_P{0}.warp".format(2 * view_num + 2)
-        , "/opt/lcd-warpmatrices/lcd_4_warp_P{0}.warp".format(2 * view_num + 2)
-
-        , "/opt/lcd-warpmatrices/lcd_4_warp_P{0}.warp".format(2 * view_num + 1)
-        , "/opt/lcd-warpmatrices/lcd_4_warp_P{0}.warp".format(2 * view_num + 1)
-        , "/opt/lcd-warpmatrices/lcd_4_warp_P{0}.warp".format(2 * view_num + 1)
-      ]
-      self.num_views += 1
-      return (self.displaystrings[view_num], warpmatrices)
-    else:
-      return None
 
 ## Display configuration for the 3D multiuser touch table in the VR lab.
 class TouchTable3D(PhysicalDisplay):
@@ -360,8 +321,8 @@ class TouchTable3D(PhysicalDisplay):
                                            [(20, 80, 40, 10), (2, 8, 4, 1)],
                                            [(20, 80, 40, 10), (2, 8, 4, 1)]
                                         ]
-                    , size = (1.15, 0.84)
-                    , transformation = avango.gua.make_rot_mat(90, -1, 0, 0)
+                    , size = (1.17, 0.84)
+                    , transformation = avango.gua.make_rot_mat(90.0, -1, 0, 0)
                     , max_viewing_distance = 1.0
                     , stereo = True
                     , stereomode = "SIDE_BY_SIDE"

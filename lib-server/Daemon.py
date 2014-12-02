@@ -50,7 +50,6 @@ def init_dlp_wall_tracking():
   
   # glasses
   _dtrack.stations[1] = avango.daemon.Station('tracking-dlp-glasses-1')
-  #_dtrack.stations[9] = avango.daemon.Station('tracking-dlp-glasses-1')     # camera shutter
   _dtrack.stations[2] = avango.daemon.Station('tracking-dlp-glasses-2')
   _dtrack.stations[3] = avango.daemon.Station('tracking-dlp-glasses-3')
   _dtrack.stations[4] = avango.daemon.Station('tracking-dlp-glasses-4')
@@ -61,11 +60,16 @@ def init_dlp_wall_tracking():
   _dtrack.stations[19] = avango.daemon.Station('tracking-new-spheron')       # new spheron device
 
   _dtrack.stations[23] = avango.daemon.Station('tracking-dlp-pointer1')      # AUGUST1 pointer
+
   _dtrack.stations[26] = avango.daemon.Station('tracking-portal-camera-32')  # portal camera 3.2
   _dtrack.stations[25] = avango.daemon.Station('tracking-portal-camera-31')  # portal camera 3.1
 
   _dtrack.stations[20] = avango.daemon.Station('tracking-xbox-1')              # xbox target "horse"
 
+  _dtrack.stations[9] = avango.daemon.Station('tracking-dlp-camera-shutter')     # camera shutter
+
+  #_dtrack.stations[13] = avango.daemon.Station('tracking-dlp-lht-1') # LHT1
+  #_dtrack.stations[14] = avango.daemon.Station('tracking-dlp-lht-2') # LHT2
 
   device_list.append(_dtrack)
   print("ART Tracking started at DLP WALL")

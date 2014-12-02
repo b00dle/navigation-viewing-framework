@@ -10,9 +10,6 @@ import avango.gua
 # import framework libraries
 from SceneManager import *
 from ApplicationManager import *
-from Portal import *
-from PortalCamera import *
-from Device import *
 
 from scene_config import scenegraphs
 

@@ -33,11 +33,10 @@ class UserRepresentation:
   # @param USER Reference to the user to be represented.
   # @param DISPLAY_GROUP Reference to the display group this user representation is responsible for.
   # @param VIEW_TRANSFORM_NODE Transform node to be filled by one navigation of the display group.
-  # @param VIRTUAL_USER_REPR_DISPLAY_INDEX If this is a portal user representation, ID giving the display index within the display group. -1 otherwise.
   # @param HEAD_NODE_NAME Name of the UserRepresentation's head node in the scenegraph.
   # @param COMPLEX_SETUP If activated, the transformation policy is evaluated every frame to update head. If deactivated,
   #                      a standard mono viewing setup is assumed.
-  def my_constructor(self, USER, DISPLAY_GROUP, VIEW_TRANSFORM_NODE, VIRTUAL_USER_REPR_DISPLAY_INDEX = -1, HEAD_NODE_NAME = 'head', COMPLEX_SETUP = True):
+  def my_constructor(self, USER, DISPLAY_GROUP, VIEW_TRANSFORM_NODE, HEAD_NODE_NAME = 'head', COMPLEX_SETUP = True):
 
     ## @var USER
     # Reference to the user to be represented.
@@ -106,10 +105,6 @@ class UserRepresentation:
     self.avatar = Avatar()
     self.avatar.my_constructor(self)
 
-    ## @var virtual_user_repr_display_index
-    # If this is a portal user representation, ID giving the display index within the display group. -1 otherwise.
-    self.virtual_user_repr_display_index = VIRTUAL_USER_REPR_DISPLAY_INDEX
-
     ## @var frame_trigger
     # Triggers framewise evaluation of frame_callback method.
     self.frame_trigger = avango.script.nodes.Update(Callback = self.frame_callback, Active = True)
@@ -118,17 +113,25 @@ class UserRepresentation:
     # Boolean indicating if the portal if a default viewing setup is activated although the portal might suggest it differently.
     self.thumbnail_mode = False
 
+  ## Determines whether this UserRepresentation is repsonsible for a virtual display.
+  def is_in_virtual_display(self):
+
+    if self.view_transform_node.Name.value == "exit":
+      return True
+    
+    return False
+
 
   ## Evaluated every frame.
   def frame_callback(self):
   
     if self.execute_transformation_policy:
       
-      if self.virtual_user_repr_display_index == -1:
+      if not self.is_in_virtual_display():
         self.perform_physical_user_head_transformation()
 
       else:
-        self.perform_virtual_user_head_transformation(self.virtual_user_repr_display_index)
+        self.perform_virtual_user_head_transformation()
 
         # activate thumbnail mode when scale is too small
         # make sure not to switch off own PortalCameraRepresentations
@@ -147,7 +150,7 @@ class UserRepresentation:
     # handle reactivation in thumbnail mode
     elif self.thumbnail_mode:
 
-      self.perform_virtual_user_head_transformation(self.virtual_user_repr_display_index)
+      self.perform_virtual_user_head_transformation()
 
       # same check as performed above
       _physical_nav_node = self.dependent_nodes[0].Parent.value
@@ -164,7 +167,7 @@ class UserRepresentation:
       
       # deactive thumbnail mode
       else:
-        if self.DISPLAY_GROUP.displays[self.virtual_user_repr_display_index].viewing_mode == "3D":
+        if self.DISPLAY_GROUP.viewing_mode == "3D":
           self.make_complex_viewing_setup()
         else:
           self.make_default_viewing_setup()
@@ -176,11 +179,13 @@ class UserRepresentation:
     self.head.Transform.value = self.DISPLAY_GROUP.offset_to_workspace * self.USER.headtracking_reader.sf_abs_mat.value
 
   ## Transforms the head according to the head - portal entry relation.
-  def perform_virtual_user_head_transformation(self, DISPLAY_INDEX):
-    self.head.Transform.value = self.DISPLAY_GROUP.displays[DISPLAY_INDEX].portal_screen_node.Transform.value * \
-                                avango.gua.make_inverse_mat(self.DISPLAY_GROUP.displays[DISPLAY_INDEX].portal_matrix_node.Transform.value) * \
-                                self.dependent_nodes[0].WorldTransform.value
+  def perform_virtual_user_head_transformation(self):
 
+    # express in coordinate system of first virtual display of group
+    # the remaining screens are given via their screen offset transformation
+    self.head.Transform.value = self.DISPLAY_GROUP.screen_nodes[0].Transform.value * \
+                                avango.gua.make_inverse_mat(self.DISPLAY_GROUP.entry_node.Transform.value) * \
+                                self.dependent_nodes[0].WorldTransform.value
 
 
   ## Deactivates the evaluation of the transformation policy and assigns fixed matrices
@@ -304,12 +309,12 @@ class UserRepresentation:
 
       self.connected_navigation_id = ID
 
-      try:
-        print_message("User " + str(self.USER.id) + " at display group " + str(self.DISPLAY_GROUP.id) + \
-         ": Switch navigation to " + str(ID) + " (" + _new_navigation.input_device_name + ")")
-      except:
-        print_message("User " + str(self.USER.id) + " at display group " + str(self.DISPLAY_GROUP.id) + \
-         ": Switch navigation to " + str(ID) + " (no input device)")
+      #try:
+      #  print_message("User " + str(self.USER.id) + " at display group " + str(self.DISPLAY_GROUP.id) + \
+      #   ": Switch navigation to " + str(ID) + " (" + _new_navigation.input_device_name + ")")
+      #except:
+      #  print_message("User " + str(self.USER.id) + " at display group " + str(self.DISPLAY_GROUP.id) + \
+      #   ": Switch navigation to " + str(ID) + " (no input device)")
 
       # trigger avatar and screen geometry visibilities
       self.avatar.set_material('data/materials/' + _new_navigation.trace_material + ".gmd"
@@ -451,21 +456,23 @@ class User(VisibilityHandler2D):
   ## Creates a UserRepresentation instance for a given display group.
   # @param DISPLAY_GROUP Reference to the DisplayGroup instance to create the user representation for.
   # @param VIEW_TRANSFORM_NODE Transform node to be filled by one navigation of the display group.
-  # @param VIRTUAL_USER_REPR_DISPLAY_INDEX If this is a portal user representation, ID giving the display index within the display group. -1 otherwise.
   # @param HEAD_NODE_NAME Name of the UserRepresentation's head node in the scenegraph.
   # @param COMPLEX_SETUP If activated, the transformation policy is evaluated every frame to update head. If deactivated,
   #                      a standard mono viewing setup is assumed.
-  def create_user_representation_for(self, DISPLAY_GROUP, VIEW_TRANSFORM_NODE, VIRTUAL_USER_REPR_DISPLAY_INDEX = -1, HEAD_NODE_NAME = "head", COMPLEX_SETUP = True):
+  def create_user_representation_for(self, DISPLAY_GROUP, VIEW_TRANSFORM_NODE, HEAD_NODE_NAME = "head", COMPLEX_SETUP = True):
 
     _user_repr = UserRepresentation()
-    _user_repr.my_constructor(self, DISPLAY_GROUP, VIEW_TRANSFORM_NODE, VIRTUAL_USER_REPR_DISPLAY_INDEX, HEAD_NODE_NAME, COMPLEX_SETUP)
+    _user_repr.my_constructor(self, DISPLAY_GROUP, VIEW_TRANSFORM_NODE, HEAD_NODE_NAME, COMPLEX_SETUP)
     self.user_representations.append(_user_repr)
     return _user_repr
 
-  ## Returns the UserRepresentation instance at a diven DISPLAY_GROUP_ID.
-  # @param DISPLAY_GROUP_ID The id of the DisplayGroup to retrieve the UserRepresentation for.
-  def get_user_representation_at(self, DISPLAY_GROUP_ID):
-    return self.user_representations[DISPLAY_GROUP_ID]
+  ## Returns the UserRepresentation instance at a given DISPLAY_GROUP.
+  # @param DISPLAY_GROUP The  DisplayGroup to retrieve the UserRepresentation for.
+  def get_user_representation_at(self, DISPLAY_GROUP):
+
+    for _user_repr in self.user_representations:
+      if _user_repr.DISPLAY_GROUP == DISPLAY_GROUP:
+        return _user_repr
 
   ## Switches the navigation for a display group.
   # @param DISPLAY_GROUP_ID Identification number of the display group to switch the navigation for.
@@ -564,7 +571,7 @@ class User(VisibilityHandler2D):
               _visible = False
             
             if _visible:
-              if _user_repr.view_transform_node.Name.value == "scene_matrix":
+              if _user_repr.view_transform_node.Name.value == "exit":
                 _user_visible_for.append(_user_repr.view_transform_node.Parent.value.Name.value + "_" + _user_repr.head.Name.value)
               else:
                 _user_visible_for.append(_user_repr.view_transform_node.Name.value)

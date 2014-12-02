@@ -65,6 +65,8 @@ class Navigation(VisibilityHandler1D):
   def __init__(self):
     self.super(Navigation).__init__()
 
+    exec('from ApplicationManager import *', globals())
+
     ## @var trace
     # The trace class that handles the line segment updating.
     self.trace = None

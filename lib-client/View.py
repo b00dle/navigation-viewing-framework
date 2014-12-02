@@ -202,7 +202,7 @@ class View(avango.script.Script):
         
     for _pre_view in _pre_views_to_remove:
       print("Remove a pre view")
-      _pre_view.deactivate()
+      _pre_view.delete()
       self.portal_pre_views.remove(_pre_view)
       del _pre_view
       print("New list of pre views", self.portal_pre_views)

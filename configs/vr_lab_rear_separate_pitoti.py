@@ -40,11 +40,10 @@ trace_visibility_list_table_nav = {  "dlp_wall"  : False
                                    , "table" : False 
                                    , "portal" : False
                                   }
-
+                                  
 
 spheron_navigation = SteeringNavigation()
-spheron_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 15) * \
-                                                     avango.gua.make_rot_mat(0, 0, 1, 0)
+spheron_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(388.50, 56.9, -53.6)
                                  , STARTING_SCALE = 1.0
                                  , INPUT_DEVICE_TYPE = 'NewSpheron'
                                  , INPUT_DEVICE_NAME = 'device-new-spheron'
@@ -56,9 +55,8 @@ spheron_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0
                                  , REACTS_ON_PORTAL_TRANSIT = True)
 
 spacemouse_navigation = SteeringNavigation()
-spacemouse_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 20) * \
-                                                        avango.gua.make_rot_mat(0, 0, 1, 0)
-                                    , STARTING_SCALE = 50.0
+spacemouse_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(66.0, 37.0, -240.0)
+                                    , STARTING_SCALE = 550.0
                                     , INPUT_DEVICE_TYPE = 'Spacemouse'
                                     , INPUT_DEVICE_NAME = 'device-spacemouse'
                                     , NO_TRACKING_MAT = avango.gua.make_trans_mat(0.0, 0.0, 0.0)
@@ -70,7 +68,7 @@ spacemouse_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_ma
 
 
 xbox_navigation = SteeringNavigation()
-xbox_navigation.my_constructor(       STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 0)
+xbox_navigation.my_constructor(       STARTING_MATRIX = avango.gua.make_trans_mat(0.0, 0.0, 0.0)
                                     , STARTING_SCALE = 1.0
                                     , INPUT_DEVICE_TYPE = 'XBoxController'
                                     , INPUT_DEVICE_NAME = 'device-xbox-1'
@@ -131,63 +129,17 @@ vr_lab_rear.create_user( VIP = False
 # format: A : { B : bool}
 # interpretation: does display with tag A see representation of tool in displays with tag B?
 tool_visibility_table = {
-                          "dlp_wall"  : {"table" : False, "portal" : True}
+                          "dlp_wall"  : {"table" : False, "portal" : False}
                         , "table" : {"dlp_wall" : True, "portal" : False}  
-                        , "portal" : {"dlp_wall" : False, "table" : False, "portal" : False}
+                        , "portal" : {"dlp_wall" : True, "table" : False}
                        }
 
 vr_lab_rear.create_ray_pointer( POINTER_TRACKING_STATION = 'tracking-dlp-pointer1' 
                               , POINTER_DEVICE_STATION = 'device-pointer1'
                               , VISIBILITY_TABLE = tool_visibility_table)
 
-vr_lab_rear.create_portal_cam(  CAMERA_TRACKING_STATION = 'tracking-portal-camera-32'
-                             ,  CAMERA_DEVICE_STATION = 'device-portal-camera-32'
-                             ,  VISIBILITY_TABLE = tool_visibility_table)
+#vr_lab_rear.create_portal_cam(  CAMERA_TRACKING_STATION = 'tracking-portal-camera-32'
+#                             ,  CAMERA_DEVICE_STATION = 'device-portal-camera-32'
+#                             ,  VISIBILITY_TABLE = tool_visibility_table)
 
-## Create portal navigations. ##
-#'''
-tower_portal_1_nav = StaticNavigation()
-tower_portal_1_nav.my_constructor(STATIC_ABS_MAT = avango.gua.make_trans_mat(-12.0, 17.3, -7.0)
-                                , STATIC_SCALE = 1.0)
-
-tower_portal_2_nav = StaticNavigation()
-tower_portal_2_nav.my_constructor(STATIC_ABS_MAT = avango.gua.make_trans_mat(-23.0, 1.3, 21.0) * avango.gua.make_rot_mat(-90, 0, 1, 0)
-                                , STATIC_SCALE = 1.0)
-
-## Create portal displays. ##
-tower_portal_1 = VirtualDisplay(ENTRY_MATRIX = avango.gua.make_trans_mat(-23.0, 1.3, 21.0) * avango.gua.make_rot_mat(90, 0, 1, 0)
-                              , WIDTH = 4.0
-                              , HEIGHT = 2.6)
-
-side_portal = VirtualDisplay(ENTRY_MATRIX = avango.gua.make_trans_mat(-21.0, 1.3, 19.0)
-                           , WIDTH = 4.0
-                           , HEIGHT = 2.6)
-
-tower_portal_2 = VirtualDisplay(ENTRY_MATRIX = avango.gua.make_trans_mat(-12.0, 17.3, -7.0) * avango.gua.make_rot_mat(180, 0, 1, 0)
-                              , WIDTH = 4.0
-                              , HEIGHT = 2.6)
-
-## Create virtual display groups ##
-tower_portal_1_dg = VirtualDisplayGroup(DISPLAY_LIST = [tower_portal_1, side_portal]
-                                      , NAVIGATION_LIST = [tower_portal_1_nav]
-                                      , VISIBILITY_TAG = "portal"
-                                      , VIEWING_MODE = "3D"
-                                      , CAMERA_MODE = "PERSPECTIVE"
-                                      , NEGATIVE_PARALLAX = "False"
-                                      , BORDER_MATERIAL = "data/materials/White.gmd"
-                                      , TRANSITABLE = True
-                                      )
-
-tower_portal_2_dg = VirtualDisplayGroup(DISPLAY_LIST = [tower_portal_2]
-                                      , NAVIGATION_LIST = [tower_portal_2_nav]
-                                      , VISIBILITY_TAG = "portal"
-                                      , VIEWING_MODE = "3D"
-                                      , CAMERA_MODE = "PERSPECTIVE"
-                                      , NEGATIVE_PARALLAX = "False"
-                                      , BORDER_MATERIAL = "data/materials/White.gmd"
-                                      , TRANSITABLE = True
-                                      )
-
-virtual_display_groups = [tower_portal_1_dg, tower_portal_2_dg]
-#'''
-#virtual_display_groups = []
+virtual_display_groups = []

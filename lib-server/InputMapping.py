@@ -77,11 +77,11 @@ class InputMapping(avango.script.Script):
 
     ## @var min_scale
     # The minimum scaling factor that can be applied.
-    self.min_scale = 0.001
+    self.min_scale = 0.0001
 
     ## @var max_scale
     # The maximum scaling factor that can be applied.
-    self.max_scale = 1000.0
+    self.max_scale = 10000.0
     
     ## @var scale_stop_time
     # Time at which a scaling process stopped at a fixed step.
@@ -137,10 +137,10 @@ class InputMapping(avango.script.Script):
     
     if self.blocked == False:
 
-      # map scale
-      _scale = self.mf_rel_input_values.value[6]
-      if _scale != 0.0:
-        self.set_scale(self.sf_scale.value * (1.0 + _scale * 0.015))
+      # map scale input
+      _scale_input = self.mf_rel_input_values.value[6]
+      if _scale_input != 0.0:
+        self.set_scale(self.sf_scale.value * (1.0 + _scale_input * 0.015))
       
       _x = self.mf_rel_input_values.value[0]
       _y = self.mf_rel_input_values.value[1]
@@ -211,20 +211,21 @@ class InputMapping(avango.script.Script):
         
         # create new transformation matrix
         _new_mat = avango.gua.make_trans_mat(_transformed_trans_vec) * \
-                                               self.sf_abs_mat.value * \
-                                               avango.gua.make_trans_mat(_rot_center) * \
-                                               avango.gua.make_rot_mat( _rot_vec.y, 0, 1, 0) * \
-                                               avango.gua.make_rot_mat( _rot_vec.x, 1, 0, 0) * \
-                                               avango.gua.make_rot_mat( _rot_vec.z, 0, 0, 1) * \
-                                               avango.gua.make_trans_mat(_rot_center * -1)
+                   self.sf_abs_mat.value * \
+                   avango.gua.make_trans_mat(_rot_center) * \
+                   avango.gua.make_rot_mat( _rot_vec.y, 0, 1, 0) * \
+                   avango.gua.make_rot_mat( _rot_vec.x, 1, 0, 0) * \
+                   avango.gua.make_rot_mat( _rot_vec.z, 0, 0, 1) * \
+                   avango.gua.make_trans_mat(_rot_center * -1)
 
+        '''
         # update matrix on coupled navigations
         _global_rot_center = self.sf_abs_mat.value * _rot_center
         _global_rot_center = avango.gua.Vec3(_global_rot_center.x, _global_rot_center.y, _global_rot_center.z)
 
-        #for _navigation in self.NAVIGATION.coupled_navigations:
-        #  _navigation.inputmapping.modify_abs_uncorrected_mat(_transformed_trans_vec, _transformed_rot_vec, _global_rot_center)
-
+        for _navigation in self.NAVIGATION.coupled_navigations:
+          _navigation.inputmapping.modify_abs_uncorrected_mat(_transformed_trans_vec, _transformed_rot_vec, _global_rot_center)
+        '''
       else:
         # the device values are all equal to zero
         _new_mat = self.sf_abs_mat.value
@@ -287,6 +288,7 @@ class InputMapping(avango.script.Script):
     self.realistic = False
     self.GROUND_FOLLOWING_INSTANCE.deactivate()
 
+
   ## Applies a new scaling to this input mapping.
   # @param SCALE The new scaling factor to be applied.
   # @param CONSIDER_SNAPPING Boolean saying if the scaling should snap at powers of ten.
@@ -304,33 +306,57 @@ class InputMapping(avango.script.Script):
       _new_scale = max(min(SCALE, self.max_scale), self.min_scale)
       _new_scale = round(_new_scale,6)
             
-      # stop at certain scale levels
-      if (_old_scale < 100.0 and _new_scale > 100.0) or (_new_scale < 100.0 and _old_scale > 100.0):
-        #print "snap 100:1"
+      # auto pause at dedicated scale levels
+      if (_old_scale < 1000.0 and _new_scale > 1000.0) or (_new_scale < 1000.0 and _old_scale > 1000.0):
+        #print("snap 1000:1")
+        _new_scale = 1000.0
+        self.scale_stop_time = time.time()
+        
+      elif (_old_scale < 100.0 and _new_scale > 100.0) or (_new_scale < 100.0 and _old_scale > 100.0):
+        #print("snap 100:1")
         _new_scale = 100.0
         self.scale_stop_time = time.time()
               
       elif (_old_scale < 10.0 and _new_scale > 10.0) or (_new_scale < 10.0 and _old_scale > 10.0):
-        #print "snap 10:1"
+        #print("snap 10:1")
         _new_scale = 10.0
         self.scale_stop_time = time.time()
       
       elif (_old_scale < 1.0 and _new_scale > 1.0) or (_new_scale < 1.0 and _old_scale > 1.0):
-        #print "snap 1:1"
+        #print("snap 1:1")
         _new_scale = 1.0
         self.scale_stop_time = time.time()
 
       elif (_old_scale < 0.1 and _new_scale > 0.1) or (_new_scale < 0.1 and _old_scale > 0.1):
-        #print "snap 1:10"
+        #print("snap 1:10")
         _new_scale = 0.1
         self.scale_stop_time = time.time()
 
       elif (_old_scale < 0.01 and _new_scale > 0.01) or (_new_scale < 0.01 and _old_scale > 0.01):
-        #print "snap 1:100"
+        #print("snap 1:100")
         _new_scale = 0.01
         self.scale_stop_time = time.time()
 
-      self.sf_scale.value = _new_scale
+      elif (_old_scale < 0.001 and _new_scale > 0.001) or (_new_scale < 0.001 and _old_scale > 0.001):
+        #print("snap 1:1000")
+        _new_scale = 0.001
+        self.scale_stop_time = time.time()
+
+      
+      '''
+      # scale relative to a reference point
+      _scale_center_offset = self.sf_station_mat.value.get_translate() 
+  
+      if _scale_center_offset.length() > 0: # scale/rotation center defined
+        _pos1 = _scale_center_offset * _old_scale
+        _pos2 = _scale_center_offset * _new_scale
+
+        _vec = _pos1 - _pos2
+
+        self.sf_abs_mat.value = self.sf_abs_mat.value * avango.gua.make_trans_mat(_vec)
+      '''
+
+      self.sf_scale.value = _new_scale # apply new scale
 
     else:
 

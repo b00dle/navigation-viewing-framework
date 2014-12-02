@@ -378,7 +378,12 @@ class SceneManager(avango.script.Script):
         for _navigation in _display_group.navigations:
 
           print("Workspace:", _workspace.id, "Display Group:", _display_group.id, "Navigation:", _display_group.navigations.index(_navigation))
-          print(_navigation.sf_nav_mat.value)
+          print("Matrix:", _navigation.sf_nav_mat.value)
+          print("Quaternion:", _navigation.sf_nav_mat.value.get_rotate())
+          print("Scale:", _navigation.sf_nav_mat.value.get_scale())
+          print("Translation:", _navigation.sf_nav_mat.value.get_translate())
+
+          #print(avango.gua.make_rot_mat(_navigation.sf_nav_mat.value.get_rotate_scale_corrected()))
 
     # print navigation nodes
     #for _i, _navigation in enumerate(self.navigation_list):

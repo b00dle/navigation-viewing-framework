@@ -34,16 +34,9 @@ scenegraphs = [graph]
 #scenes = ["SceneMedievalTown"]
 scenes = ["SceneSimpleCut"]
 #scenes = ["SceneValcamonicaOptimized"]
+#scenes = ["SceneMedievalTown"]
+#scenes = ["SceneValcamonica"]
 
 # if true, scenes will be switchable using the number buttons
-enable_key_bindings = True
+enable_key_bindings = False
 
-## alternative scenes:
-# SceneWeimar
-# SceneMonkey
-# SceneMedievalTown
-# ScenePitoti
-# SceneVianden
-# SceneViandenLow
-# SceneViandenHigh
-# ScenePLOD
