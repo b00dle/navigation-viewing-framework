@@ -309,7 +309,7 @@ class ApplicationManager(avango.script.Script):
             # jump over tools outside the workspace of the currently handled physical user representation
             if _tool.WORKSPACE_INSTANCE == _physical_user_repr.USER.WORKSPACE_INSTANCE:
 
-              print("Create tool representation for", _tool)
+              #print("Create tool representation for", _tool)
 
               _virtual_tool_repr = _tool.create_tool_representation_for(_display_group, _virtual_user_repr, True)
 

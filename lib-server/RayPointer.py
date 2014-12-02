@@ -392,8 +392,9 @@ class RayPointer(Tool):
       # iterate over all tool representations of the tool
       for _tool_repr in self.tool_representations:
 
-        #if _tool_repr.is_in_virtual_display():
-        #  continue
+        # do not consider virtual displays that are not visible
+        if _tool_repr.is_in_virtual_display() and _tool_repr.DISPLAY_GROUP.visible == "False":
+          continue
 
         if _tool_repr.user_id == self.assigned_user.id: # check only tool representations of the assigned user
        

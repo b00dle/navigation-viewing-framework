@@ -12,6 +12,7 @@ import avango.daemon
 
 # import framework libraries
 from ApplicationManager import *
+from DisplayGroup import *
 from VisibilityHandler import *
 from TrackingReader import TrackingTargetReader
 import Utilities
@@ -292,38 +293,49 @@ class Tool(VisibilityHandler2D):
     ## determine which group names have to be added to the tool representations ##
     _assigned_user_tool_visible_for = []
 
-    for _tool_repr in _tool_reprs_at_display_group:
+    # hide tool representations of invisible virtual displays
+    if isinstance(DISPLAY_GROUP, VirtualDisplayGroup) and \
+       DISPLAY_GROUP.visible == "False":
 
-      # check for navigation of corresponding user and compare it to assigned user
-
-      # reset initial GroupName state
-      _tool_repr.reset_visualization_group_names()
-
-      # if user does not share the assigned user's navigation, hide the tool representation
-      if _tool_repr.USER_REPRESENTATION.connected_navigation_id != _tool_repr_of_assigned_user.USER_REPRESENTATION.connected_navigation_id:
+      for _tool_repr in _tool_reprs_at_display_group:
+        _tool_repr.reset_visualization_group_names()
         _tool_repr.append_to_visualization_group_names("do_not_display_group")
-        _assigned_user_tool_visible_for.append(_tool_repr.USER_REPRESENTATION.view_transform_node.Name.value)
+    
+    # the display is physical or visible virtual
+    else:
 
-    # check for all user representations outside the handled display group
-    for _user_repr in ApplicationManager.all_user_representations:
+      for _tool_repr in _tool_reprs_at_display_group:
 
-      if _user_repr.DISPLAY_GROUP != _handled_display_group_instance:
+        # check for navigation of corresponding user and compare it to assigned user
 
-        # consider visibility table
-        _handled_display_group_tag = _handled_display_group_instance.visibility_tag
-        _user_repr_display_group_tag = _user_repr.DISPLAY_GROUP.visibility_tag
-        
-        #print("Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see", _handled_display_group_tag, "?")
-        _visible = self.visibility_table[_user_repr_display_group_tag][_handled_display_group_tag]
-        #print("Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see", _handled_display_group_tag, "?", _visible)
+        # reset initial GroupName state
+        _tool_repr.reset_visualization_group_names()
 
-        if _visible:
-          if _user_repr.view_transform_node.Name.value == "exit":
-            _assigned_user_tool_visible_for.append(_user_repr.view_transform_node.Parent.value.Name.value + "_" + _user_repr.head.Name.value)
-          else:
-            _assigned_user_tool_visible_for.append(_user_repr.view_transform_node.Name.value)
+        # if user does not share the assigned user's navigation, hide the tool representation
+        if _tool_repr.USER_REPRESENTATION.connected_navigation_id != _tool_repr_of_assigned_user.USER_REPRESENTATION.connected_navigation_id:
+          _tool_repr.append_to_visualization_group_names("do_not_display_group")
+          _assigned_user_tool_visible_for.append(_tool_repr.USER_REPRESENTATION.view_transform_node.Name.value)
 
-    # make tool holder tool representation visible for all others on different navigations and display groups
-    for _string in _assigned_user_tool_visible_for:
-      if _tool_repr_of_assigned_user != None:
-        _tool_repr_of_assigned_user.append_to_visualization_group_names(_string)
+      # check for all user representations outside the handled display group
+      for _user_repr in ApplicationManager.all_user_representations:
+
+        if _user_repr.DISPLAY_GROUP != _handled_display_group_instance:
+
+          # consider visibility table
+          _handled_display_group_tag = _handled_display_group_instance.visibility_tag
+          _user_repr_display_group_tag = _user_repr.DISPLAY_GROUP.visibility_tag
+          
+          #print("Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see", _handled_display_group_tag, "?")
+          _visible = self.visibility_table[_user_repr_display_group_tag][_handled_display_group_tag]
+          #print("Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see", _handled_display_group_tag, "?", _visible)
+
+          if _visible:
+            if _user_repr.view_transform_node.Name.value == "exit":
+              _assigned_user_tool_visible_for.append(_user_repr.view_transform_node.Parent.value.Name.value + "_" + _user_repr.head.Name.value)
+            else:
+              _assigned_user_tool_visible_for.append(_user_repr.view_transform_node.Name.value)
+
+      # make tool holder tool representation visible for all others on different navigations and display groups
+      for _string in _assigned_user_tool_visible_for:
+        if _tool_repr_of_assigned_user != None:
+          _tool_repr_of_assigned_user.append_to_visualization_group_names(_string)

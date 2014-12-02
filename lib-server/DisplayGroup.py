@@ -281,6 +281,10 @@ class VirtualDisplayGroup(DisplayGroup):
 
     self.settings_node.GroupNames.value = ["0-" + self.viewing_mode, "1-" + self.camera_mode, "2-" + self.negative_parallax, "3-" + self.border_material, "4-" + self.visible]
 
+    for _workspace in ApplicationManager.all_workspaces:
+      for _tool in _workspace.tools:
+        _tool.handle_correct_visibility_groups_for(self)
+
   ## Sets the size of a screen node of this virtual display group.
   # @param INDEX Index of the screen node to set a new size for.
   # @param WIDTH The new width in meters to be set.
