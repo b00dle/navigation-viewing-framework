@@ -95,6 +95,9 @@ class PhysicalDisplay(Display):
     # A string supplying additional render mask constraints.
     self.render_mask = render_mask
 
+  ## Returns a boolean value saying if this display is virtual.
+  def is_virtual(self):
+    return False
 
   ## Registers a new view at this display and returns the display string assigned to the new view.
   def register_view(self):
@@ -184,8 +187,8 @@ class LargePowerwall(PhysicalDisplay):
                     , hostname = "kerberos"
                     , name = "large_powerwall"
                     , resolution = (1920, 1200)
+                    #, displaystrings = [":0.0", ":0.1", ":0.2", ":0.3"]
                     , displaystrings = [":0.0", ":0.1", ":0.2"]
-                    #, displaystrings = [":0.0", ":0.1", ":0.2"]
                     , size = (4.16, 2.61)
                     , transformation = avango.gua.make_trans_mat(0, 1.57, 0)
                     #, shutter_timings = [ [(0,2400), (100,2500)],

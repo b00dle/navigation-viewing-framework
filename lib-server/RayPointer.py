@@ -35,13 +35,14 @@ class RayPointerRepresentation(ToolRepresentation):
   # @param RAY_POINTER_INSTANCE An instance of RayPointer to which this RayPointerRepresentation is associated.
   # @param DISPLAY_GROUP DisplayGroup instance for which this RayPointerRepresentation is responsible for. 
   # @param USER_REPRESENTATION Corresponding UserRepresentation instance under which's view_transform_node the RayPointerRepresentation is appended.
-  def my_constructor(self, RAY_POINTER_INSTANCE, DISPLAY_GROUP, USER_REPRESENTATION):
+  # @param IN_VIRTUAL_DISPLAY Boolean saying if the ray pointer representation is valid in a virtual display.
+  def my_constructor(self, RAY_POINTER_INSTANCE, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY):
     
     # call base class constructor
     self.base_constructor(RAY_POINTER_INSTANCE
                         , DISPLAY_GROUP
                         , USER_REPRESENTATION
-                        , "pick_ray_" + str(RAY_POINTER_INSTANCE.id))
+                        , IN_VIRTUAL_DISPLAY)
 
     _loader = avango.gua.nodes.TriMeshLoader()
 
@@ -51,7 +52,6 @@ class RayPointerRepresentation(ToolRepresentation):
                                                          , "data/objects/cylinder.obj"
                                                          , "data/materials/White.gmd"
                                                          , avango.gua.LoaderFlags.DEFAULTS)
-    self.ray_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
     self.set_ray_distance(self.TOOL_INSTANCE.ray_length)
     self.tool_transform_node.Children.value.append(self.ray_geometry)
 
@@ -62,7 +62,7 @@ class RayPointerRepresentation(ToolRepresentation):
                                                                        , "data/materials/White.gmd"
                                                                        , avango.gua.LoaderFlags.DEFAULTS)
     self.intersection_point_geometry.GroupNames.value.append("do_not_display_group")
-    self.intersection_point_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+    
     self.tool_transform_node.Children.value.append(self.intersection_point_geometry)
 
     ## @var ray_start_geometry
@@ -72,8 +72,22 @@ class RayPointerRepresentation(ToolRepresentation):
                                                                , "data/materials/White.gmd"
                                                                , avango.gua.LoaderFlags.DEFAULTS)
     self.ray_start_geometry.Transform.value = avango.gua.make_scale_mat(0.015, 0.015, 0.015)
-    self.ray_start_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value) 
+
     self.tool_transform_node.Children.value.append(self.ray_start_geometry)
+    
+    if IN_VIRTUAL_DISPLAY:
+      _virtual_display_group_name = self.USER_REPRESENTATION.view_transform_node.Parent.value.Name.value
+      _head_name = self.USER_REPRESENTATION.head.Name.value
+      _identifier = _virtual_display_group_name + "_" + _head_name
+
+      self.ray_geometry.GroupNames.value.append(_identifier)
+      self.intersection_point_geometry.GroupNames.value.append(_identifier)
+      self.ray_start_geometry.GroupNames.value.append(_identifier)
+
+    else:
+      self.ray_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+      self.intersection_point_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
+      self.ray_start_geometry.GroupNames.value.append(self.USER_REPRESENTATION.view_transform_node.Name.value)
 
     ## @var highlighted
     # Boolean indicating if this representation is highlighted. Usually used to color the assigned user's representation.
@@ -122,9 +136,21 @@ class RayPointerRepresentation(ToolRepresentation):
 
   ## Resets the GroupNames field of this RayPointerRepresentation's visualization to the user representation's view_transform_node.
   def reset_visualization_group_names(self):
-    self.ray_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
-    self.intersection_point_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
-    self.ray_start_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
+
+    if self.is_in_virtual_display():
+
+      _virtual_display_group_name = self.USER_REPRESENTATION.view_transform_node.Parent.value.Name.value
+      _head_name = self.USER_REPRESENTATION.head.Name.value
+      _identifier = _virtual_display_group_name + "_" + _head_name
+
+      self.ray_geometry.GroupNames.value = [_identifier]
+      self.intersection_point_geometry.GroupNames.value = [_identifier]
+      self.ray_start_geometry.GroupNames.value = [_identifier]
+
+    else:
+      self.ray_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
+      self.intersection_point_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
+      self.ray_start_geometry.GroupNames.value = [self.USER_REPRESENTATION.view_transform_node.Name.value]
 
   ## Enables a highlight for this RayPointerRepresentation.
   def enable_highlight(self):
@@ -234,7 +260,6 @@ class RayPointer(Tool):
     ## @var picking_options
     # Picking options for intersection
     self.picking_options = avango.gua.PickingOptions.PICK_ONLY_FIRST_OBJECT \
-                          | avango.gua.PickingOptions.PICK_ONLY_FIRST_FACE \
                           | avango.gua.PickingOptions.GET_WORLD_POSITIONS \
                           | avango.gua.PickingOptions.GET_WORLD_NORMALS
 
@@ -256,10 +281,11 @@ class RayPointer(Tool):
   ## Creates a RayPointerRepresentation for this RayPointer at a DISPLAY_GROUP.
   # @param DISPLAY_GROUP The DisplayGroup instance to create the representation for.
   # @param USER_REPRESENTATION The UserRepresentation this representation will belong to.
-  def create_tool_representation_for(self, DISPLAY_GROUP, USER_REPRESENTATION):
+  # @param IN_VIRTUAL_DISPLAY Boolean saying if the new tool representation is valid in a virtual display.
+  def create_tool_representation_for(self, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY):
 
     _ray_pointer_repr = RayPointerRepresentation()
-    _ray_pointer_repr.my_constructor(self, DISPLAY_GROUP, USER_REPRESENTATION)
+    _ray_pointer_repr.my_constructor(self, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY)
     self.tool_representations.append(_ray_pointer_repr)
     return _ray_pointer_repr
 
@@ -366,6 +392,9 @@ class RayPointer(Tool):
       # iterate over all tool representations of the tool
       for _tool_repr in self.tool_representations:
 
+        #if _tool_repr.is_in_virtual_display():
+        #  continue
+
         if _tool_repr.user_id == self.assigned_user.id: # check only tool representations of the assigned user
        
           # compute pick result for current tool representation
@@ -384,18 +413,20 @@ class RayPointer(Tool):
             #print(_pick_world_position)
             
             # is pick position in frustum of assigned user?
-            _user_repr = self.assigned_user.get_user_representation_at(_tool_repr.DISPLAY_GROUP.id)
+            _user_repr = self.assigned_user.get_user_representation_at(_tool_repr.DISPLAY_GROUP)
 
             _user_head_world_mat = _user_repr.head.WorldTransform.value
             _user_nav_mat = _user_repr.view_transform_node.Transform.value
 
             # pick is visible when visible in one of the display group's screens
+            #print(_user_repr.screens)
+            _visible = False
+
             for _screen in _user_repr.screens:
-              
+
               _visible = self.is_inside_frustum(_pick_world_position
-                                      , _user_head_world_mat
-                                      , _user_nav_mat
-                                      , _screen)
+                                    , _user_repr
+                                    , _screen)
 
               if _visible == True:
                 # append to candidate list if visible
@@ -442,8 +473,9 @@ class RayPointer(Tool):
       
   ## Create candidate list and select one of the candidates.
   def get_pick_result_tuple(self):
-
+   
     _candidate_representations = self.create_candidate_list()
+
     #print("candidates", _candidate_representations)
     _chosen_pick_result_tuple = self.choose_from_candidate_list(_candidate_representations)
     #print("selected", _chosen_pick_result_tuple)
@@ -451,6 +483,7 @@ class RayPointer(Tool):
 
   ## Evaluated every frame.
   def evaluate(self):
+    
 
     if self.dragged_interactive_object == None:
       
@@ -479,6 +512,10 @@ class RayPointer(Tool):
 
             _repr.hide_intersection_geometry()
             #_repr.set_ray_distance(_pick_result.Distance.value * self.ray_length)
+          
+            _ray_length = abs(_intersection_in_nav_space.get_translate().z)
+            _repr.show_intersection_geometry_at(_intersection_in_nav_space, _ray_length)
+
 
           # otherwise show the intersection geometry
           else:
@@ -498,6 +535,7 @@ class RayPointer(Tool):
     else:
 
       self.drag_object()
+
 
 
   ## Function called on a framewise basis when dragging is in progress.
@@ -637,7 +675,7 @@ class RayPointer(Tool):
     return (_n, _d)
 
 
-  def compute_point_plane_distance(self, N, D, POINT)
+  def compute_point_plane_distance(self, N, D, POINT):
   
     # compute point plane distance: <0.0 --> in front of plane: >0.0 behind plane
     return N.x * POINT.x + N.y * POINT.y + N.z * POINT.z + D
@@ -646,21 +684,27 @@ class RayPointer(Tool):
 
   ## Checks if a point is inside the viewing frustum of a user.
   # @param POINT The point to be checked.
-  # @param USER_HEAD_WORLD_MAT The user's headtracking matrix in world coordinates.
-  # @param USER_NAV_WORLD_MAT The user's navigation matrix in world coordinates.
+  # @param USER_REPRESENTATION The UserRepresentation instance to which SCREEN is belonging to.
   # @param SCREEN The screen to create the viewing frustum for. 
-  def is_inside_frustum(self, POINT, USER_HEAD_WORLD_MAT, USER_NAV_WORLD_MAT, SCREEN):
-      
-    _user_head_world_pos = USER_HEAD_WORLD_MAT.get_translate()
-  
-    # check if intersection point is between near and far plane
-    _near_clip = SceneManager.current_near_clip
+  def is_inside_frustum(self, POINT, USER_REPRESENTATION, SCREEN):
+
+    _user_head_world_pos = USER_REPRESENTATION.head.WorldTransform.value.get_translate()
+    _screen_world_mat = SCREEN.WorldTransform.value
+
+    # if user representation is in virtual display, start intersecting from the virtual display plane
+    if USER_REPRESENTATION.is_in_virtual_display():
+      _head_in_screen_pos = avango.gua.make_inverse_mat(_screen_world_mat) * _user_head_world_pos
+      _near_clip = abs(_head_in_screen_pos.z)
+    else:
+      _near_clip = SceneManager.current_near_clip
+
     _far_clip = SceneManager.current_far_clip
+
 
     # head space (but with nav orientation)
     _head_mat = SCREEN.WorldTransform.value
     _head_mat.set_translate(_user_head_world_pos)
-    
+        
     _point = avango.gua.make_inverse_mat(_head_mat) * POINT # point in head space
     _depth = abs(_point.z)
     if (_depth < _near_clip) or (_depth > _far_clip): # point in front of near plane or behind far plane --> outside frustum
@@ -668,14 +712,13 @@ class RayPointer(Tool):
 
         
     # compute screen corner points
-    _screen_mat = SCREEN.WorldTransform.value
     _screen_width = SCREEN.Width.value
     _screen_height = SCREEN.Height.value
     
-    _tl_world_pos = _screen_mat * avango.gua.Vec3(-_screen_width * 0.5, _screen_height * 0.5, 0.0)
-    _tr_world_pos = _screen_mat * avango.gua.Vec3(_screen_width * 0.5, _screen_height * 0.5, 0.0)
-    _bl_world_pos = _screen_mat * avango.gua.Vec3(-_screen_width * 0.5, -_screen_height * 0.5, 0.0)
-    _br_world_pos = _screen_mat * avango.gua.Vec3(_screen_width * 0.5, -_screen_height * 0.5, 0.0)
+    _tl_world_pos = _screen_world_mat * avango.gua.Vec3(-_screen_width * 0.5, _screen_height * 0.5, 0.0)
+    _tr_world_pos = _screen_world_mat * avango.gua.Vec3(_screen_width * 0.5, _screen_height * 0.5, 0.0)
+    _bl_world_pos = _screen_world_mat * avango.gua.Vec3(-_screen_width * 0.5, -_screen_height * 0.5, 0.0)
+    _br_world_pos = _screen_world_mat * avango.gua.Vec3(_screen_width * 0.5, -_screen_height * 0.5, 0.0)
 
     _tl_world_pos = avango.gua.Vec3(_tl_world_pos.x, _tl_world_pos.y, _tl_world_pos.z)
     _tr_world_pos = avango.gua.Vec3(_tr_world_pos.x, _tr_world_pos.y, _tr_world_pos.z)    
@@ -703,6 +746,6 @@ class RayPointer(Tool):
     if _distance < 0.0: # point in front of bottom plane plane --> outside frustum
       return False
 
-
     return True    
     
+

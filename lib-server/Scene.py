@@ -52,14 +52,14 @@ class SceneMedievalTown(SceneObject):
      
     # lights
     _mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)
-    self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(0.5,0.5,0.5), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = False, RENDER_GROUP = "main_scene") # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
+    self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(0.75,0.75,0.75), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = False, RENDER_GROUP = "main_scene") # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
     
-    #_mat = avango.gua.make_trans_mat(0.0, 35.0, 30.0) * avango.gua.make_rot_mat(-55.0,1,0,0)
+    #_mat = avango.gua.make_trans_mat(0.0, 35.0, 20.0) * avango.gua.make_rot_mat(-65.0,1,0,0)
     #self.init_light(TYPE = 2, NAME = "spot_light", COLOR = avango.gua.Color(1.0, 1.0, 1.0), MATRIX = _mat, PARENT_NODE = self.scene_root, MANIPULATION_PICK_FLAG = True, RENDER_GROUP = "main_scene", ENABLE_SHADOW = True, LIGHT_DIMENSIONS = avango.gua.Vec3(300.0,300.0,150.0) ) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
 
     # render pipeline parameters
     self.enable_backface_culling = False
-    self.enable_frustum_culling = True
+    self.enable_frustum_culling = False
     self.enable_ssao = False
     self.enable_fxaa = True
 
@@ -80,9 +80,10 @@ class SceneVianden(SceneObject):
 
           
     # lights
-    #_mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)
-    #self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(0.75, 0.75, 0.75), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = False, SHADOW_MAP_SIZE = 256, ENABLE_GODRAYS = False) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
+    _mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)
+    self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(1.0, 1.0, 1.0), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = False, SHADOW_MAP_SIZE = 256, ENABLE_GODRAYS = False) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
 
+    '''
     _mat = avango.gua.make_trans_mat(50.0, 100.0, -50.0) * \
            avango.gua.make_rot_mat(-90.0, 1.0, 0.0, 0.0)
 
@@ -96,12 +97,13 @@ class SceneVianden(SceneObject):
                     ENABLE_SHADOW = True, 
                     LIGHT_DIMENSIONS = avango.gua.Vec3(900.0,900.0,300.0),
                     SHADOW_MAP_SIZE = 2048)
+    '''
 
 
     # render pipeline parameters
     self.enable_backface_culling = False
     self.enable_frustum_culling = True
-    self.enable_ssao = True
+    self.enable_ssao = False
     self.enable_fxaa = True
     self.enable_fog = False
     self.ambient_color = avango.gua.Color(0.25, 0.25, 0.25)
@@ -330,8 +332,6 @@ class SceneValcamonica(SceneObject):
     #_mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)
     #self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(1.0, 0.0, 1.0), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = False, RENDER_GROUP = "main_scene") # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
 
-
-
     # render pipeline parameters
     self.background_texture = "/opt/guacamole/resources/skymaps/DayLight_08.jpg"
     self.near_clip = 0.15
@@ -369,4 +369,3 @@ class SceneWeimar(SceneObject):
     #_mat = avango.gua.make_rot_mat(72.0, -1.0, 0, 0) * avango.gua.make_rot_mat(-30.0, 0, 1, 0)
     #self.init_light(TYPE = 0, NAME = "sun_light", COLOR = avango.gua.Color(0.5, 0.5, 0.5), MATRIX = _mat, PARENT_NODE = self.scene_root, ENABLE_SHADOW = True, SHADOW_MAP_SIZE = 2048) # parameters TYPE (0 = sun light), NAME, COLOR, MATRIX, PARENT_NODE
 '''
-    

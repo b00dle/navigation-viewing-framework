@@ -186,8 +186,8 @@ def start():
   
   
   #prepare_volume()
-  #prepare_medieval()
-  prepare_pitoti()
+  prepare_medieval()
+  #prepare_pitoti()
 
   # get the display instance
   for _display in displays:
@@ -227,4 +227,5 @@ def start():
   viewer.run()
 
 if __name__ == '__main__':
+  print("client_main", sys.argv)
   start()

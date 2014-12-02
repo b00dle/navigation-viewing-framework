@@ -28,12 +28,12 @@ class ToolRepresentation(avango.script.Script):
   # @param TOOL_INSTANCE An instance of a subclass of Tool to which this ToolRepresentation is associated.
   # @param DISPLAY_GROUP DisplayGroup instance for which this ToolRepresentation is responsible for.
   # @param USER_REPRESENTATION Corresponding UserRepresentation instance under which's view_transform_node the ToolRepresentation is appended.
-  # @param TOOL_TRANSFORM_NODE_NAME String to be used as name for this ToolRepresentation's transform node.
+  # @param IN_VIRTUAL_DISPLAY Boolean value saying whether this ToolRepresentation is used within a virtual display group.
   def base_constructor(self
                    , TOOL_INSTANCE
                    , DISPLAY_GROUP
                    , USER_REPRESENTATION
-                   , TOOL_TRANSFORM_NODE_NAME):
+                   , IN_VIRTUAL_DISPLAY):
     
     ## @var TOOL_INSTANCE
     # An instance of a subclass of Tool to which this ToolRepresentation is associated.
@@ -51,28 +51,70 @@ class ToolRepresentation(avango.script.Script):
     # Identification number of the USER_REPRESENTATION's user.
     self.user_id = self.USER_REPRESENTATION.USER.id
 
-    ## @var workspace_id
-    # Identification number of the workspace in which TOOL_INSTANCE is active.
-    self.workspace_id = int(self.USER_REPRESENTATION.view_transform_node.Name.value.split("_")[0].replace("w", ""))
+    ## @var dependent_nodes
+    # Placeholder for scenegraph nodes which are relevant for the transformation policy.
+    self.dependent_nodes = []
 
+    _transform_node_name = ""
+
+    if IN_VIRTUAL_DISPLAY:
+      _transform_node_name = "tool_w" + str(self.TOOL_INSTANCE.WORKSPACE_INSTANCE.id) + "_t" + str(self.TOOL_INSTANCE.id) + "_" + self.USER_REPRESENTATION.head.Name.value.replace("head", "for")
+    else:
+      _transform_node_name = "tool_" + str(self.TOOL_INSTANCE.id)
 
     ## @var tool_transform_node
     # Scenegraph transformation node representing this ToolRepresentation.
-    self.tool_transform_node = avango.gua.nodes.TransformNode(Name = TOOL_TRANSFORM_NODE_NAME)
-    self.USER_REPRESENTATION.view_transform_node.Children.value.append(self.tool_transform_node)
+    self.tool_transform_node = avango.gua.nodes.TransformNode(Name = _transform_node_name)
+
+    if IN_VIRTUAL_DISPLAY:
+      self.DISPLAY_GROUP.exit_node.Children.value.append(self.tool_transform_node)
+    else:
+      self.USER_REPRESENTATION.view_transform_node.Children.value.append(self.tool_transform_node)
+
+    ## @var in_virtual_display
+    # Boolean value saying whether this ToolRepresentation is used within a virtual display group.
+    self.in_virtual_display = IN_VIRTUAL_DISPLAY
 
     # set evaluation policy
     self.always_evaluate(True)
+
+  ## Adds a scenegraph node to the list of dependent nodes.
+  # @param NODE The node to be added.
+  def add_dependent_node(self, NODE):
+
+    self.dependent_nodes.append(NODE)
+
+  ## Determines whether this ToolRepresentation is responsible for a virtual display group.
+  def is_in_virtual_display(self):
+
+    return self.in_virtual_display
 
   ## Computes the world transformation of the tool_transform_node.
   def get_world_transform(self):
 
     return self.tool_transform_node.WorldTransform.value
 
-  ## Performs the necessary tool node transformation in the display group.
+  ## Has to be evaluated every frame.
   def perform_tool_node_transformation(self):
 
+    if not self.is_in_virtual_display():
+      self.perform_physical_tool_node_transformation()
+    else:
+      self.perform_virtual_tool_node_transformation()
+
+  ## Transforms the tool node according to the display group offset and the tracking matrix.
+  def perform_physical_tool_node_transformation(self):
+
     self.tool_transform_node.Transform.value = self.DISPLAY_GROUP.offset_to_workspace * self.TOOL_INSTANCE.tracking_reader.sf_abs_mat.value
+
+  ## Transforms the tool node according to the tool - portal entry relation.
+  def perform_virtual_tool_node_transformation(self):
+
+    # we just need one tool representation per virtual display group
+    # thus we can use self.DISPLAY_GROUP.displays[0] for the transformation
+    self.tool_transform_node.Transform.value = self.DISPLAY_GROUP.screen_nodes[0].Transform.value * \
+                                               avango.gua.make_inverse_mat(self.DISPLAY_GROUP.entry_node.Transform.value) * \
+                                               self.dependent_nodes[0].WorldTransform.value # untransformed tracking data of tool
 
   ## Appends a string to the GroupNames field of this ToolRepresentation's visualization.
   # @param STRING The string to be appended.
@@ -87,11 +129,6 @@ class ToolRepresentation(avango.script.Script):
   ## Resets the GroupNames field of this ToolRepresentation's visualization to the user representation's view_transform_node.
   def reset_visualization_group_names(self):
     raise NotImplementedError( "To be implemented by a subclass." )
-
-  ## Evaluated every frame.
-  def evaluate(self):
-
-    self.perform_tool_node_transformation()
 
 
 ###############################################################################################
@@ -116,6 +153,7 @@ class Tool(VisibilityHandler2D):
                      , VISIBILITY_TABLE):
 
     self.table_constructor(VISIBILITY_TABLE)
+    exec('from ApplicationManager import *', globals())
 
     # references
     ## @var WORKSPACE_INSTANCE
@@ -148,7 +186,8 @@ class Tool(VisibilityHandler2D):
   ## Creates a ToolRepresentation for this Tool at a DISPLAY_GROUP. 
   # @param DISPLAY_GROUP The DisplayGroup instance to create the representation for.
   # @param USER_REPRESENTATION The UserRepresentation this representation will belong to.
-  def create_tool_representation_for(self, DISPLAY_GROUP, USER_REPRESENTATION):
+  # @param IN_VIRTUAL_DISPLAY Boolean saying if the new tool representation is valid in a virtual display.
+  def create_tool_representation_for(self, DISPLAY_GROUP, USER_REPRESENTATION, IN_VIRTUAL_DISPLAY):
     raise NotImplementedError( "To be implemented by a subclass." )
 
   ## Selects a list of potentially currently active ToolRepresentations.
@@ -207,6 +246,9 @@ class Tool(VisibilityHandler2D):
       for _display_group in self.WORKSPACE_INSTANCE.display_groups:
         self.handle_correct_visibility_groups_for(_display_group)
 
+      for _virtual_display_group in ApplicationManager.all_virtual_display_groups:
+        self.handle_correct_visibility_groups_for(_virtual_display_group)
+
 
   ## Changes the visibility table during runtime.
   # @param VISIBILITY_TABLE A matrix containing visibility rules according to the DisplayGroups' visibility tags. 
@@ -216,6 +258,9 @@ class Tool(VisibilityHandler2D):
 
     for _display_group in self.WORKSPACE_INSTANCE.display_groups:
       self.handle_correct_visibility_groups_for(_display_group)
+
+    for _virtual_display_group in ApplicationManager.all_virtual_display_groups:
+      self.handle_correct_visibility_groups_for(_virtual_display_group)
 
 
   ## Handles the correct GroupNames of all ToolRepresentations at a display group.
@@ -261,22 +306,24 @@ class Tool(VisibilityHandler2D):
 
     # check for all user representations outside the handled display group
     for _user_repr in ApplicationManager.all_user_representations:
+
       if _user_repr.DISPLAY_GROUP != _handled_display_group_instance:
 
         # consider visibility table
         _handled_display_group_tag = _handled_display_group_instance.visibility_tag
         _user_repr_display_group_tag = _user_repr.DISPLAY_GROUP.visibility_tag
         
+        #print("Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see", _handled_display_group_tag, "?")
         _visible = self.visibility_table[_user_repr_display_group_tag][_handled_display_group_tag]
+        #print("Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see", _handled_display_group_tag, "?", _visible)
 
-        #print "Does", _user_repr.view_transform_node.Name.value, "(", _user_repr_display_group_tag, ") see"
-        #, _handled_display_group_tag, "?", _visible
         if _visible:
-          if _user_repr.view_transform_node.Name.value == "scene_matrix":
+          if _user_repr.view_transform_node.Name.value == "exit":
             _assigned_user_tool_visible_for.append(_user_repr.view_transform_node.Parent.value.Name.value + "_" + _user_repr.head.Name.value)
           else:
             _assigned_user_tool_visible_for.append(_user_repr.view_transform_node.Name.value)
 
     # make tool holder tool representation visible for all others on different navigations and display groups
     for _string in _assigned_user_tool_visible_for:
-      _tool_repr_of_assigned_user.append_to_visualization_group_names(_string)
+      if _tool_repr_of_assigned_user != None:
+        _tool_repr_of_assigned_user.append_to_visualization_group_names(_string)
