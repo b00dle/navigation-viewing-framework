@@ -322,7 +322,7 @@ class RayPointer(Tool):
 
     _pick_result = scenegraphs[0].ray_test(self.ray_node, self.picking_options, self.picking_mask)
     
-    return _pick_result  
+    return _pick_result
 
     
   def isect_line_plane_v3(self, p0, p1, p_co, p_no, epsilon=0.000001):
@@ -637,6 +637,13 @@ class RayPointer(Tool):
     return (_n, _d)
 
 
+  def compute_point_plane_distance(self, N, D, POINT)
+  
+    # compute point plane distance: <0.0 --> in front of plane: >0.0 behind plane
+    return N.x * POINT.x + N.y * POINT.y + N.z * POINT.z + D
+
+
+
   ## Checks if a point is inside the viewing frustum of a user.
   # @param POINT The point to be checked.
   # @param USER_HEAD_WORLD_MAT The user's headtracking matrix in world coordinates.
@@ -650,52 +657,52 @@ class RayPointer(Tool):
     _near_clip = SceneManager.current_near_clip
     _far_clip = SceneManager.current_far_clip
 
-    _mat = SCREEN.WorldTransform.value
-    _mat.set_translate(_user_head_world_pos)
+    # head space (but with nav orientation)
+    _head_mat = SCREEN.WorldTransform.value
+    _head_mat.set_translate(_user_head_world_pos)
     
-    _point = avango.gua.make_inverse_mat(_mat) * POINT # point in head space
+    _point = avango.gua.make_inverse_mat(_head_mat) * POINT # point in head space
     _depth = abs(_point.z)
-    if (_depth < _near_clip) or (_depth > _far_clip):
+    if (_depth < _near_clip) or (_depth > _far_clip): # point in front of near plane or behind far plane --> outside frustum
       return False
 
-    ## compute side planes ##
-    _frustum_planes = []
-
+        
     # compute screen corner points
     _screen_mat = SCREEN.WorldTransform.value
     _screen_width = SCREEN.Width.value
     _screen_height = SCREEN.Height.value
     
-    _tl_pos = _screen_mat * avango.gua.Vec3(-_screen_width * 0.5, _screen_height * 0.5, 0.0)
-    _tr_pos = _screen_mat * avango.gua.Vec3(_screen_width * 0.5, _screen_height * 0.5, 0.0)
-    _bl_pos = _screen_mat * avango.gua.Vec3(-_screen_width * 0.5, -_screen_height * 0.5, 0.0)
-    _br_pos = _screen_mat * avango.gua.Vec3(_screen_width * 0.5, -_screen_height * 0.5, 0.0)
+    _tl_world_pos = _screen_mat * avango.gua.Vec3(-_screen_width * 0.5, _screen_height * 0.5, 0.0)
+    _tr_world_pos = _screen_mat * avango.gua.Vec3(_screen_width * 0.5, _screen_height * 0.5, 0.0)
+    _bl_world_pos = _screen_mat * avango.gua.Vec3(-_screen_width * 0.5, -_screen_height * 0.5, 0.0)
+    _br_world_pos = _screen_mat * avango.gua.Vec3(_screen_width * 0.5, -_screen_height * 0.5, 0.0)
 
-    _tl_world_pos = avango.gua.Vec3(_tl_pos.x, _tl_pos.y, _tl_pos.z)
-    _tr_world_pos = avango.gua.Vec3(_tr_pos.x, _tr_pos.y, _tr_pos.z)    
-    _bl_world_pos = avango.gua.Vec3(_bl_pos.x, _bl_pos.y, _bl_pos.z)
-    _br_world_pos = avango.gua.Vec3(_br_pos.x, _br_pos.y, _br_pos.z)
+    _tl_world_pos = avango.gua.Vec3(_tl_world_pos.x, _tl_world_pos.y, _tl_world_pos.z)
+    _tr_world_pos = avango.gua.Vec3(_tr_world_pos.x, _tr_world_pos.y, _tr_world_pos.z)    
+    _bl_world_pos = avango.gua.Vec3(_bl_world_pos.x, _bl_world_pos.y, _bl_world_pos.z)
+    _br_world_pos = avango.gua.Vec3(_br_world_pos.x, _br_world_pos.y, _br_world_pos.z)
     
+    ## compute lateral planes ##
     _left_plane = self.compute_plane(_bl_world_pos, _tl_world_pos, _user_head_world_pos)
-    _frustum_planes.append(_left_plane)
+    _distance = self.compute_point_plane_distance(_left_plane[0], _left_plane[1], POINT)
+    if _distance < 0.0: # point in front of left plane --> outside frustum
+      return False
 
     _right_plane = self.compute_plane(_tr_world_pos, _br_world_pos, _user_head_world_pos)
-    _frustum_planes.append(_right_plane)
+    _distance = self.compute_point_plane_distance(_right_plane[0], _right_plane[1], POINT)
+    if _distance < 0.0: # point in front of right plane --> outside frustum
+      return False
 
     _top_plane = self.compute_plane(_tl_world_pos, _tr_world_pos, _user_head_world_pos)
-    _frustum_planes.append(_top_plane)
+    _distance = self.compute_point_plane_distance(_top_plane[0], _top_plane[1], POINT)
+    if _distance < 0.0: # point in front of top plane --> outside frustum
+      return False
 
     _bottom_plane = self.compute_plane(_br_world_pos, _bl_world_pos, _user_head_world_pos)
-    _frustum_planes.append(_bottom_plane)
-    
+    _distance = self.compute_point_plane_distance(_bottom_plane[0], _bottom_plane[1], POINT)
+    if _distance < 0.0: # point in front of bottom plane plane --> outside frustum
+      return False
 
-    # determine relation to planes (in front, behind)
-    for _plane in _frustum_planes:
-      _n = _plane[0]
-      _d = _plane[1]
 
-      if (_n.x * POINT.x + _n.y * POINT.y + _n.z * POINT.z + _d) < 0:
-        return False
-
-    return True
+    return True    
     

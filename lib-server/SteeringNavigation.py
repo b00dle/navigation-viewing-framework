@@ -99,7 +99,7 @@ class SteeringNavigation(Navigation):
       self.device.my_constructor(NO_TRACKING_MAT)
     elif self.input_device_type == "Spacemouse":
       self.device = SpacemouseDevice()
-      self.device.my_constructor(INPUT_DEVICE_NAME, NO_TRACKING_MAT)
+      self.device.my_constructor(INPUT_DEVICE_NAME, DEVICE_TRACKING_NAME, NO_TRACKING_MAT)
     elif self.input_device_type == "Globefish":
       self.device = GlobefishDevice()
       self.device.my_constructor(INPUT_DEVICE_NAME, NO_TRACKING_MAT)

@@ -28,8 +28,8 @@ scenegraphs = [graph]
 
 # create scene list, strings must match a class name in Scene.py
 #scenes = ["SceneVianden"]
-scenes = ["SceneMedievalTown"]
-#scenes = ["SceneValcamonica"]
+#scenes = ["SceneMedievalTown"]
+scenes = ["SceneValcamonica"]
 
 # if true, scenes will be switchable using the number buttons
 enable_key_bindings = True

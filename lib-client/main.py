@@ -19,6 +19,12 @@ from examples_common.GuaVE import GuaVE
 import sys
 
 
+def prepare_volume():
+
+  _loader = avango.gua.nodes.VolumeLoader()
+  _node = _loader.load("volume_test", "/mnt/data_internal/volume_data/general/backpack16_w512_h512_d373_c1_b16.raw", avango.gua.VolumeLoaderFlags.DEFAULTS)
+
+
 def prepare_medieval():
 
   timer = avango.nodes.TimeSensor()
@@ -123,12 +129,6 @@ def prepare_pitoti():
   _loader.create_geometry_from_file("nadro_24_motive1", _path + "Area-7_Rosa-Camuna.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
   _loader.create_geometry_from_file("nadro_24_motive2", _path + "Area-7_Warrior.kdn", avango.gua.PLODLoaderFlags.DEFAULTS)
 
-  '''
-  (3.636 1.717 35.555 113.341
-   35.593 0.357 -3.657 316.284
-   -0.530 35.739 -1.672 24.145
-   0.000 0.000 0.000 1.000)
-  '''
 
 # Command line parameters:
 # main.py SERVER_IP WORKSPACE_CONFIG_FILE WORKSPACE_ID DISPLAY_GROUP_ID SCREEN_ID DISPLAY_NAME
@@ -184,13 +184,10 @@ def start():
   avango.gua.load_shading_models_from("data/materials")
   avango.gua.load_materials_from("data/materials")
   
-  '''
-  # Volume Stuff
-  _loader = avango.gua.nodes.VolumeLoader()
-  _node = _loader.load("volume_test", "/mnt/data_internal/volume_data/general/backpack16_w512_h512_d373_c1_b16.raw", avango.gua.VolumeLoaderFlags.DEFAULTS)
-  '''
-  prepare_medieval()
-  #prepare_plod()
+  
+  #prepare_volume()
+  #prepare_medieval()
+  prepare_pitoti()
 
   # get the display instance
   for _display in displays:

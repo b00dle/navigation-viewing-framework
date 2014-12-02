@@ -315,7 +315,7 @@ class TouchTable3D(PhysicalDisplay):
                                            [(20, 80, 40, 10), (2, 8, 4, 1)]
                                         ]
                     , size = (1.17, 0.84)
-                    , transformation = avango.gua.make_rot_mat(90, -1, 0, 0)
+                    , transformation = avango.gua.make_rot_mat(90.0, -1, 0, 0)
                     , max_viewing_distance = 1.0
                     , stereo = True
                     , stereomode = "SIDE_BY_SIDE"

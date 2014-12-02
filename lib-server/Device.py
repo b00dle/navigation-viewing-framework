@@ -78,11 +78,12 @@ class MultiDofDevice(avango.script.Script):
     if TRACKING_TARGET_NAME != None:
       self.tracking_reader = TrackingTargetReader()
       self.tracking_reader.my_constructor(TRACKING_TARGET_NAME)
-      self.sf_station_mat.connect_from(self.tracking_reader.sf_abs_mat)
+
     else:
       self.tracking_reader = TrackingDefaultReader()
       self.tracking_reader.set_no_tracking_matrix(NO_TRACKING_MAT)
-      self.sf_station_mat.connect_from(self.tracking_reader.sf_abs_mat)
+
+    self.sf_station_mat.connect_from(self.tracking_reader.sf_abs_mat)
 
 
   ## Map an input value to a certain interval.
@@ -209,7 +210,7 @@ class SpacemouseDevice(MultiDofDevice):
   ## Custom constructor.
   # @param DEVICE_STATION The name of the input device as chosen in daemon.
   # @param NO_TRACKING_MAT The matrix to be applied as a spacemouse is not tracked.
-  def my_constructor(self, DEVICE_STATION, NO_TRACKING_MAT):
+  def my_constructor(self, DEVICE_STATION, TRACKING_TARGET_NAME, NO_TRACKING_MAT):
   
     # init sensor
     ## @var device_sensor
@@ -217,7 +218,7 @@ class SpacemouseDevice(MultiDofDevice):
     self.device_sensor = avango.daemon.nodes.DeviceSensor(DeviceService = avango.daemon.DeviceService())
     self.device_sensor.Station.value = DEVICE_STATION
 
-    self.init_station_tracking(None, NO_TRACKING_MAT)
+    self.init_station_tracking(TRACKING_TARGET_NAME, NO_TRACKING_MAT)
 
     ## @var translation_factor
     # Factor to modify the device's translation input.

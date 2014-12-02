@@ -137,10 +137,10 @@ class InputMapping(avango.script.Script):
     
     if self.blocked == False:
 
-      # map scale
-      _scale = self.mf_rel_input_values.value[6]
-      if _scale != 0.0:
-        self.set_scale(self.sf_scale.value * (1.0 + _scale * 0.015))
+      # map scale input
+      _scale_input = self.mf_rel_input_values.value[6]
+      if _scale_input != 0.0:
+        self.set_scale(self.sf_scale.value * (1.0 + _scale_input * 0.015))
       
       _x = self.mf_rel_input_values.value[0]
       _y = self.mf_rel_input_values.value[1]
@@ -288,6 +288,7 @@ class InputMapping(avango.script.Script):
     self.realistic = False
     self.GROUND_FOLLOWING_INSTANCE.deactivate()
 
+
   ## Applies a new scaling to this input mapping.
   # @param SCALE The new scaling factor to be applied.
   # @param CONSIDER_SNAPPING Boolean saying if the scaling should snap at powers of ten.
@@ -341,8 +342,21 @@ class InputMapping(avango.script.Script):
         _new_scale = 0.001
         self.scale_stop_time = time.time()
 
+      
+      '''
+      # scale relative to a reference point
+      _scale_center_offset = self.sf_station_mat.value.get_translate() 
+  
+      if _scale_center_offset.length() > 0: # scale/rotation center defined
+        _pos1 = _scale_center_offset * _old_scale
+        _pos2 = _scale_center_offset * _new_scale
 
-      self.sf_scale.value = _new_scale
+        _vec = _pos1 - _pos2
+
+        self.sf_abs_mat.value = self.sf_abs_mat.value * avango.gua.make_trans_mat(_vec)
+      '''
+
+      self.sf_scale.value = _new_scale # apply new scale
 
     else:
 
