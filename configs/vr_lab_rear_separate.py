@@ -131,9 +131,9 @@ vr_lab_rear.create_user( VIP = False
 # format: A : { B : bool}
 # interpretation: does display with tag A see representation of tool in displays with tag B?
 tool_visibility_table = {
-                          "dlp_wall"  : {"table" : False, "portal" : False}
+                          "dlp_wall"  : {"table" : False, "portal" : True}
                         , "table" : {"dlp_wall" : True, "portal" : False}  
-                        , "portal" : {"dlp_wall" : True, "table" : False, "portal" : False}
+                        , "portal" : {"dlp_wall" : False, "table" : False, "portal" : False}
                        }
 
 vr_lab_rear.create_ray_pointer( POINTER_TRACKING_STATION = 'tracking-dlp-pointer1' 
