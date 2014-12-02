@@ -6,9 +6,6 @@
 # import avango-guacamole libraries
 import avango
 import avango.gua
-#import avango.utils
-
-from MultiTouch.TUIO import TUIODevice
 
 # import framework libraries
 from SceneManager import *
@@ -66,6 +63,7 @@ def start():
             device.my_constructor(scenegraphs[0], _display, scenegraphs[0]["/net"], scene_manager, application_manager)
             multi_touch_device = device
 
+
   # initialize animation manager
   #animation_manager = AnimationManager()
   #animation_manager.my_constructor([ graph["/net/platform_0"]]
@@ -73,7 +71,6 @@ def start():
 
   ## distribute all nodes in the scenegraph
   distribute_all_nodes(scenegraphs[0]["/net"], scenegraphs[0]["/net"])
-
 
   # run application loop
   application_manager.run(locals(), globals())

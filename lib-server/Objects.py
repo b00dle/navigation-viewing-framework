@@ -320,7 +320,6 @@ class SceneObject:
     _loader = avango.gua.nodes.PLODLoader()
     _loader.UploadBudget.value = 32
     _loader.RenderBudget.value = 512
-
     _loader.OutOfCoreBudget.value = 512
 
     _loader_flags = "avango.gua.PLODLoaderFlags.DEFAULTS" # default loader flags
@@ -331,7 +330,6 @@ class SceneObject:
       _loader_flags += " | avango.gua.PLODLoaderFlags.MAKE_PICKABLE"      
 
     _node = _loader.create_geometry_from_file(NAME, FILENAME, eval(_loader_flags))
-
     _node.Transform.value = MATRIX
     _node.ShadowMode.value = avango.gua.ShadowMode.OFF
  
@@ -424,8 +422,6 @@ class SceneObject:
   
     for _object in self.objects:
       _object.reset()
-
-    self.scene_root.Transform.value = avango.gua.make_identity_mat()
 
 
 ## Class to represent an object in a scene, associated to a scenegraph node.

@@ -368,10 +368,6 @@ class TouchTable3D(PhysicalDisplay):
                     , render_mask = render_mask                   
                     )
 
-  def get_touch_protocols(self):
-    return [ "TUIO" ]
-
-
   ## Registers a new view at this display and returns the display string 
   # and the warp matrices assigned to the new view.
   def register_view(self):

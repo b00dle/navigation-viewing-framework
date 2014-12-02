@@ -153,6 +153,7 @@ class MultiDofDevice(avango.script.Script):
 
     # evaluate input bindings
     for _input_binding in self.input_bindings:
+
       try:
         eval(_input_binding)
       except Exception as e:

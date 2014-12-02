@@ -159,4 +159,3 @@ class Navigation(VisibilityHandler1D):
 
       if self.in_dofchange_animation == False:
          self.trigger_dofchange()
-

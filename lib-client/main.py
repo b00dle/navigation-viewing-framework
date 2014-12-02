@@ -8,7 +8,6 @@ import avango
 import avango.script
 import avango.gua
 import avango.oculus
-from   examples_common.GuaVE import GuaVE
 
 # import framework libraries
 from ClientMaterialUpdaters import *
@@ -56,17 +55,11 @@ class Test:
 ## Main method for the client application.
 def start():
 
-
-  ## @var shell
-  # The GuaVE shell to be used when the application is running.
-  shell = GuaVE()
-
   # disable logger warningss
   logger = avango.gua.nodes.Logger(EnableWarning = False)
 
   # get the server ip
   server_ip = str(sys.argv[1])
-  #server_ip = "127.0.0.1"
 
   # get the workspace config file #
   workspace_config_file = str(sys.argv[2])
@@ -99,8 +92,7 @@ def start():
   nettrans = avango.gua.nodes.NetTransform(
                 Name = "net",
                 # specify role, ip, and port
-                #Groupname = "AVCLIENT|{0}|7432".format(server_ip)
-                Groupname = "AVCLIENT|{0}|5665".format(server_ip)
+                Groupname = "AVCLIENT|{0}|7432".format(server_ip)
                 )
 
   # create a dummy scenegraph to be extended by distribution
@@ -131,6 +123,7 @@ def start():
   #cut_sphere_updater = TimedCutSphereUpdate()
   #cut_sphere_updater.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
 
+
   test = Test(graph)
 
   #i = 0
@@ -146,6 +139,7 @@ def start():
   _loader.RenderBudget.value = 4*1024
   _loader.OutOfCoreBudget.value = 24*1024
 
+  
   # Valcamonica
   _path = "/mnt/pitoti/KDN_LOD/PITOTI_KDN_LOD/01_SFM-Befliegung_Seradina_PointCloud/" # opt path
   #_path = "/media/SSD_500GB/CONVERTED_Seradina_Parts/" # ssd path 

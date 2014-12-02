@@ -107,7 +107,6 @@ class MultiTouchDevice(avango.script.Script):
         """
         self.ray_geometry = _loader.create_geometry_from_file("ray_geometry", "data/objects/cylinder.obj", "data/materials/White.gmd", avango.gua.LoaderFlags.DEFAULTS)
         self.ray_transform.Children.value.append(self.ray_geometry)
-
         self.ray_geometry.GroupNames.value = ["do_not_display_group"]
 
         self.ray_geometry.Transform.value = avango.gua.make_trans_mat(0,0,0) * \
@@ -120,7 +119,6 @@ class MultiTouchDevice(avango.script.Script):
         """
         self.intersection_point_geometry = _loader.create_geometry_from_file("intersection_point_geometry", "data/objects/sphere.obj", "data/materials/White.gmd", avango.gua.LoaderFlags.DEFAULTS)
         NET_TRANS_NODE.Children.value.append(self.intersection_point_geometry)
-
         self.intersection_point_geometry.GroupNames.value = ["do_not_display_group"] # set geometry invisible
 
         self.ray_transform.Transform.connect_from(self._rayOrientation)
@@ -310,6 +308,7 @@ class MultiTouchDevice(avango.script.Script):
         self.handPos_geometry.Transform.value = avango.gua.make_trans_mat(handPos) * \
                                                 avango.gua.make_scale_mat( 0.1, 0.005 , 0.1 )
 
+
     def setObjectMode(self, active):
         """
         Evaluate object mode.
@@ -363,6 +362,8 @@ class MultiTouchDevice(avango.script.Script):
         #TODO: decide between displays with tracking and not
         #for no tracking use this: #self._rayOrientation.value = avango.gua.make_trans_mat(self._fingerCenterPos.value.x , 0.5 , self._fingerCenterPos.value.z) * avango.gua.make_rot_mat(-90,1,0,0)
 
+        #do this only once per gesture
+        
         #do this only once per gesture
         if (1 < (self._frameCounter - self._lastIntersectionCounter)):                 
             """ ray orientation from fingerPos down """
@@ -420,6 +421,11 @@ class MultiTouchDevice(avango.script.Script):
                 self._intersectionPoint = avango.gua.Vec3(0,0,0)
         
         self._lastIntersectionCounter = self._frameCounter
+        
+
+
+
+
 
     def update_object_highlight(self):
         """highlight active object:"""
@@ -473,7 +479,6 @@ class MultiTouchDevice(avango.script.Script):
             """ object Mode """
             if self._objectMode:
                 objectNode = "/net/" + sceneName + "/" + self._objectName
-
                 scenePos = self._sceneGraph[objectNode].Transform.value.get_translate()
                 TransformMatrix = self._sceneGraph[objectNode].Transform.value
             
@@ -523,6 +528,7 @@ class MultiTouchDevice(avango.script.Script):
                                   avango.gua.make_trans_mat(avango.gua.Vec3(0, self._intersectionPoint.y * 1.0 , 0)) * \
                                   avango.gua.make_trans_mat(translateDistance * -1.0) * \
                                   avango.gua.make_scale_mat(TransformMatrix.get_scale())
+
 
             """ object mode """
             if self._objectMode:

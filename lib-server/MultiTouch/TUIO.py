@@ -52,7 +52,6 @@ class TUIODevice(MultiTouchDevice):
 
         # register gestures
         # TODO: do this somewhere else
-
         #self.registerGesture(DoubleTapGesture())
         #self.registerGesture(DragGesture())
         #self.registerGesture(PinchGesture())
@@ -69,6 +68,7 @@ class TUIODevice(MultiTouchDevice):
 
     #@field_has_changed(PosChanged)
     def processChange(self):
+        
         # reset all visualizations
         self.fingercenterpos_geometry.GroupNames.value = ["do_not_display_group"]
         
@@ -114,6 +114,7 @@ class TUIODevice(MultiTouchDevice):
         #self.handPos_geometry.GroupNames.value = ["do_not_display_group"]
 
         centerPos = avango.gua.Vec3(0,0,0)
+
 
         if len(activePoints) > 0:
             #print("active points: " + str(len(activePoints)))
@@ -206,6 +207,8 @@ class TUIODevice(MultiTouchDevice):
             self.update_object_highlight()
             self.applyTransformations()
         """
+
+
 
     def registerGesture(self, gesture):
         """

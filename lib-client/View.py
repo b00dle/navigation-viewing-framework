@@ -105,8 +105,6 @@ class View(avango.script.Script):
     # The pipeline used to render this View.
     self.pipeline = avango.gua.nodes.Pipeline()
     self.pipeline.Enabled.value = True
-    self.pipeline.NearClip.value = 0.0001
-    self.pipeline.FarClip.value = 50.0
 
     '''
       Standard View

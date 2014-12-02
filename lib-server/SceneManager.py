@@ -198,6 +198,7 @@ class SceneManager(avango.script.Script):
   # Static attribute holding the far clippling distance of the currently active scene.
   current_far_clip = 1000.0
 
+
   # Default constructor.
   def __init__(self):
     self.super(SceneManager).__init__()
@@ -280,8 +281,7 @@ class SceneManager(avango.script.Script):
 
     if self.sf_key3.value == True: # key pressed
       self.activate_scene(2)
-  
-  
+
   ## Called whenever sf_key4 changes.
   @field_has_changed(sf_key4)
   def sf_key4_changed(self):
@@ -330,8 +330,7 @@ class SceneManager(avango.script.Script):
 
     if self.sf_key0.value == True: # key pressed
       self.activate_scene(9)
-  
-  
+
   ## Called whenever sf_key_home changes.
   @field_has_changed(sf_key_home)
   def sf_key_home_changed(self):
@@ -367,6 +366,7 @@ class SceneManager(avango.script.Script):
             _nav.start_matrix = self.active_scene.starting_matrix
             _nav.reset()
 
+  
       print("Switching to Scene: " + self.active_scene.name)
   
   ## Prints all the nodes of the active scene on the console.
