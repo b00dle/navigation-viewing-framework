@@ -3,17 +3,15 @@
 from SceneManager import SceneManager 
 from Intersection import *
 from TrackingReader import *
-import Tools
+import Utilities
 
 import avango
 import avango.gua
 import avango.daemon
 import avango.script
 from avango.script import field_has_changed
-
 import subprocess
 import math
-import avango.utils
 import time
 
 class MultiTouchDevice(avango.script.Script):
@@ -26,9 +24,6 @@ class MultiTouchDevice(avango.script.Script):
     _rayOrientation = avango.gua.SFMatrix4()
     _fingerCenterPos = avango.gua.SFVec3()
 
-    sf_key2 = avango.SFBool()
-    sf_key3 = avango.SFBool()
-    
     def __init__(self):
         self.super(MultiTouchDevice).__init__()
         self._sceneGraph = None
@@ -64,12 +59,11 @@ class MultiTouchDevice(avango.script.Script):
         self.intersection_sphere_size = 0.025
         self.highlighted_object = None
         self.hierarchy_selection_level = -1
-
+     
         self.always_evaluate(True)
 
 
-    #def my_constructor(self, graph, display, NET_TRANS_NODE, SCENE_MANAGER, APPLICATION_MANAGER):
-    def my_constructor(self, graph, display, NET_TRANS_NODE, APPLICATION_MANAGER):
+    def my_constructor(self, graph, display, NET_TRANS_NODE, SCENE_MANAGER, APPLICATION_MANAGER):
         """
         Initialize multi-touch device.
 
@@ -79,6 +73,7 @@ class MultiTouchDevice(avango.script.Script):
 
         self._sceneGraph = graph
         self._display    = display
+        self._sceneManager = SCENE_MANAGER
 
         """ original matrix of the scene """
         self._origMat    = graph.Root.value.Transform.value
@@ -89,7 +84,12 @@ class MultiTouchDevice(avango.script.Script):
         self._intersection.my_constructor(self._sceneGraph, self._rayOrientation, self.ray_length, "") # parameters: SCENEGRAPH, SF_PICK_MATRIX, PICK_LENGTH, PICKMASK
 
         """ parent node of ray node """
-        _parent_node = self._sceneGraph["/net/platform_0/scale"]
+        _parent_node = self._sceneGraph["/net"]
+
+        """ add screen transform node to append dynamic touch geometry """
+        self._screenTransformNode = avango.gua.nodes.TransformNode(Name = "screen_transform")
+        self._screenTransformNode.Transform.connect_from(self._sceneGraph["/net/w0_dg0_u0/screen_0"].Transform)
+        _parent_node.Children.value.append(self._screenTransformNode)
         
         """
         # init scenegraph node
@@ -106,8 +106,8 @@ class MultiTouchDevice(avango.script.Script):
         # Geometry node representing the ray graphically.
         """
         self.ray_geometry = _loader.create_geometry_from_file("ray_geometry", "data/objects/cylinder.obj", "data/materials/White.gmd", avango.gua.LoaderFlags.DEFAULTS)
-        #self.ray_transform.Children.value.append(self.ray_geometry)
-        _parent_node.Children.value.append(self.ray_geometry)
+        self.ray_transform.Children.value.append(self.ray_geometry)
+
         self.ray_geometry.GroupNames.value = ["do_not_display_group"]
 
         self.ray_geometry.Transform.value = avango.gua.make_trans_mat(0,0,0) * \
@@ -119,19 +119,23 @@ class MultiTouchDevice(avango.script.Script):
         Geometry node representing the intersection point of the ray with an object in the scene.
         """
         self.intersection_point_geometry = _loader.create_geometry_from_file("intersection_point_geometry", "data/objects/sphere.obj", "data/materials/White.gmd", avango.gua.LoaderFlags.DEFAULTS)
-        _parent_node.Children.value.append(self.intersection_point_geometry)
-        #NET_TRANS_NODE.Children.value.append(self.intersection_point_geometry)
+        NET_TRANS_NODE.Children.value.append(self.intersection_point_geometry)
+
         self.intersection_point_geometry.GroupNames.value = ["do_not_display_group"] # set geometry invisible
 
         self.ray_transform.Transform.connect_from(self._rayOrientation)
 
         """ representation of fingercenterpos """
         self.fingercenterpos_geometry = _loader.create_geometry_from_file("fingercenterpos", "data/objects/sphere.obj", "data/materials/Red.gmd", avango.gua.LoaderFlags.DEFAULTS)
-        _parent_node.Children.value.append(self.fingercenterpos_geometry)
-        #NET_TRANS_NODE.Children.value.append(self.fingercenterpos_geometry)
+        NET_TRANS_NODE.Children.value.append(self.fingercenterpos_geometry)
         self.fingercenterpos_geometry.GroupNames.value = ["do_not_display_group"]
 
-        #######
+        """ hand representation """
+        self.handPos_geometry = _loader.create_geometry_from_file("handpos", "data/objects/cube.obj", "data/materials/Red.gmd", avango.gua.LoaderFlags.DEFAULTS)
+        NET_TRANS_NODE.Children.value.append(self.handPos_geometry)
+        self.handPos_geometry.GroupNames.value = ["do_not_display_group"]
+
+        ############
         """ representation of touchpoints """
         self.touch_finger_geometries = []
         self.touch_hand_geometries = []
@@ -141,19 +145,17 @@ class MultiTouchDevice(avango.script.Script):
         """ hand tracking """
         self.hand_tracking = TrackingTargetReader()
         self.hand_tracking.my_constructor("tracking-dlp-hand")
-        self.hand_tracking.set_transmitter_offset(self._applicationManager.user_list[0].transmitter_offset)
+        self.hand_tracking.set_transmitter_offset(avango.gua.make_trans_mat(0.0, 0.043, 0.0)) #see config
         self.hand_tracking.set_receiver_offset(avango.gua.make_identity_mat())
 
-        self.hand_tracking_trans = avango.gua.nodes.TransformNode(Name = "hand_tracking_node")
+        self.hand_tracking_trans = avango.gua.nodes.TransformNode(Name = "hand_tracking")
         self.hand_tracking_trans.Transform.connect_from(self.hand_tracking.sf_tracking_mat)
-        self._applicationManager.navigation_list[0].platform.platform_scale_transform_node.Children.value.append(self.hand_tracking_trans)
+        self._screenTransformNode.Children.value.append(self.hand_tracking_trans)
 
-        self.keyboard_sensor = avango.daemon.nodes.DeviceSensor(DeviceService = avango.daemon.DeviceService())
-        self.keyboard_sensor.Station.value = "device-keyboard0"
-        
-        self.sf_key2.connect_from(self.keyboard_sensor.Button11) # key 2
-        self.sf_key3.connect_from(self.keyboard_sensor.Button12) # key 3
-        #######
+        """ cut away uniform info """
+        self.cut_sphere_node = avango.gua.nodes.TransformNode(Name = "cut_sphere")
+        self._sceneGraph["/net"].Children.value.append(self.cut_sphere_node)
+        ############        
 
         """ define Input display size """
         #111,5cm x 75,8
@@ -161,7 +163,6 @@ class MultiTouchDevice(avango.script.Script):
 
 
     def setupTouchGeometries(self, fingerCount, fingerObjPath, handCount, handObjPath):
-        _parent_node = self._sceneGraph["/net/platform_0/scale"]
         _loader = avango.gua.nodes.TriMeshLoader()
 
         self.touch_finger_geometries = []
@@ -171,7 +172,7 @@ class MultiTouchDevice(avango.script.Script):
                                                                         "data/materials/Blue.gmd",
                                                                         avango.gua.LoaderFlags.DEFAULTS))
             self.touch_finger_geometries[i].GroupNames.value = ["do_not_display_group"]
-            _parent_node.Children.value.append(self.touch_finger_geometries[i])
+            self._screenTransformNode.Children.value.append(self.touch_finger_geometries[i])
 
         self.touch_hand_geometries = []
         self.touch_ray_geometries = []
@@ -180,50 +181,15 @@ class MultiTouchDevice(avango.script.Script):
                                                                         handObjPath,
                                                                         "data/materials/Red.gmd",
                                                                         avango.gua.LoaderFlags.DEFAULTS))
-            _parent_node.Children.value.append(self.touch_hand_geometries[i])
             self.touch_hand_geometries[i].GroupNames.value = ["do_not_display_group"]
+            self._screenTransformNode.Children.value.append(self.touch_hand_geometries[i])
 
             self.touch_ray_geometries.append(_loader.create_geometry_from_file("touch_ray_" + str(i),
                                                                             "data/objects/cylinder.obj",
                                                                             "data/materials/White.gmd",
                                                                             avango.gua.LoaderFlags.DEFAULTS))
-            _parent_node.Children.value.append(self.touch_ray_geometries[i])
-            self.ray_geometry.GroupNames.value = ["do_not_display_group"]
-
-
-
-    def getDisplay(self):
-        return self._display
-    
-
-    def getSceneGraph(self):
-        return self._sceneGraph
-
-
-    def mapInputPosition(self, Pos):
-        """
-        Map input position to display size
-        """
-
-        point = Pos
-
-        #TODO: correct finger center position
-        """ map points from interval [0, 1] to [-0.5, 0.5] """
-        mappedPosX = point[0] * 1 - 0.5
-        mappedPosY = point[1] * 1 - 0.5
-
-        """ map point to display intervall ([-1/2*display-size] -> [+1/2*display-size]) """
-        mappedPos = avango.gua.Vec3(mappedPosX * self._inputDisplaySize.x, 0.0, mappedPosY * self._inputDisplaySize.y)   
-
-        return mappedPos        
-
-    def setFingerCenterPos(self, fingerPos):
-        self._fingerCenterPos.value = fingerPos
-
-        """ update fingercenterpos representation """
-        self.fingercenterpos_geometry.GroupNames.value = []
-        self.fingercenterpos_geometry.Transform.value = avango.gua.make_trans_mat(self._fingerCenterPos.value) * \
-                                                        avango.gua.make_scale_mat( 0.025, 0.025 , 0.025 )
+            self.touch_ray_geometries[i].GroupNames.value = ["do_not_display_group"]
+            self._screenTransformNode.Children.value.append(self.touch_ray_geometries[i])
 
     def visualizeTouchFinger(self, touchPos, index):
         if index >= len(self.touch_finger_geometries) or index < 0:
@@ -231,33 +197,8 @@ class MultiTouchDevice(avango.script.Script):
         else:
             self.touch_finger_geometries[index].GroupNames.value = []
             self.touch_finger_geometries[index].Transform.value = avango.gua.make_trans_mat(self.mapInputPosition(touchPos)) * \
-                                                            avango.gua.make_scale_mat(0.025, 0.0025, 0.025)
-
-    def visualizePointingRay(self, touchPos):
-        #touchPos.x += 0.016
-        #touchPos.z += 0.010
-
-        handPos = self.hand_tracking.sf_abs_vec.value
-        
-        handPos.z += 0.025
-
-        directionVector = touchPos - handPos
+                                                            avango.gua.make_scale_mat(0.025, 0.025, 0.0025)
             
-        """ calculate rotation matrix """
-        vec1 = avango.gua.Vec3(0.0,0.0,-1.0)
-        directionVector.normalize()
-        rotationMatrix = Tools.get_rotation_between_vectors( vec1, directionVector)
-        
-        """ start position and rotation matrix """
-        self._rayOrientation.value = avango.gua.make_trans_mat(handPos) * rotationMatrix
-
-        self.ray_geometry.GroupNames.value = []
-
-        """update ray"""
-        self.ray_geometry.Transform.value = avango.gua.make_trans_mat(0.0, 0.0, 20 * -0.5) * \
-                                            avango.gua.make_rot_mat(-90.0,1,0,0) * \
-                                            avango.gua.make_scale_mat(self.ray_thickness, 20, self.ray_thickness)
-
     def visualisizeHandPosAvgCenter(self, fPos1, fPos2, fPos3, fPos4, fPos5, index):
         fingerPositions = [fPos1, fPos2, fPos3, fPos4, fPos5]
         xMin = 100000.0
@@ -279,7 +220,13 @@ class MultiTouchDevice(avango.script.Script):
         """ update hand representation """
         self.touch_hand_geometries[index].GroupNames.value = []
         self.touch_hand_geometries[index].Transform.value = avango.gua.make_trans_mat(self.mapInputPosition(centerPos)) * \
+                                                avango.gua.make_rot_mat(90,1,0,0) * \
                                                 avango.gua.make_scale_mat( 0.5*lengthVecMinMax, 0.5*lengthVecMinMax, 0.5*lengthVecMinMax )
+        
+        self.touch_ray_geometries[index].GroupNames.value = []
+        rayLength = 1        
+        self.touch_ray_geometries[index].Transform.value = avango.gua.make_trans_mat(mappedPos.x, mappedPos.y, -0.5 * rayLength) * \
+                                                avango.gua.make_scale_mat(0.01, 0.01, rayLength)
 
     def visualisizeHandPosBBCenter(self, fPos1, fPos2, fPos3, fPos4, fPos5, index):
         fingerPositions = [fPos1, fPos2, fPos3, fPos4, fPos5]
@@ -301,12 +248,67 @@ class MultiTouchDevice(avango.script.Script):
 
         self.touch_hand_geometries[index].GroupNames.value = []
         self.touch_hand_geometries[index].Transform.value = avango.gua.make_trans_mat(mappedPos) * \
+                                                avango.gua.make_rot_mat(90,1,0,0) * \
                                                 avango.gua.make_scale_mat( 0.5*lengthVecMinMax, 0.5*lengthVecMinMax, 0.5*lengthVecMinMax)
+
+        self.setCutSphereUniforms(avango.gua.Vec3(mappedPos.x,mappedPos.z,-mappedPos.y), 0.5*lengthVecMinMax)
+        #self.touch_hand_geometries[index].Transform.value = avango.gua.make_trans_mat(self.mapInputPosition(fPos1)) * \
+        #                                                    avango.gua.make_scale_mat(0.025, 0.025, 0.025)
 
         self.touch_ray_geometries[index].GroupNames.value = []
         rayLength = 1        
-        self.touch_ray_geometries[index].Transform.value = avango.gua.make_trans_mat(mappedPos.x, -0.5 * rayLength, mappedPos.z) * \
-                                                avango.gua.make_scale_mat(0.01, rayLength, 0.01)
+        self.touch_ray_geometries[index].Transform.value = avango.gua.make_trans_mat(mappedPos.x, mappedPos.y, -0.5 * rayLength) * \
+                                                avango.gua.make_scale_mat(0.01, 0.01, rayLength)
+
+    def setCutSphereUniforms(self, sphereCenter, sphereRadius):
+        _mat = avango.gua.make_identity_mat()
+        
+        _mat.set_element(0,0,sphereCenter.x)
+        _mat.set_element(1,0,sphereCenter.y)
+        _mat.set_element(2,0,sphereCenter.z)
+        
+        _mat.set_element(0,1,sphereRadius)
+        
+        self.cut_sphere_node.Transform.value = _mat
+
+
+    def getDisplay(self):
+        return self._display
+    
+
+    def getSceneGraph(self):
+        return self._sceneGraph
+
+
+    def mapInputPosition(self, Pos):
+        """
+        Map input position to display size
+        """
+
+        point = Pos
+
+        """ map points from interval [0, 1] to [-0.5, 0.5] """
+        mappedPosX = point[0] * 1 - 0.5
+        mappedPosY = point[1] * 1 - 0.5
+
+        """ map point to display intervall ([-1/2*display-size] -> [+1/2*display-size]) """
+        mappedPos = avango.gua.Vec3(mappedPosX * self._inputDisplaySize.x, -1 * (mappedPosY * self._inputDisplaySize.y), 0.0)   
+
+        return mappedPos        
+
+    def setFingerCenterPos(self, fingerPos):
+        self._fingerCenterPos.value = fingerPos
+
+        """ update fingercenterpos representation """
+        self.fingercenterpos_geometry.GroupNames.value = []
+        self.fingercenterpos_geometry.Transform.value = avango.gua.make_trans_mat(self._fingerCenterPos.value) * \
+                                                        avango.gua.make_scale_mat( 0.025, 0.025 , 0.025 )
+
+    def visualisizeHandPosition(self, handPos):
+        """ update hand representation """
+        self.handPos_geometry.GroupNames.value = []
+        self.handPos_geometry.Transform.value = avango.gua.make_trans_mat(handPos) * \
+                                                avango.gua.make_scale_mat( 0.1, 0.005 , 0.1 )
 
     def setObjectMode(self, active):
         """
@@ -362,24 +364,10 @@ class MultiTouchDevice(avango.script.Script):
         #for no tracking use this: #self._rayOrientation.value = avango.gua.make_trans_mat(self._fingerCenterPos.value.x , 0.5 , self._fingerCenterPos.value.z) * avango.gua.make_rot_mat(-90,1,0,0)
 
         #do this only once per gesture
-        if (1 < (self._frameCounter - self._lastIntersectionCounter)):
-            """ head position of first user """
-            self._headPosition1 = self._applicationManager.user_list[0].headtracking_reader.sf_abs_vec.value
-
-            """ direction Vector between head and finger position """
-            _directionVector = self._fingerCenterPos.value - self._headPosition1
+        if (1 < (self._frameCounter - self._lastIntersectionCounter)):                 
+            """ ray orientation from fingerPos down """
+            self._rayOrientation.value = avango.gua.make_trans_mat(self._fingerCenterPos.value.x , 1 , self._fingerCenterPos.value.z) * avango.gua.make_rot_mat(-90,1,0,0)
             
-            """ ray shouldn't start in the head of the user (for the representation) """  
-            _startPosition = self._headPosition1 + _directionVector * 0.8
-            
-            """ calculate rotation matrix """
-            _vec1 = avango.gua.Vec3(0.0,0.0,-1.0)
-            _directionVector.normalize()
-            _rotationMatrix = Tools.get_rotation_between_vectors( _vec1, _directionVector)
-            
-            """ start position and rotation matrix """
-            self._rayOrientation.value = avango.gua.make_trans_mat(_startPosition) * _rotationMatrix
-                    
             """intersection found"""
             if len(self._intersection.mf_pick_result.value) > 0:
                 self._intersectionFound = True
@@ -410,7 +398,7 @@ class MultiTouchDevice(avango.script.Script):
                                                                    avango.gua.make_scale_mat(self.intersection_sphere_size, self.intersection_sphere_size, self.intersection_sphere_size)
                 """set sphere and ray visible"""                                           
                 #self.intersection_point_geometry.GroupNames.value = [] 
-                self.ray_geometry.GroupNames.value = []
+                #self.ray_geometry.GroupNames.value = []
 
                 """update ray"""
                 _distance = (self._intersectionPoint - self.ray_transform.WorldTransform.value.get_translate()).length()
@@ -432,9 +420,6 @@ class MultiTouchDevice(avango.script.Script):
                 self._intersectionPoint = avango.gua.Vec3(0,0,0)
         
         self._lastIntersectionCounter = self._frameCounter
-
-
-
 
     def update_object_highlight(self):
         """highlight active object:"""
@@ -478,16 +463,17 @@ class MultiTouchDevice(avango.script.Script):
         """
 
         """ Reguires the scnene Name of actually scene to change dynamically """
-        self._sceneName = SceneManager.active_scene_name
+        sceneName = self._sceneManager.getActiveSceneName()
 
         """ to avoid errors until the scenen Name is set """
-        if (None != self._sceneName):
-            sceneNode = "/net/" + self._sceneName
+        if (None != sceneName):
+            sceneNode = "/net/" + sceneName
             self._globalMatrix = self._sceneGraph[sceneNode].Transform.value
             
             """ object Mode """
             if self._objectMode:
-                objectNode = "/net/" + self._sceneName + "/" + self._objectName
+                objectNode = "/net/" + sceneName + "/" + self._objectName
+
                 scenePos = self._sceneGraph[objectNode].Transform.value.get_translate()
                 TransformMatrix = self._sceneGraph[objectNode].Transform.value
             
@@ -502,11 +488,14 @@ class MultiTouchDevice(avango.script.Script):
             translateDistance = avango.gua.make_inverse_mat(avango.gua.make_rot_mat(TransformMatrix.get_rotate_scale_corrected())) * translateDistance
             translateDistance = avango.gua.Vec3(translateDistance.x, translateDistance.y, translateDistance.z)
 
-            #todo: 
-            #   warum verschiebt sich manchmal das scenen koordinatensystem?
-            #   alles in einer transformmatrix berechnung 
+            #print (self._transMat)
 
-            """ TransfotmMatrix: first translate and rotate to origin, second calculate new position, third translate and rotate back """
+            """ 
+            TransfotmMatrix: 
+                1. translate and rotate to origin, 
+                2. calculate new position, 
+                3. translate and rotate back 
+            """
 
             """ object mode """
             if self._objectMode:
@@ -534,20 +523,6 @@ class MultiTouchDevice(avango.script.Script):
                                   avango.gua.make_trans_mat(avango.gua.Vec3(0, self._intersectionPoint.y * 1.0 , 0)) * \
                                   avango.gua.make_trans_mat(translateDistance * -1.0) * \
                                   avango.gua.make_scale_mat(TransformMatrix.get_scale())
-            """
-            TransformMatrix = avango.gua.make_trans_mat(TransformMatrix.get_translate()) * \
-                                  avango.gua.make_rot_mat(TransformMatrix.get_rotate_scale_corrected()) *\
-                                  avango.gua.make_trans_mat(translateDistance * 1.0) * \
-                                  avango.gua.make_trans_mat(avango.gua.Vec3(0, self._intersectionPoint.y * -1.0 , 0)) * \
-                                  avango.gua.make_inverse_mat(avango.gua.make_rot_mat(TransformMatrix.get_rotate_scale_corrected())) * \
-                                  self._rotMat * \
-                                  self._scaleMat * \
-                                  self._transMat * \
-                                  avango.gua.make_rot_mat(TransformMatrix.get_rotate_scale_corrected()) * \
-                                  avango.gua.make_trans_mat(avango.gua.Vec3(0, self._intersectionPoint.y * 1.0 , 0)) * \
-                                  avango.gua.make_trans_mat(translateDistance * -1.0) * \
-                                  avango.gua.make_scale_mat(TransformMatrix.get_scale())
-            """
 
             """ object mode """
             if self._objectMode:
@@ -562,19 +537,3 @@ class MultiTouchDevice(avango.script.Script):
         self._rotMat     = avango.gua.make_identity_mat()
         self._scaleMat   = avango.gua.make_identity_mat()
         self._globalMatrix = avango.gua.make_identity_mat()
-
-    ## Called whenever sf_key2 changes.
-    @field_has_changed(sf_key2)
-    def sf_key2_changed(self):
-
-        if self.sf_key2.value == True: # key pressed
-            _parent_node = self._sceneGraph["/net/platform_0/scale"]
-            _parent_node.Transform.value = avango.gua.make_trans_mat(0.0,0.1,0.0) * _parent_node.Transform.value
-  
-    ##Called whenever sf_key3 changes.
-    @field_has_changed(sf_key3)
-    def sf_key3_changed(self):
-
-        if self.sf_key3.value == True: # key pressed
-            _parent_node = self._sceneGraph["/net/platform_0/scale"]
-            _parent_node.Transform.value = avango.gua.make_trans_mat(0.0,-0.1,0.0) * _parent_node.Transform.value
