@@ -10,7 +10,7 @@ import avango.gua
 # import framework libraries
 from DisplayGroup import *
 from PhysicalDisplay import *
-from Portal import *
+from VirtualDisplay import *
 from Workspace import Workspace
 from SteeringNavigation import SteeringNavigation
 from StaticNavigation import StaticNavigation
@@ -155,4 +155,4 @@ tower_portal_2_dg = DisplayGroup(ID = None
 
 portal_display_groups = [tower_portal_1_dg, tower_portal_2_dg]
 '''
-portal_display_groups = []
+virtual_display_groups = []
