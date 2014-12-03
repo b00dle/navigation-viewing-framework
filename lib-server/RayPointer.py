@@ -102,6 +102,10 @@ class RayPointerRepresentation(ToolRepresentation):
                                         avango.gua.make_rot_mat(-90.0, 1, 0, 0) * \
                                         avango.gua.make_scale_mat(self.TOOL_INSTANCE.ray_thickness, NEW_RAY_DISTANCE, self.TOOL_INSTANCE.ray_thickness)
 
+  ## Resets the ray length to the maximum.
+  def reset_ray_distance(self):
+    self.set_ray_distance(self.TOOL_INSTANCE.ray_length) # set to default ray length
+
   ## Shows the intersection geometry at a specific matrix in this coordinate system and sets the ray distance accordingly.
   # @param MATRIX The position matrix to be set for the intersection geometry.
   # @param NEW_RAY_DISTANCE The new distance of the ray to be set.
@@ -114,7 +118,6 @@ class RayPointerRepresentation(ToolRepresentation):
   ## Hides the intersection geometry and resets the ray distance.
   def hide_intersection_geometry(self):
     self.intersection_point_geometry.GroupNames.value.append("do_not_display_group")
-    self.set_ray_distance(self.TOOL_INSTANCE.ray_length) # set to default ray length
 
   ## Hides the ray geometry.
   def hide_ray(self):
@@ -266,6 +269,11 @@ class RayPointer(Tool):
     ## @var picking_mask
     # Picking mask for intersection    
     self.picking_mask = "man_pick_group"
+
+    ## @var primary_tool_representations
+    # If an intersection of the active representation with a virtual display is found, this list
+    # stores the tool representations in the primary context.
+    self.primary_tool_representations = []
     
     
     ## @var device_sensor
@@ -385,6 +393,7 @@ class RayPointer(Tool):
   def create_candidate_list(self):
     
     _candidate_list = []
+    self.primary_tool_representations = []
 
     # only go on if a user is assigned to the ray
     if self.assigned_user != None:
@@ -394,6 +403,10 @@ class RayPointer(Tool):
 
         # do not consider virtual displays that are not visible
         if _tool_repr.is_in_virtual_display() and _tool_repr.DISPLAY_GROUP.visible == "False":
+          continue
+
+        # do not consider tool representations that have already been considered as primary
+        if _tool_repr in self.primary_tool_representations:
           continue
 
         if _tool_repr.user_id == self.assigned_user.id: # check only tool representations of the assigned user
@@ -437,7 +450,25 @@ class RayPointer(Tool):
                                              (avango.gua.make_trans_mat(_pick_world_position) * \
                                              avango.gua.make_scale_mat(_user_nav_mat.get_scale() * -1))
 
-                _candidate_list.append( (_pick_result, _tool_repr, _intersection_in_nav_space) )
+                # if a virtual proxy geometry is hit, just shorten the ray, without adding it to the candidate list
+                if "virtual_proxy" in _pick_result.Object.value.GroupNames.value:
+
+                  # if the tool representations intersects a virtual display, the ones of other users
+                  # do so as well (when they have the same navigation), so get all tool representations
+                  # at display group (as all of them have to be shortened)
+                  _tool_reprs_at_display_group = []
+
+                  for _tool_repr_2 in self.tool_representations:
+                    if _tool_repr_2.DISPLAY_GROUP == _tool_repr.DISPLAY_GROUP:
+
+                      _ray_length = abs(_intersection_in_nav_space.get_translate().z)
+                      _tool_repr_2.hide_intersection_geometry()
+                      _tool_repr_2.set_ray_distance(_ray_length)
+                      self.primary_tool_representations.append(_tool_repr_2)
+
+                else:
+
+                  _candidate_list.append( (_pick_result, _tool_repr, _intersection_in_nav_space) )
 
                 break
 
@@ -502,33 +533,29 @@ class RayPointer(Tool):
         _intersection_in_nav_space = _pick_result_tuple[2]
 
         _hit_display_group = _hit_repr.DISPLAY_GROUP
+        _ray_length = abs(_intersection_in_nav_space.get_translate().z)
 
         # iterate over all tool representations
         for _repr in self.tool_representations:
         
-          # hide intersection point when not at hit display group
-          # or when user does not share the assigned user's navigation
-          if _repr.DISPLAY_GROUP != _hit_display_group or \
-             _repr.USER_REPRESENTATION.connected_navigation_id != self.assigned_user.user_representations[_hit_display_group.id].connected_navigation_id :
+          if _hit_repr.is_in_virtual_display():
+            
+            if _repr not in self.primary_rays:
+              _repr.set_ray_distance(_ray_length)
+              _repr.show_intersection_geometry_at(_intersection_in_nav_space, _ray_length)
 
-            _repr.hide_intersection_geometry()
-            #_repr.set_ray_distance(_pick_result.Distance.value * self.ray_length)
-          
-            _ray_length = abs(_intersection_in_nav_space.get_translate().z)
-            _repr.show_intersection_geometry_at(_intersection_in_nav_space, _ray_length)
-
-
-          # otherwise show the intersection geometry
           else:
-            _ray_length = abs(_intersection_in_nav_space.get_translate().z)
+            _repr.set_ray_distance(_ray_length)
             _repr.show_intersection_geometry_at(_intersection_in_nav_space, _ray_length)
-            #_repr.show_intersection_geometry_at(_intersection_in_nav_space, _pick_result.Distance.value * self.ray_length)
 
       # no pick was found
       else:
         
         for _repr in self.tool_representations:
-          _repr.hide_intersection_geometry()
+              
+          if _repr not in self.primary_rays:
+            _repr.hide_intersection_geometry()
+            _repr.reset_ray_distance()
 
       #self.update_object_highlight(_pick_result)
 

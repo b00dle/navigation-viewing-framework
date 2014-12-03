@@ -9,6 +9,7 @@ import avango.gua
 
 # import framework libraries
 from ApplicationManager import *
+from VirtualDisplay import VirtualDisplayProxy
 from scene_config import scenegraphs
 
 
@@ -218,6 +219,22 @@ class VirtualDisplayGroup(DisplayGroup):
       self.exit_node.Children.value.append(_screen_node)
       self.NET_TRANS_NODE.distribute_object(_screen_node)
       self.screen_nodes.append(_screen_node)
+
+    # create proxy screen geometries
+
+    ##
+    #
+    self.virtual_display_proxies = []
+
+    for _screen_node in self.screen_nodes:
+
+      _index = self.screen_nodes.index(_screen_node)
+
+      _proxy = VirtualDisplayProxy()
+      _proxy.my_constructor(NAME = "proxy_vir_dg" + str(self.id) + "_s" + str(_index)
+                          , PARENT_NODE = scenegraphs[0].Root.value
+                          , VIRTUAL_DISPLAY_GROUP = self
+                          , SCREEN_NODE = _screen_node)
 
 
   ## Switches viewing_mode to the other state.
