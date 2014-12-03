@@ -121,4 +121,4 @@ class VirtualDisplayProxy(avango.script.Script):
   def evaluate(self):
 
     self.sf_geometry_matrix.value = avango.gua.make_rot_mat(90, 1, 0 ,0) * \
-                                    avango.gua.make_scale_mat(self.sf_width.value, 1.0, self.sf_height.value)
+                                    avango.gua.make_scale_mat(self.sf_width.value + 0.2, 1.0, self.sf_height.value + 0.2)

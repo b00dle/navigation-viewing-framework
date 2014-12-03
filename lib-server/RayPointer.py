@@ -540,7 +540,7 @@ class RayPointer(Tool):
         
           if _hit_repr.is_in_virtual_display():
             
-            if _repr not in self.primary_rays:
+            if _repr not in self.primary_tool_representations:
               _repr.set_ray_distance(_ray_length)
               _repr.show_intersection_geometry_at(_intersection_in_nav_space, _ray_length)
 
@@ -553,7 +553,7 @@ class RayPointer(Tool):
         
         for _repr in self.tool_representations:
               
-          if _repr not in self.primary_rays:
+          if _repr not in self.primary_tool_representations:
             _repr.hide_intersection_geometry()
             _repr.reset_ray_distance()
 
