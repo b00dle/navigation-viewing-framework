@@ -1,0 +1,120 @@
+#!/bin/python
+
+import avango
+import avango.gua
+import avango.daemon
+import avango.script
+
+import math
+
+class HandWidget(avango.script.Script):
+
+    def __init__(self):
+        self.super(HandWidget).__init__()
+
+        self.hand_id                = 0
+
+        self.hand_mat               = avango.gua.make_identity_mat()
+        self.finger_mat_list        = []
+        self.length_finger_span     = 0.0
+
+        self.hand_geometry          = None
+        self.ray_geometry           = None
+        self.finger_geometries      = []
+
+        self.is_hidden = False
+
+        self.always_evaluate(True)
+
+    def my_constructor(self, HANDID, FINGERPOSITIONS, HANDGEOMETRY, RAYGEOMETRY, FINGERGEOMETRIES):
+        self.hand_id = HANDID
+        
+        # compute hand and finger matrices
+        self.computeMatrices(FINGERPOSITIONS)
+
+        self.hand_geometry = HANDGEOMETRY
+        self.ray_geometry = RAYGEOMETRY
+        self.finger_geometries = FINGERGEOMETRIES
+
+    def evaluate(self):
+        self.visualize()
+
+    def kill(self):
+        self.hide()
+
+    def computeMatrices(self, FINGERPOSITIONS):
+        self.finger_mat_list = []
+        for fingerPos in FINGERPOSITIONS:
+            self.finger_mat_list.append(avango.gua.make_trans_mat(fingerPos))
+
+        self.computeHandCenter()
+
+    def visualize(self):
+        if not self.is_hidden:
+            i = 0
+            for geometry in self.finger_geometries:
+                if i < len(self.finger_mat_list):
+                    geometry.GroupNames.value = []
+                    geometry.Transform.value = self.finger_mat_list[i] *\
+                                            avango.gua.make_scale_mat(0.025, 0.025, 0.0025)
+                else:
+                    geometry.GroupNames.value = ["do_not_display_group"]
+                i += 1
+
+            if len(self.finger_mat_list) == 5:
+                self.hand_geometry.Transform.value = self.hand_mat *\
+                                                    avango.gua.make_rot_mat(90,1,0,0) *\
+                                                    avango.gua.make_scale_mat(0.5*self.length_finger_span, 0.5*self.length_finger_span, 0.5*self.length_finger_span)
+                self.hand_geometry.GroupNames.value = []
+
+                rayLength = 1
+                rayTranslate = self.hand_mat.get_translate()
+                rayTranslate.z = -0.5 * rayLength
+                self.ray_geometry.Transform.value = avango.gua.make_trans_mat(rayTranslate) *\
+                                                    avango.gua.make_scale_mat(0.01,0.01, rayLength)
+                self.ray_geometry.GroupNames.value = []
+                
+            else:
+                self.hand_geometry.GroupNames.value = ["do_not_display_group"]
+                self.ray_geometry.GroupNames.value = ["do_not_display_group"]
+
+    def hide(self):
+        self.is_hidden = True
+
+        for geometry in self.finger_geometries:
+            geometry.GroupNames.value = ["do_not_display_group"]
+
+        self.hand_geometry.GroupNames.value = ["do_not_display_group"]
+        self.ray_geometry.GroupNames.value = ["do_not_display_group"]
+
+    def show(self):
+        self.is_hidden = False
+        #self.visualize()
+
+    def computeHandCenter(self):
+        if len(self.finger_mat_list) == 1:
+            self.hand_mat = self.finger_mat_list[0]
+            self.length_finger_span = 0.07
+        
+        else:
+            xMin = 100000.0
+            yMin = 100000.0
+            zMin = 100000.0
+            xMax = -100000.0
+            yMax = -100000.0
+            zMax = -100000.0
+
+            for fingerMat in self.finger_mat_list:
+                fingerPos = fingerMat.get_translate()
+                xMin = min(xMin, fingerPos.x)
+                xMax = max(xMax, fingerPos.x)
+                yMin = min(yMin, fingerPos.y)
+                yMax = max(yMax, fingerPos.y)
+                zMin = min(zMin, fingerPos.z)
+                zMax = max(zMax, fingerPos.z)
+
+            vecMinMax = avango.gua.Vec3((xMax-xMin), (yMax-yMin), (zMax-zMin))
+            centerPos = avango.gua.Vec3(xMin, yMin, zMin) + avango.gua.Vec3(0.5*vecMinMax.x, 0.5*vecMinMax.y, 0.5*vecMinMax.z)
+            self.hand_mat = avango.gua.make_trans_mat(centerPos)
+            self.length_finger_span = math.sqrt(math.pow(vecMinMax.x,2) + math.pow(vecMinMax.y,2) + math.pow(vecMinMax.z,2))
+
