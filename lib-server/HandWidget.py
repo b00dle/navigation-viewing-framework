@@ -22,19 +22,23 @@ class HandWidget(avango.script.Script):
         self.ray_geometry           = None
         self.finger_geometries      = []
 
-        self.is_hidden = False
+        self.is_hidden              = False
+
+        self.geometry_offset_mat    = avango.gua.make_identity_mat()
 
         self.always_evaluate(True)
 
-    def my_constructor(self, HANDID, FINGERPOSITIONS, HANDGEOMETRY, RAYGEOMETRY, FINGERGEOMETRIES):
+    def my_constructor(self, HANDID, FINGERPOSITIONS, HANDGEOMETRY, RAYGEOMETRY, FINGERGEOMETRIES, GEOMETRYOFFSETMAT):
         self.hand_id = HANDID
         
         # compute hand and finger matrices
         self.computeMatrices(FINGERPOSITIONS)
 
-        self.hand_geometry = HANDGEOMETRY
-        self.ray_geometry = RAYGEOMETRY
-        self.finger_geometries = FINGERGEOMETRIES
+        self.hand_geometry          = HANDGEOMETRY
+        self.ray_geometry           = RAYGEOMETRY
+        self.finger_geometries      = FINGERGEOMETRIES
+
+        self.geometry_offset_mat    = GEOMETRYOFFSETMAT
 
     def evaluate(self):
         self.visualize()
@@ -55,23 +59,26 @@ class HandWidget(avango.script.Script):
             for geometry in self.finger_geometries:
                 if i < len(self.finger_mat_list):
                     geometry.GroupNames.value = []
-                    geometry.Transform.value = self.finger_mat_list[i] *\
-                                            avango.gua.make_scale_mat(0.025, 0.025, 0.0025)
+                    geometry.Transform.value = self.geometry_offset_mat *\
+                                                self.finger_mat_list[i] *\
+                                                avango.gua.make_scale_mat(0.025, 0.0025, 0.025)
                 else:
                     geometry.GroupNames.value = ["do_not_display_group"]
                 i += 1
 
             if len(self.finger_mat_list) == 5:
-                self.hand_geometry.Transform.value = self.hand_mat *\
-                                                    avango.gua.make_rot_mat(90,1,0,0) *\
+                pos = self.hand_mat.get_translate()
+                self.hand_geometry.Transform.value = self.geometry_offset_mat *\
+                                                    self.hand_mat *\
                                                     avango.gua.make_scale_mat(0.5*self.length_finger_span, 0.5*self.length_finger_span, 0.5*self.length_finger_span)
                 self.hand_geometry.GroupNames.value = []
 
                 rayLength = 1
                 rayTranslate = self.hand_mat.get_translate()
-                rayTranslate.z = -0.5 * rayLength
-                self.ray_geometry.Transform.value = avango.gua.make_trans_mat(rayTranslate) *\
-                                                    avango.gua.make_scale_mat(0.01,0.01, rayLength)
+                rayTranslate.y = -0.5 * rayLength
+                self.ray_geometry.Transform.value = self.geometry_offset_mat *\
+                                                    avango.gua.make_trans_mat(rayTranslate) *\
+                                                    avango.gua.make_scale_mat(0.01, rayLength, 0.01)
                 self.ray_geometry.GroupNames.value = []
                 
             else:

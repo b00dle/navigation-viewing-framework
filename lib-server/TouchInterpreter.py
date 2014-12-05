@@ -38,6 +38,7 @@ class TouchInterpreter(avango.script.Script):
         self.screen_transform_node  = avango.gua.nodes.TransformNode(Name = "screen_transform")
         self.screen_transform_node.Transform.connect_from(self.scene_graph["/net/w0_dg0_u0/screen_0"].Transform)
         self.scene_graph["/net"].Children.value.append(self.screen_transform_node)
+        self.inv_screen_mat = avango.gua.make_inverse_mat(self.screen_transform_node.Transform.value)
 
         self.cut_sphere_node = avango.gua.nodes.TransformNode(Name = "cut_sphere")
         self.scene_graph["/net"].Children.value.append(self.cut_sphere_node)
@@ -64,16 +65,17 @@ class TouchInterpreter(avango.script.Script):
         # create/update active HandWidgets
         set_cut = True
         for handID in self.touch_device.active_hands:
-            inactiveWidgets.remove(handID)
             fingerPositions = []
             for touchPoint in self.touch_device.active_hands[handID]:
                 unmappedPos = avango.gua.Vec3(touchPoint.PosX.value, touchPoint.PosY.value, 0)
                 fingerPositions.append(self.mapInputPosition(unmappedPos))
             
-            if self.hand_widgets[handID] != None:
+            if self.hand_widgets[handID] != None and len(fingerPositions) > 0: #HandWidget exists and is updated
+                inactiveWidgets.remove(handID)
                 self.hand_widgets[handID].computeMatrices(fingerPositions)
             
-            else:
+            elif len(fingerPositions) > 0: # HandWidget does not exist and is created
+                inactiveWidgets.remove(handID)
                 fingerGeometries = []
                 for i in range(0, 5):
                     fingerGeometries.append(self.finger_geometries[5*handID + i])
@@ -82,13 +84,17 @@ class TouchInterpreter(avango.script.Script):
                                                         fingerPositions,
                                                         self.hand_geometries[handID],
                                                         self.ray_geometries[handID],
-                                                        fingerGeometries)
-            if set_cut:
-                self.setCutSphereUniforms(self.hand_widgets[handID].hand_mat.get_translate(), self.hand_widgets[handID].length_finger_span)
+                                                        fingerGeometries,
+                                                        self.inv_screen_mat)
+
+            if set_cut and self.hand_widgets[handID] != None:
+                handPos = self.hand_widgets[handID].hand_mat.get_translate()
+                self.setCutSphereUniforms(self.hand_widgets[handID].hand_mat.get_translate(), 0.5*self.hand_widgets[handID].length_finger_span)
                 set_cut = False
 
         if set_cut:
             self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0)
+            set_cut = False
 
         # remove inactive HandWidgets
         for handID in inactiveWidgets:
@@ -104,7 +110,8 @@ class TouchInterpreter(avango.script.Script):
         mappedPosY = POS[1] * 1 - 0.5
 
         """ map point to display intervall ([-1/2*display-size] -> [+1/2*display-size]) """
-        mappedPos = avango.gua.Vec3(mappedPosX * displaySize.x, -1 * (mappedPosY * displaySize.y), 0.0)   
+        #mappedPos = avango.gua.Vec3(mappedPosX * displaySize.x, -1 * (mappedPosY * displaySize.y), 0.0)   
+        mappedPos = avango.gua.Vec3(mappedPosX * displaySize.x, 0.0, mappedPosY * displaySize.y)   
 
         return mappedPos
 
