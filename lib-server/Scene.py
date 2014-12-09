@@ -73,35 +73,35 @@ class SceneSimpleCut(SceneObject):
 
     # geometry
     _mat = avango.gua.make_trans_mat(0, 0.025, 0) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey1", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey1", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.2, 0.025, 0) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey2", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey2", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(-0.2, 0.025, 0) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey3", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey3", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.4, 0.025, 0) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey4", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey4", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(-0.4, 0.025, 0) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey5", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey5", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.2, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey6", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey6", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(-0.2, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey7", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey7", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.4, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey8", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey8", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(-0.4, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey9", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey9", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.2, 0.025, -0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey10", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey10", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(-0.2, 0.025, -0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey11", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey11", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.4, 0.025, -0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey12", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey12", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(-0.4, 0.025, -0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey13", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey13", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.0, 0.075, 0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey14", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey14", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     _mat = avango.gua.make_trans_mat(0.0, 0.025, -0.2) * avango.gua.make_scale_mat(0.1)
-    self.init_geometry("monkey15", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("monkey15", "data/objects/monkey.obj", _mat, "data/materials/SimplePhongWhiteCut.gmd", False, False, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     
     hoverUpdate1 = TimedHoverUpdate()
     hoverUpdate1.MatIn.value = self.scene_root.Children.value[0].Transform.value

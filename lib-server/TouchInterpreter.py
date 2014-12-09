@@ -22,6 +22,7 @@ class TouchInterpreter(avango.script.Script):
         self.net_transform_node     = None
         self.touch_device           = None
 
+        self.nav_proxy_plane        = None
         self.finger_geometries      = []
         self.hand_geometries        = []
         self.ray_geometries         = []
@@ -39,6 +40,7 @@ class TouchInterpreter(avango.script.Script):
         self.screen_transform_node.Transform.connect_from(self.scene_graph["/net/w0_dg0_u0/screen_0"].Transform)
         self.scene_graph["/net"].Children.value.append(self.screen_transform_node)
         self.inv_screen_mat = avango.gua.make_inverse_mat(self.screen_transform_node.Transform.value)
+        self.screen_rot_mat = avango.gua.make_rot_mat(self.screen_transform_node.Transform.value.get_rotate())
 
         self.cut_sphere_node = avango.gua.nodes.TransformNode(Name = "cut_sphere")
         self.scene_graph["/net"].Children.value.append(self.cut_sphere_node)
@@ -82,10 +84,12 @@ class TouchInterpreter(avango.script.Script):
                 self.hand_widgets[handID] = HandWidget()
                 self.hand_widgets[handID].my_constructor(handID,
                                                         fingerPositions,
+                                                        self.scene_graph,
                                                         self.hand_geometries[handID],
                                                         self.ray_geometries[handID],
                                                         fingerGeometries,
-                                                        self.inv_screen_mat)
+                                                        self.inv_screen_mat,
+                                                        self.screen_rot_mat)
 
             if set_cut and self.hand_widgets[handID] != None:
                 handPos = self.hand_widgets[handID].hand_mat.get_translate()
@@ -100,7 +104,13 @@ class TouchInterpreter(avango.script.Script):
         for handID in inactiveWidgets:
             if self.hand_widgets[handID] != None:
                 self.hand_widgets[handID].kill()
+                del(self.hand_widgets[handID])
                 self.hand_widgets[handID] = None
+
+        i = 0
+        for handID in self.hand_widgets:
+            if self.hand_widgets[handID] != None:
+                i += 1
 
     def mapInputPosition(self, POS):
         displaySize = avango.gua.Vec2(1.115,0.758)
@@ -117,6 +127,16 @@ class TouchInterpreter(avango.script.Script):
 
     def setupTouchGeometries(self, FINGEROBJPATH, HANDOBJPATH, RAYOBJPATH):
         _loader = avango.gua.nodes.TriMeshLoader()
+
+        # touch navigation proxy plane
+        self.nav_proxy_plane = _loader.create_geometry_from_file("touch_proxy_plane",
+                                                                "data/objects/cube.obj",
+                                                                "data/materials/White.gmd",
+                                                                avango.gua.LoaderFlags.DEFAULTS | avango.gua.LoaderFlags.MAKE_PICKABLE)
+        self.nav_proxy_plane.Transform.value = self.inv_screen_mat *\
+                                                avango.gua.make_trans_mat(0, -0.0030, 0) *\
+                                                avango.gua.make_scale_mat(1.115 / 2, 0.0025, 0.758)
+        self.screen_transform_node.Children.value.append(self.nav_proxy_plane)
 
         for i in range(0, len(self.touch_device.cursors.value)):
             self.finger_geometries.append(_loader.create_geometry_from_file("touch_finger_" + str(i),

@@ -65,8 +65,8 @@ class Intersection(avango.script.Script):
     else:
       self.picking_options = avango.gua.PickingOptions.GET_POSITIONS \
                            | avango.gua.PickingOptions.GET_WORLD_POSITIONS \
-                           | avango.gua.PickingOptions.GET_WORLD_NORMALS
-    
+                           | avango.gua.PickingOptions.GET_WORLD_NORMALS \
+
     ## @var picking_mask
     # Picking mask of the intersection process.
     self.picking_mask = PICK_MASK

@@ -59,33 +59,33 @@ class TouchDevice(avango.script.Script):
         for handID in self.active_hands:
             self.active_hands[handID] = []
 
-        overall_debug_print = False
-        for hand in self.hands.value:
-            debug_print = False
-            for fingerID in hand.FingerSIDs.value:
-                if fingerID != -1.0:
-                    if not overall_debug_print:
-                        print("==============")
-                        overall_debug_print = True
-                    if not debug_print:
-                        print("hand_", hand.HandID.value, "_fingerIDs:")
-                        debug_print = True
-                    print(fingerID)
+        #overall_debug_print = False
+        #for hand in self.hands.value:
+        #    debug_print = False
+        #    for fingerID in hand.FingerSIDs.value:
+        #        if fingerID != -1.0:
+        #            if not overall_debug_print:
+        #                print("==============")
+        #                overall_debug_print = True
+        #            if not debug_print:
+        #                print("hand_", hand.HandID.value, "_fingerIDs:")
+        #                debug_print = True
+        #           print(fingerID)
 
-        if overall_debug_print:
-            print("touch_point_sessionIDs:")
+        #if overall_debug_print:
+        #   print("touch_point_sessionIDs:")
 
         for touchPoint in self.cursors.value:
-            if touchPoint.SessionID.value != -1.0:
-                print(touchPoint.SessionID.value)
+            #if touchPoint.SessionID.value != -1.0:
+            #    print(touchPoint.SessionID.value)
             for hand in self.hands.value:
                 if touchPoint.IsTouched.value and touchPoint.SessionID.value in hand.FingerSIDs.value:
                     inputGiven = True
                     self.active_hands[hand.HandID.value].append(touchPoint)
                     hands[hand.HandID.value] = hand
                     #break
-        if overall_debug_print:
-            print("==============")
+        #if overall_debug_print:
+        #    print("==============")
 
         #print("==============")
         #i = 0
