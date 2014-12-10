@@ -32,25 +32,34 @@ class TouchInterpreter(avango.script.Script):
         self.always_evaluate(True)
 
     def my_constructor(self, graph):
-        self.touch_device           = TouchDevice()
-        
         self.scene_graph            = graph
-        
+
+        # setup screen transform node to append touch geometry        
         self.screen_transform_node  = avango.gua.nodes.TransformNode(Name = "screen_transform")
         self.screen_transform_node.Transform.connect_from(self.scene_graph["/net/w0_dg0_u0/screen_0"].Transform)
         self.scene_graph["/net"].Children.value.append(self.screen_transform_node)
+        
+        # get inverse screen mat for HandWidget geometry positioning
         self.inv_screen_mat = avango.gua.make_inverse_mat(self.screen_transform_node.Transform.value)
+        
+        # get screen totation matrix for HandWidget pick ray orientation
         self.screen_rot_mat = avango.gua.make_rot_mat(self.screen_transform_node.Transform.value.get_rotate())
 
+        # setup cut sphere uniform carrier for clientside material update
         self.cut_sphere_node = avango.gua.nodes.TransformNode(Name = "cut_sphere")
         self.scene_graph["/net"].Children.value.append(self.cut_sphere_node)
 
+        # fill cut sphere node with default values
         self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0)
 
+        # get TouchDevice instance for reading input data
         self.touch_device = TouchDevice()
+
+        # reserve space for the maximum count of HandWidgets
         for hand in self.touch_device.hands.value:
             self.hand_widgets[hand.HandID.value] = None
 
+        # create touch geometries to be handed to HandWidgets upon creation
         self.setupTouchGeometries("data/objects/cube.obj","data/objects/ring.obj","data/objects/cylinder.obj")
 
     def evaluate(self):
@@ -67,16 +76,20 @@ class TouchInterpreter(avango.script.Script):
         # create/update active HandWidgets
         set_cut = True
         for handID in self.touch_device.active_hands:
+            
+            # get world space mapped finger positions from input
             fingerPositions = []
             for touchPoint in self.touch_device.active_hands[handID]:
                 unmappedPos = avango.gua.Vec3(touchPoint.PosX.value, touchPoint.PosY.value, 0)
                 fingerPositions.append(self.mapInputPosition(unmappedPos))
             
-            if self.hand_widgets[handID] != None and len(fingerPositions) > 0: #HandWidget exists and is updated
+            # HandWidget exists and is updated
+            if len(fingerPositions) > 0 and self.hand_widgets[handID] != None:
                 inactiveWidgets.remove(handID)
                 self.hand_widgets[handID].computeMatrices(fingerPositions)
             
-            elif len(fingerPositions) > 0: # HandWidget does not exist and is created
+            # HandWidget does not exist and is created
+            elif len(fingerPositions) > 0:
                 inactiveWidgets.remove(handID)
                 fingerGeometries = []
                 for i in range(0, 5):
@@ -91,6 +104,7 @@ class TouchInterpreter(avango.script.Script):
                                                         self.inv_screen_mat,
                                                         self.screen_rot_mat)
 
+            # set cut sphere uniforms only for first widget (only one cut supported) 
             if set_cut and self.hand_widgets[handID] != None:
                 handPos = self.hand_widgets[handID].hand_mat.get_translate()
                 self.setCutSphereUniforms(self.hand_widgets[handID].hand_mat.get_translate(), 0.5*self.hand_widgets[handID].length_finger_span)

@@ -84,6 +84,7 @@ class TouchDevice(avango.script.Script):
                     self.active_hands[hand.HandID.value].append(touchPoint)
                     hands[hand.HandID.value] = hand
                     #break
+
         #if overall_debug_print:
         #    print("==============")
 
