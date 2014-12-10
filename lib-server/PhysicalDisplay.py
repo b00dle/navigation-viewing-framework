@@ -175,6 +175,10 @@ class PhysicalDisplay(Display):
     
     return _node
 
+  def get_touch_protocols(self):
+    return [ "NONE" ]
+
+
 
 # specialized display setups #
 
@@ -343,6 +347,8 @@ class TouchTable3D(PhysicalDisplay):
     else:
       return None
 
+  def get_touch_protocols(self):
+    return [ "TUIO" ]
 
 ## Display configuration for the Samsung Stereo TV in the VR lab. 
 class SamsungStereoTV(PhysicalDisplay):

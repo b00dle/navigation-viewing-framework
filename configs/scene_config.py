@@ -14,7 +14,10 @@ import subprocess
 server_ip = subprocess.Popen(["hostname", "-I"], stdout=subprocess.PIPE, universal_newlines=True).communicate()[0]
 server_ip = server_ip.strip(" \n")  
 server_ip = server_ip.rsplit(" ")
-server_ip = str(server_ip[-1])
+for i in server_ip:
+	if i.startswith("141"):
+		server_ip = i
+		break
 
 # create raw scenegraph
 graph = avango.gua.nodes.SceneGraph(Name = "scenegraph")
@@ -28,7 +31,10 @@ scenegraphs = [graph]
 
 # create scene list, strings must match a class name in Scene.py
 #scenes = ["SceneVianden"]
-scenes = ["SceneMedievalTown"]
+#scenes = ["SceneMedievalTown"]
+scenes = ["SceneSimpleCut"]
+#scenes = ["SceneValcamonicaOptimized"]
+#scenes = ["SceneMedievalTown"]
 #scenes = ["SceneValcamonica"]
 
 # if true, scenes will be switchable using the number buttons

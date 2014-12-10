@@ -10,8 +10,12 @@ import avango.gua
 # import framework libraries
 from SceneManager import *
 from ApplicationManager import *
+from TouchInterpreter import *
 
 from scene_config import scenegraphs
+
+# import multitouch
+from MultiTouch.TUIO import TUIODevice
 
 # import python libraries
 import sys
@@ -44,6 +48,23 @@ def start():
 
   # initialize scene
   scene_manager = SceneManager()
+
+  # initialize touch devices
+  multi_touch_device = None
+
+  for _workspace in application_manager.workspaces:
+    for _display_group in _workspace.display_groups:
+      for _display in _display_group.displays:
+        if "TUIO" in _display.get_touch_protocols():
+          if None == multi_touch_device:
+            touch_interpreter = TouchInterpreter()
+            touch_interpreter.my_constructor(scenegraphs[0])
+            #device = TUIODevice()
+            #device.my_constructor(scenegraphs[0], _display, scenegraphs[0]["/net"], scene_manager, application_manager)
+            #multi_touch_device = device
+
+  #touch_interpreter = TouchInterpreter()
+  #touch_interpreter.my_constructor(scenegraphs[0])
 
   # initialize animation manager
   #animation_manager = AnimationManager()
