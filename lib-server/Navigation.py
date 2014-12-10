@@ -16,41 +16,22 @@ from TraceLines import *
 ## Base class. Not to be instantiated.
 class Navigation(VisibilityHandler1D):
 
-  # output field
-  ## @var sf_nav_mat
-  # Combined matrix of sf_abs_mat and sf_scale.
-  sf_nav_mat = avango.gua.SFMatrix4()
-  sf_nav_mat.value = avango.gua.make_identity_mat()
+  ### fields ###
 
-  # input fields
-  ## @var sf_abs_mat
-  # Matrix representing the current translation and rotation of the navigation in the scene.
-  sf_abs_mat = avango.gua.SFMatrix4()
-  sf_abs_mat.value = avango.gua.make_identity_mat()
+  ## output fields
+  
+  ## @var sf_platform_mat
+  # Combined matrix of translation, rotation and scaling of the viewing platform
+  sf_platform_mat = avango.gua.SFMatrix4()
+  sf_platform_mat.value = avango.gua.make_identity_mat()
 
-  ## @var sf_scale
-  # The current scaling factor of this navigation.
-  sf_scale = avango.SFFloat()
-  sf_scale.value = 1.0
+  ## @var sf_reference_mat
+  # The reference matrix for defining a rotation/scaling center offset.
+  sf_reference_mat = avango.gua.SFMatrix4()
+  sf_reference_mat.value = avango.gua.make_identity_mat()
 
-  # input fields
-  ## @var sf_reset_trigger
-  # Boolean field to indicate if the navigation is to be reset.
-  sf_reset_trigger = avango.SFBool()
-
-  ## @var sf_coupling_trigger
-  # Boolean field to indicate if the coupling mechanism is to be triggered.
-  sf_coupling_trigger = avango.SFBool()
-
-  ## @var sf_dof_trigger
-  # Boolean field to indicate if the change of the dof mode is to be triggered.
-  sf_dof_trigger = avango.SFBool()
-
-  ## @var sf_request_trigger
-  # Boolean field to indicate if the request mechanism is to be triggered.
-  sf_request_trigger = avango.SFBool()
-
-  # static class variables
+  ### static class variables ###
+  
   ## @var trace_materials
   # List of material pretexts to choose from when a trace is created. All avatars on this
   # navigation will have this material.
@@ -61,31 +42,92 @@ class Navigation(VisibilityHandler1D):
   # Number of SteeringNavigation instances already created. Used for trace material assignment.
   number_of_instances = 0
 
+
   ## Base constructor.
   def __init__(self):
     self.super(Navigation).__init__()
 
     exec('from ApplicationManager import *', globals())
 
+    ### variables ###
+
+    ## @var nav_mat
+    # Matrix representing the current translation and rotation of the navigation in the scene.
+    self.nav_mat = avango.gua.make_identity_mat()
+
+    ## @var nav_scale
+    # The current scaling factor of this navigation platform.
+    self.nav_scale = 1.0
+
     ## @var trace
     # The trace class that handles the line segment updating.
     self.trace = None
-
+    
+    self.groundfollowing_trigger = None
+    
     ## @var active_user_representations
     # List of UserRepresentation instances which are currently connecting with this navigations matrix.
     self.active_user_representations = []
 
-    ## @var is_requestable
-    # Boolean saying if this Navigation is a requestable one. Requestable navigations
-    # can be switched to using a special button on the device.
-    self.is_requestable = False
-
     # get the selected material 
     ## @var trace_material
     # The material to be used for the movement traces.
-    self.trace_material = Navigation.trace_materials[Navigation.number_of_instances]
-    Navigation.number_of_instances += 1
-    Navigation.number_of_instances = Navigation.number_of_instances % len(Navigation.trace_materials)
+    self.trace_material = self.trace_materials[self.number_of_instances]
+    self.number_of_instances += 1
+    self.number_of_instances = self.number_of_instances % len(self.trace_materials)
+
+
+  ### functions ###
+
+  def bc_get_nav_mat(self):
+    return self.nav_mat
+
+  def bc_get_nav_scale(self):
+    return self.nav_scale
+
+  def bc_set_nav_mat(self, MATRIX):
+    self.nav_mat = MATRIX
+
+    # update viewing platform
+    self.sf_platform_mat.value = self.nav_mat * avango.gua.make_scale_mat(self.nav_scale)
+
+  def bc_set_nav_scale(self, SCALE):
+    self.nav_scale = SCALE
+
+    # update viewing platform
+    self.sf_platform_mat.value = self.nav_mat * avango.gua.make_scale_mat(self.nav_scale)
+
+
+  def bc_init_movement_traces(self, IDENTIFIER, NUM_LINES, LINE_DISTANCE):
+  
+    ## @var trace
+    # Instance of Trace class to handle trace drawing of this navigation's movements.
+    self.trace = Trace(IDENTIFIER, NUM_LINES, LINE_DISTANCE, self.trace_material + 'Shadeless')
+
+
+  def bc_update_movement_traces(self):
+  
+    if self.trace != None and len(self.active_user_representations) > 0:
+  
+      _reference_pos = self.sf_reference_mat.value.get_translate()
+      _reference_pos.y = 0.0
+      
+      _mat = self.sf_platform_mat.value * avango.gua.make_trans_mat(_reference_pos)
+      
+      self.trace.update(_mat)
+
+  def bc_clear_movement_traces(self):
+    
+    if self.trace != None:
+
+      _reference_pos = self.sf_reference_mat.value.get_translate()
+      _reference_pos.y = 0.0
+      
+      _mat = self.sf_platform_mat.value * avango.gua.make_trans_mat(_reference_pos)
+      
+      self.trace.clear(_mat)
+
+
 
 
   ## Adds a UserRepresentation to this navigation.
@@ -100,13 +142,8 @@ class Navigation(VisibilityHandler1D):
       except:
         pass
 
-    if len(self.active_user_representations) == 0 and self.trace != None:
-
-      try:
-        _device_pos = self.device.sf_station_mat.value.get_translate()
-        self.trace.clear(self.sf_abs_mat.value * avango.gua.make_trans_mat(_device_pos.x, 0, _device_pos.z))
-      except:
-        pass
+    #if len(self.active_user_representations) == 0:
+    #  self.bc_clear_movement_traces()
 
     self.active_user_representations.append(USER_REPRESENTATION)
   
@@ -117,14 +154,9 @@ class Navigation(VisibilityHandler1D):
     if USER_REPRESENTATION in self.active_user_representations:
       self.active_user_representations.remove(USER_REPRESENTATION)
 
-      if len(self.active_user_representations) == 0 and self.trace != None:
+      if len(self.active_user_representations) == 0:
+        self.bc_clear_movement_traces()
 
-        try:
-          _device_pos = self.device.sf_station_mat.value.get_translate()
-        except:
-          _device_pos = avango.gua.make_trans_mat(0,0,0)
-
-        self.trace.clear(self.sf_abs_mat.value * avango.gua.make_trans_mat(_device_pos.x, 0, _device_pos.z))
 
   ## Triggers the correct GroupNames for the different DisplayGroups.
   def handle_correct_visibility_groups(self):
@@ -143,21 +175,13 @@ class Navigation(VisibilityHandler1D):
       for _string in _trace_visible_for:
         self.trace.append_to_group_names(_string)
 
+  
+  ### callbacks ###
 
   ## Evaluated when value changes.
-  @field_has_changed(sf_reset_trigger)
-  def sf_reset_trigger_changed(self):
+  @field_has_changed(sf_platform_mat)
+  def sf_platform_mat_changed(self):
   
-    if self.sf_reset_trigger.value == True: # button pressed
-      #print "RESET"
-      self.reset()       
-          
+    self.bc_update_movement_traces() # evtl. update movement traces
+    
 
-  ## Evaluated when value changes.
-  @field_has_changed(sf_dof_trigger)
-  def sf_dof_trigger_changed(self):
-  
-    if self.sf_dof_trigger.value == True: # button pressed
-
-      if self.in_dofchange_animation == False:
-         self.trigger_dofchange()

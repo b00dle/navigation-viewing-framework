@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 ## @file
-# Contains class InputMapping.
+# Contains class SteeringInputMapping.
 
 # import avango-guacamole libraries
 import avango
@@ -21,7 +21,7 @@ import math
 
 ## This class accumulates the relative device inputs to an absolute matrix forwarded to the platform
 # and uses an instance of GroundFollowing to correct this matrix with respect to gravity.
-class InputMapping(avango.script.Script):
+class SteeringInputMapping(avango.script.Script):
 
   ## @var mf_rel_input_values
   # The relative input values of the device.
@@ -51,7 +51,7 @@ class InputMapping(avango.script.Script):
 
   ## Default constructor.
   def __init__(self):
-    self.super(InputMapping).__init__()
+    self.super(SteeringInputMapping).__init__()
 
     # attributes
     ## @var realistic
@@ -100,15 +100,15 @@ class InputMapping(avango.script.Script):
   def my_constructor(self, NAVIGATION, DEVICE_INSTANCE, GROUND_FOLLOWING_INSTANCE, STARTING_MATRIX, INVERT):
 
     ## @var NAVIGATION
-    # Reference to the Navigation instance from which this InputMapping is created.
+    # Reference to the Navigation instance from which this SteeringInputMapping is created.
     self.NAVIGATION = NAVIGATION
 
     ## @var GROUND_FOLLOWING_INSTANCE
-    # Reference to the GroundFollowing instance used by this InputMapping.
+    # Reference to the GroundFollowing instance used by this SteeringInputMapping.
     self.GROUND_FOLLOWING_INSTANCE = GROUND_FOLLOWING_INSTANCE
 
     ## @var DEVICE_INSTANCE
-    # Reference to Device instance used by this InputMapping.
+    # Reference to Device instance used by this SteeringInputMapping.
     self.DEVICE_INSTANCE = DEVICE_INSTANCE
 
     ## @var invert
@@ -343,7 +343,7 @@ class InputMapping(avango.script.Script):
         self.scale_stop_time = time.time()
 
       
-      '''
+      #'''
       # scale relative to a reference point
       _scale_center_offset = self.sf_station_mat.value.get_translate() 
   
@@ -354,7 +354,7 @@ class InputMapping(avango.script.Script):
         _vec = _pos1 - _pos2
 
         self.sf_abs_mat.value = self.sf_abs_mat.value * avango.gua.make_trans_mat(_vec)
-      '''
+      #'''
 
       self.sf_scale.value = _new_scale # apply new scale
 

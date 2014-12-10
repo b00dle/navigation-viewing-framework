@@ -106,7 +106,7 @@ class ToolRepresentation(avango.script.Script):
   ## Transforms the tool node according to the display group offset and the tracking matrix.
   def perform_physical_tool_node_transformation(self):
 
-    self.tool_transform_node.Transform.value = self.DISPLAY_GROUP.offset_to_workspace * self.TOOL_INSTANCE.tracking_reader.sf_abs_mat.value
+    self.tool_transform_node.Transform.value = self.DISPLAY_GROUP.offset_to_workspace * self.TOOL_INSTANCE.tracking_reader.sf_mat.value
 
   ## Transforms the tool node according to the tool - portal entry relation.
   def perform_virtual_tool_node_transformation(self):

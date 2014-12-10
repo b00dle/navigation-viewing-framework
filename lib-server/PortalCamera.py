@@ -18,8 +18,8 @@ import Utilities
 from VirtualDisplay import *
 
 # import python libraries
-import time
-import math
+# ...
+
 
 ## Class representing the parameters of a captured photo by a PortalCamera.
 class Shot(avango.script.Script):
@@ -307,14 +307,6 @@ class PortalCamera(Tool):
   # Boolean field to check if the gallery button was pressed.
   sf_gallery_button = avango.SFBool()
 
-  ## @var sf_size_up_button
-  # Boolean field to check if the size up button was pressed.
-  sf_size_up_button = avango.SFBool()
-
-  ## @var sf_size_down_button
-  # Boolean field to check if the size down button was pressed.
-  sf_size_down_button = avango.SFBool()
-
   ## @var sf_2D_mode_button
   # Boolean field to check if the 2D mode button was pressed.
   sf_2D_mode_button = avango.SFBool()
@@ -378,7 +370,7 @@ class PortalCamera(Tool):
 
     ## @var gallery_magification_factor
     # Factor with which the size of the portals will be multiplied when in gallery mode.
-    self.gallery_magnification_factor = 1.5
+    self.gallery_magnification_factor = 1.5 
 
     ## @var virtual_nav
     # Instance of PortalCameraNavigation in which the captured shots are to be loaded for all tool representations.
@@ -402,6 +394,13 @@ class PortalCamera(Tool):
     self.device_sensor = avango.daemon.nodes.DeviceSensor(DeviceService = avango.daemon.DeviceService())
     self.device_sensor.Station.value = CAMERA_DEVICE_STATION
 
+    ## @var frame_trigger
+    # Triggers framewise evaluation of frame_callback method
+    self.frame_trigger = avango.script.nodes.Update(Callback = self.frame_callback, Active = True)
+    self.size_up_trigger = avango.script.nodes.Update(Callback = self.size_up_callback, Active = False)
+    self.size_down_trigger = avango.script.nodes.Update(Callback = self.size_down_callback, Active = False)
+
+
     # init field connections
     self.sf_focus_button.connect_from(self.device_sensor.Button0)
     self.sf_capture_button.connect_from(self.device_sensor.Button1)
@@ -412,16 +411,12 @@ class PortalCamera(Tool):
     self.sf_open_close_button.connect_from(self.device_sensor.Button6)
     self.sf_delete_button.connect_from(self.device_sensor.Button15)
     self.sf_gallery_button.connect_from(self.device_sensor.Button11)
-    self.sf_size_up_button.connect_from(self.device_sensor.Button3)
-    self.sf_size_down_button.connect_from(self.device_sensor.Button2)
     self.sf_2D_mode_button.connect_from(self.device_sensor.Button7)
     self.sf_3D_mode_button.connect_from(self.device_sensor.Button8)
     self.sf_negative_parallax_on_button.connect_from(self.device_sensor.Button12)
     self.sf_negative_parallax_off_button.connect_from(self.device_sensor.Button13)
-
-    ## @var frame_trigger
-    # Triggers framewise evaluation of frame_callback method
-    self.frame_trigger = avango.script.nodes.Update(Callback = self.frame_callback, Active = True)
+    self.size_up_trigger.connect_from(self.device_sensor.Button3)
+    self.size_down_trigger.connect_from(self.device_sensor.Button2)
 
 
   ## Creates a PortalCamearRepresentation for this RayPointer at a DISPLAY_GROUP.
@@ -473,6 +468,31 @@ class PortalCamera(Tool):
     _chosen_tool_representation = self.choose_from_candidate_list(_candidate_representations)
     return _chosen_tool_representation
 
+
+  def get_local_portal_mat(self):
+    # local portal mat hovering above portal camera device
+    return self.tracking_reader.sf_mat.value * avango.gua.make_trans_mat(0.0, self.portal_height * 0.5 + 0.03, 0.0)
+
+  
+  def set_dimensions(self, WIDTH, HEIGHT):
+
+    self.portal_width = max(min(WIDTH, 1.0), 0.15)
+    self.portal_height = max(min(HEIGHT, 1.0), 0.15)
+
+    for _tool_repr in self.tool_representations:
+      _tool_repr.update_size()
+  
+
+  ## Evaluated every frame (when active).
+  def size_up_callback(self):
+    self.set_dimensions(self.portal_width + 0.005, self.portal_height + 0.005)
+
+
+  ## Evaluated every frame (when active).
+  def size_down_callback(self):
+    self.set_dimensions(self.portal_width - 0.005, self.portal_height - 0.005)
+
+
   ## Evaluated every frame.
   def frame_callback(self):
 
@@ -501,34 +521,9 @@ class PortalCamera(Tool):
 
     # update user assignment
     self.check_for_user_assignment()
+     
 
-    # apply size changes
-    if self.sf_size_up_button.value == True:
-      self.portal_width += 0.005
-      self.portal_height += 0.005
-
-      if self.portal_width > 1.0:
-        self.portal_width = 1.0
-
-      if self.portal_height > 1.0:
-        self.portal_height = 1.0
-
-      for _tool_repr in self.tool_representations:
-        _tool_repr.update_size()
-
-    if self.sf_size_down_button.value == True:
-      self.portal_width -= 0.005
-      self.portal_height -= 0.005
-      
-      if self.portal_width < 0.15:
-        self.portal_width = 0.15
-
-      if self.portal_height < 0.15:
-        self.portal_height = 0.15
-
-      for _tool_repr in self.tool_representations:
-        _tool_repr.update_size()
-
+    '''
     # feed back changes to current shot
     if self.current_shot != None:
       
@@ -537,19 +532,22 @@ class PortalCamera(Tool):
       
       if self.current_shot.sf_scale.value != self.virtual_nav.sf_scale.value:
         self.current_shot.sf_scale.value = self.virtual_nav.sf_scale.value
+    '''
+
+
+  def get_scale(self):
+
+    if self.current_shot != None:
+      return self.current_shot.sf_scale.value
 
 
   ## Sets the scale of the currently active shot or returns when no shot is active.
   # @param SCALE The new scale to be set.
-  def set_current_shot_scale(self, SCALE):
+  def set_scale(self, SCALE):
 
-    if self.current_shot == None:
-      return
-    else:
+    if self.current_shot != None:
+      self.set_current_shot_scale(SCALE)               
 
-      self.current_shot.sf_scale.value = SCALE
-
-      self.virtual_nav.set_navigation_values(self.virtual_nav.sf_abs_mat.value, SCALE)
 
   ## Loads a given Shot instances to all representations.
   # @param SHOT The Shot instance to be loaded.

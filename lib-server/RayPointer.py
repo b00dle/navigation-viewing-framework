@@ -232,7 +232,7 @@ class RayPointer(Tool):
 
     ## @var ray_thickness
     # Thickness of the pointer's ray in meters.
-    self.ray_thickness = 0.01
+    self.ray_thickness = 0.1#0.01
 
     ## @var hierarchy_selection_level
     # Hierarchy level which is selected by this pointer.

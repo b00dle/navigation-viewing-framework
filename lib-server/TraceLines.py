@@ -23,9 +23,8 @@ class Trace:
   # @param IDENTIFIER A string that is appended to the scene graph name to separate the line segments of multiple instances of this class.
   # @param NUM_LINES The number of line segments to be used.
   # @param LINE_DISTANCE The overall distance of all line segments together. Determines how long the trace lines are kept before they are overwritten.
-  # @param INITIAL_MAT This matrix is used as initial position of all line segments.
   # @param TRACE_MATERIAL The material to be used to display the trace.
-  def __init__(self, IDENTIFIER, NUM_LINES, LINE_DISTANCE, INITIAL_MAT, TRACE_MATERIAL):
+  def __init__(self, IDENTIFIER, NUM_LINES, LINE_DISTANCE, TRACE_MATERIAL):
 
     ## @var num_lines
     # The number of line segments that are used.
@@ -67,8 +66,8 @@ class Trace:
     self.crrnt_idx = 0
 
     ## @var crrnt_point
-    # The end point of the last drawn line segment that is used as start point for the next line segment. It is initialized with the translation of the INITIAL_MATRIX parameter.
-    self.crrnt_point = INITIAL_MAT.get_translate()
+    # The end point of the last drawn line segment that is used as start point for the next line segment.
+    self.crrnt_point = avango.gua.Vec3(0.0,0.0,0.0)
 
   ## Appends a string to the GroupNames field of all line segments.
   def append_to_group_names(self, STRING):
@@ -81,15 +80,20 @@ class Trace:
   def calc_transform_mat(self, START_VEC, END_VEC):
 
     # calc the vector in between the two points, the resulting center of the line segment and the scaling needed to connect both points
-    _vec = avango.gua.Vec3( END_VEC.x - START_VEC.x, END_VEC.y - START_VEC.y, END_VEC.z - START_VEC.z)
-    _center = START_VEC + (_vec * 0.5)
-    _scale  = 0.5 * _vec.length()
-
+    _vec = END_VEC - START_VEC
+    _length = _vec.length()
+    _center = START_VEC.lerp_to(END_VEC, 0.5)
+    
     # calc the rotation according negative z-axis
-    _rotation_mat = Utilities.get_rotation_between_vectors(avango.gua.Vec3(0, 0, -1), _vec)
+    _rotation_mat = Utilities.get_rotation_between_vectors(avango.gua.Vec3(0.0, 0.0, -1.0), _vec)
 
     # build the complete matrix
-    return avango.gua.make_trans_mat(_center) * _rotation_mat * avango.gua.make_scale_mat(self.line_thickness, self.line_thickness, _scale * 2.0)
+    _mat = avango.gua.make_trans_mat(_center) * \
+          _rotation_mat * \
+          avango.gua.make_scale_mat(self.line_thickness, self.line_thickness, _length)
+    
+    return _mat
+
 
   ## Clears the traces and starts drawing again from the current position.
   def clear(self, CURRENT_MAT):

@@ -32,5 +32,5 @@ scenes = ["SceneMedievalTown"]
 #scenes = ["SceneValcamonica"]
 
 # if true, scenes will be switchable using the number buttons
-enable_key_bindings = False
+enable_key_bindings = True
 

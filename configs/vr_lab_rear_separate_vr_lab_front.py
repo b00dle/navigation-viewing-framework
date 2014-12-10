@@ -30,9 +30,9 @@ video_visibility_table = {
 #                             , avango.gua.make_trans_mat(0.0, 0.043, 1.6)
 #                             , video_visibility_table)
 
-vr_lab_front.associate_video_3D("/opt/kinect-resources/kinect_surface_K_23_24_25.ks"
-                             , avango.gua.make_trans_mat(0.0, 0.043, 1.6)
-                             , video_visibility_table)
+#vr_lab_front.associate_video_3D("/opt/kinect-resources/kinect_surface_K_23_24_25.ks"
+#                             , avango.gua.make_trans_mat(0.0, 0.043, 1.6)
+#                             , video_visibility_table)
 
 workspaces = [vr_lab_rear, vr_lab_front]
 
@@ -82,7 +82,7 @@ spacemouse_navigation.my_constructor( STARTING_MATRIX = avango.gua.make_trans_ma
                                     , DEVICE_TRACKING_NAME = None
                                     , REACTS_ON_PORTAL_TRANSIT = False)
 
-
+'''
 xbox_navigation = SteeringNavigation()
 xbox_navigation.my_constructor(       STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 0)
                                     , STARTING_SCALE = 1.0
@@ -96,6 +96,7 @@ xbox_navigation.my_constructor(       STARTING_MATRIX = avango.gua.make_trans_ma
                                     , IS_REQUESTABLE = True
                                     , REQUEST_BUTTON_NUM = 3
                                     , REACTS_ON_PORTAL_TRANSIT = True)
+'''
 
 spheron_navigation2 = SteeringNavigation()
 spheron_navigation2.my_constructor( STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 22)
@@ -118,7 +119,7 @@ displays = [large_powerwall, touch_table_3D, small_powerwall]
 
 ## Create display groups ##
 vr_lab_rear.create_display_group( DISPLAY_LIST = [large_powerwall]
-                                , NAVIGATION_LIST = [spheron_navigation, xbox_navigation]
+                                , NAVIGATION_LIST = [spheron_navigation]#, xbox_navigation]
                                 , VISIBILITY_TAG = "dlp_wall"
                                 , OFFSET_TO_WORKSPACE = avango.gua.make_trans_mat(0, 0, 1.6) )
 
@@ -189,7 +190,7 @@ vr_lab_rear.create_portal_cam(  CAMERA_TRACKING_STATION = 'tracking-portal-camer
                              ,  VISIBILITY_TABLE = tool_visibility_table)
 
 ## Create portal navigations. ##
-#'''
+'''
 tower_portal_1_nav = StaticNavigation()
 tower_portal_1_nav.my_constructor(STATIC_ABS_MAT = avango.gua.make_trans_mat(-12.0, 17.3, -7.0) #* avango.gua.make_rot_mat(180,0,1,0)
                                 , STATIC_SCALE = 1.0)
@@ -236,5 +237,5 @@ tower_portal_2_dg = VirtualDisplayGroup(DISPLAY_LIST = [tower_portal_2]
 
 #virtual_display_groups = [tower_portal_1_dg, tower_portal_2_dg]
 #virtual_display_groups = [tower_portal_1_dg]
-#'''
+'''
 virtual_display_groups = []

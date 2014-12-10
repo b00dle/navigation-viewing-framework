@@ -176,7 +176,7 @@ class UserRepresentation:
 
   ## Transforms the head node according to the display group offset and the tracking matrix.
   def perform_physical_user_head_transformation(self):
-    self.head.Transform.value = self.DISPLAY_GROUP.offset_to_workspace * self.USER.headtracking_reader.sf_abs_mat.value
+    self.head.Transform.value = self.DISPLAY_GROUP.offset_to_workspace * self.USER.headtracking_reader.sf_mat.value
 
   ## Transforms the head according to the head - portal entry relation.
   def perform_virtual_user_head_transformation(self):
@@ -193,22 +193,23 @@ class UserRepresentation:
   def make_default_viewing_setup(self):
 
     self.execute_transformation_policy = False
-    self.head.Transform.value = avango.gua.make_trans_mat(0.0, 0.0, 1.5)
+    self.head.Transform.value = avango.gua.make_trans_mat(0.0, 0.0, 1.5) # default viewing position
     self.left_eye.Transform.value = avango.gua.make_identity_mat()
     self.right_eye.Transform.value = avango.gua.make_identity_mat()
 
   ## Activates the evaluation of the transformation policy and sets the eye
   # distance properly.
   def make_complex_viewing_setup(self):
+    
+    self.execute_transformation_policy = True
 
     if self.stereo_display_group:
       _eye_distance = self.USER.eye_distance
     else:
       _eye_distance = 0.0
 
-    self.execute_transformation_policy = True
-    self.left_eye.Transform.value = avango.gua.make_trans_mat(-_eye_distance / 2, 0.0, 0.0)
-    self.right_eye.Transform.value = avango.gua.make_trans_mat(_eye_distance / 2, 0.0, 0.0)
+    self.left_eye.Transform.value = avango.gua.make_trans_mat(-_eye_distance * 0.5, 0.0, 0.0)
+    self.right_eye.Transform.value = avango.gua.make_trans_mat(_eye_distance * 0.5, 0.0, 0.0)
 
 
   ## Sets the GroupNames field on all avatar parts to a list of strings.
@@ -292,12 +293,13 @@ class UserRepresentation:
       if len(_new_navigation.active_user_representations) == 0 and self.connected_navigation_id != -1:
 
         try:
-          _new_navigation.inputmapping.set_abs_mat(_old_navigation.sf_abs_mat.value)
-          _new_navigation.inputmapping.set_scale(_old_navigation.sf_scale.value)
+          _new_navigation.bc_set_nav_mat(_old_navigation.bc_get_nav_mat())
+          _new_navigation.bc_set_nav_scale(_old_navigation.bc_get_nav_scale())
           
+          '''
           # avoid field connection frame latency by setting value directly
-          self.view_transform_node.Transform.value = _old_navigation.sf_abs_mat.value * avango.gua.make_scale_mat(_old_navigation.sf_scale.value)
-
+          self.view_transform_node.Transform.value = _old_navigation.sf_platform_mat.value
+          '''
         except:
           pass
 
@@ -305,7 +307,7 @@ class UserRepresentation:
       _new_navigation.add_user_representation(self)
 
       # connect view transform node to new navigation
-      self.view_transform_node.Transform.connect_from(_new_navigation.sf_nav_mat)
+      self.view_transform_node.Transform.connect_from(_new_navigation.sf_platform_mat)
 
       self.connected_navigation_id = ID
 
@@ -406,7 +408,7 @@ class User(VisibilityHandler2D):
     # Instance of Intersection to determine intersection points of user with screens.
     self.intersection_tester = Intersection()
     self.intersection_tester.my_constructor(scenegraphs[0]
-                                          , self.headtracking_reader.sf_abs_mat
+                                          , self.headtracking_reader.sf_mat
                                           , 5.0
                                           , "screen_proxy_group"
                                           , False)

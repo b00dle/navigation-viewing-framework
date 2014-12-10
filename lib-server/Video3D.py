@@ -176,7 +176,7 @@ class Video3D(VisibilityHandler2D):
 
 
           if _visible:
-            if _user_repr.view_transform_node.Name.value == "scene_matrix":
+            if _user_repr.view_transform_node.Name.value == "exit":
               _video_visible_for.append(_user_repr.view_transform_node.Parent.value.Name.value + "_" + _user_repr.head.Name.value)
             else:
               _video_visible_for.append(_user_repr.view_transform_node.Name.value)

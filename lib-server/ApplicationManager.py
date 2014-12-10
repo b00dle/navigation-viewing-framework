@@ -196,9 +196,11 @@ class ApplicationManager(avango.script.Script):
 
             self.workspace_navigations.append(_navigation)
 
+            '''
             if _navigation.is_requestable == True:
               self.requestable_navigations.append( (_workspace, _display_group, _navigation) )
               self.requestable_navigations_last_button_states.append(False)
+            '''
 
           # create view transform node only when free slot is availa
           _view_transform_node = avango.gua.nodes.TransformNode(Name = "w" + str(_w_id) + "_dg" + str(_dg_id) + "_u" + str(_u_id))
@@ -371,7 +373,7 @@ class ApplicationManager(avango.script.Script):
     ## @var server_transform
     # Transform node representing the position and orientation of the server control monitor.
     self.server_transform = avango.gua.nodes.TransformNode(Name = "server_transform")
-    self.server_transform.Transform.value = avango.gua.make_trans_mat(0, 20, 0) * \
+    self.server_transform.Transform.value = avango.gua.make_trans_mat(0, 8, 0) * \
                                             avango.gua.make_rot_mat(-90, 1, 0, 0)
     self.NET_TRANS_NODE.Children.value.append(self.server_transform)
 
@@ -385,10 +387,10 @@ class ApplicationManager(avango.script.Script):
     # Screen node representing the server's screen.
     self.screen = avango.gua.nodes.ScreenNode(Name = "server_screen")
     self.screen.Transform.value = avango.gua.make_trans_mat(0.0, 0.0, -0.5)
+    self.screen.Width.value = 160/1.5 * 0.5
+    self.screen.Height.value = 100/1.5 * 0.5
     #self.screen.Width.value = 160/1.5 * 0.85
-    #self.screen.Height.value = 100/1.5 * 0.85
-    self.screen.Width.value = 160/1.5 * 0.85
-    self.screen.Height.value = 100/1.5 * 0.85    
+    #self.screen.Height.value = 100/1.5 * 0.85    
     self.server_transform.Children.value.append(self.screen)
 
     ## @var camera
@@ -602,8 +604,7 @@ class ApplicationManager(avango.script.Script):
       except:
         continue
 
-      _nav_device_mat = _nav.sf_abs_mat.value * \
-                        avango.gua.make_scale_mat(_nav.sf_scale.value) * \
+      _nav_device_mat = _nav.sf_platform_mat.value * \
                         avango.gua.make_trans_mat(_nav.device.sf_station_mat.value.get_translate())
 
 
@@ -612,6 +613,7 @@ class ApplicationManager(avango.script.Script):
       _nav_device_pos2 = _nav_device_mat * avango.gua.Vec3(0.0,0.0,1.0)
       _nav_device_pos2 = avango.gua.Vec3(_nav_device_pos2.x, _nav_device_pos2.y, _nav_device_pos2.z)
 
+      '''
       for _tuple in self.transit_display_groups:
 
         _portal_display_group = _tuple[0]
@@ -656,8 +658,9 @@ class ApplicationManager(avango.script.Script):
             
             _nav.inputmapping.scale_stop_time = None
             _nav.inputmapping.set_scale(_active_navigation.sf_scale.value, False)
+      '''
 
-
+    '''
     ## handle requestable navigations ##
 
     for _requestable_nav in self.requestable_navigations:
@@ -702,7 +705,7 @@ class ApplicationManager(avango.script.Script):
            _last_button_state == True:
 
         self.requestable_navigations_last_button_states[_requestable_nav_index] = False
-
+  '''
 
   ## Initializes the GroupNames field of all UserRepresentation's avatars.
   # Users cannot see the avatars in own display group, but the ones in others.

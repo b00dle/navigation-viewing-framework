@@ -75,8 +75,12 @@ class SceneVianden(SceneObject):
     _mat = avango.gua.make_rot_mat(90.0,-1,0,0)
     #self.init_geometry("vianden_out", "data/objects/demo_models/Arctron/Vianden/Aussen_gesamt/VIANDEN.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
     #self.init_geometry("vianden_in", "data/objects/demo_models/Arctron/Vianden/Innen_gesamt/Innenraeume_Gesamt.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_geometry("vianden_out", "/mnt/ssd_pitoti/Vianden/Aussen_gesamt/VIANDEN.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
-    self.init_geometry("vianden_in", "/mnt/ssd_pitoti/Vianden/Innen_gesamt/Innenraeume_Gesamt.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+
+    _path = "data/objects/demo_models/Arctron/Vianden/"
+    #_path = "/mnt/ssd_pitoti/Vianden/" # ssd path
+
+    self.init_geometry("vianden_out", _path + "Aussen_gesamt/VIANDEN.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
+    self.init_geometry("vianden_in", _path + "Innen_gesamt/Innenraeume_Gesamt.obj", _mat, None, True, True, self.scene_root, "main_scene") # parameters: NAME, FILENAME, MATRIX, MATERIAL, GROUNDFOLLOWING_PICK_FLAG, MANIPULATION_PICK_FLAG, PARENT_NODE
 
           
     # lights
@@ -101,12 +105,11 @@ class SceneVianden(SceneObject):
 
 
     # render pipeline parameters
-    self.enable_backface_culling = False
+    self.enable_backface_culling = True
     self.enable_frustum_culling = True
     self.enable_ssao = False
     self.enable_fxaa = True
-    self.enable_fog = False
-    self.ambient_color = avango.gua.Color(0.25, 0.25, 0.25)
+    self.ambient_color = avango.gua.Color(0.35, 0.35, 0.35)
     #self.background_texture = "/opt/guacamole/resources/skymaps/DH221SN.png"
     self.background_texture = "/opt/guacamole/resources/skymaps/cycles_island2.jpg"
 

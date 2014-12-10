@@ -43,15 +43,10 @@ class GroundFollowing(avango.script.Script):
   sf_gf_start_mat = avango.gua.SFMatrix4()
   sf_gf_start_mat.value = avango.gua.make_identity_mat()
 
-  ## @var sf_station_mat
+  ## @var sf_reference_mat
   # The matrix representing the position of the device belonging to the platform.
-  sf_station_mat = avango.gua.SFMatrix4()
-  sf_station_mat.value = avango.gua.make_identity_mat()
-
-  ## @var sf_scale
-  # The current scaling factor of the Navigation.
-  sf_scale = avango.SFFloat()
-  sf_scale.value = 1.0
+  sf_reference_mat = avango.gua.SFMatrix4()
+  sf_reference_mat.value = avango.gua.make_identity_mat()
 
   ## @var mf_ground_pick_result
   # Intersections of the ground following ray with the objects in the scene.
@@ -62,11 +57,15 @@ class GroundFollowing(avango.script.Script):
     self.super(GroundFollowing).__init__()
 
   ## Custom constructor.
-  # @param SF_STATION_MAT The field containing the current position of the device belonging to the platform.
+  # @param SF_REFERENCE_MAT The field containing the current position of the device belonging to the platform.
   # @param RAY_START_HEIGHT A height from which the ground following ray will originate.
-  def my_constructor(self, SF_STATION_MAT, RAY_START_HEIGHT):
+  def my_constructor(self, SF_REFERENCE_MAT, RAY_START_HEIGHT):
     
-    # attributes
+    ### variables ###
+    self.nav_scale = 1.0
+    
+    ### attributes ###
+    
     ## @var activated
     # Indicates if the ground following algorithm is activated or deactivated. In the last case,
     # the input matrix is simply passed through.
@@ -112,7 +111,7 @@ class GroundFollowing(avango.script.Script):
     self.set_pick_direction(avango.gua.Vec3(0.0, -1.0, 0.0))
 
     # init field connections
-    self.sf_station_mat.connect_from(SF_STATION_MAT)
+    self.sf_reference_mat.connect_from(SF_REFERENCEG_MAT)
 
     # init internal class
     ## @var ground_intersection
@@ -129,12 +128,12 @@ class GroundFollowing(avango.script.Script):
       _platform_trans_vec = self.sf_abs_input_mat.value.get_translate()
 
       # tracked device translation on the platform
-      _device_trans_vec = self.sf_station_mat.value.get_translate()
+      _device_trans_vec = self.sf_reference_mat.value.get_translate()
 
       # prepare ground following matrix
-      _gf_start_pos = self.sf_station_mat.value.get_translate()
+      _gf_start_pos = self.sf_reference_mat.value.get_translate()
       _gf_start_pos.y = self.ray_start_height
-      _gf_start_pos *= self.sf_scale.value
+      _gf_start_pos *= self.nav_scale
       _gf_start_pos = self.sf_abs_input_mat.value * _gf_start_pos
       _gf_start_pos = avango.gua.Vec3(_gf_start_pos.x, _gf_start_pos.y, _gf_start_pos.z)
       self.sf_gf_start_mat.value = avango.gua.make_trans_mat(_gf_start_pos) * self.ground_pick_direction_mat
@@ -147,13 +146,13 @@ class GroundFollowing(avango.script.Script):
 
         # compare distance to ground and ray_start_height
         _distance_to_ground = _pick_result.Distance.value * self.ground_pick_length
-        _difference = _distance_to_ground - (self.ray_start_height * self.sf_scale.value)
+        _difference = _distance_to_ground - (self.ray_start_height * self.nav_scale)
         _difference = round(_difference, 3)
 
         if _difference < 0: # climb up
 
           # end falling when necessary
-          if self.falling:
+          if self.falling == True:
             self.falling = False
             self.fall_velocity = self.initial_fall_velocity 
 
@@ -163,7 +162,7 @@ class GroundFollowing(avango.script.Script):
 
         elif _difference > 0:
           
-          if _difference > (self.ray_start_height * self.sf_scale.value): # falling
+          if _difference > (self.ray_start_height * self.nav_scale): # falling
 
             # make player fall down faster every time
             self.falling = True
@@ -192,6 +191,13 @@ class GroundFollowing(avango.script.Script):
     else:
       self.sf_abs_output_mat.value = self.sf_abs_input_mat.value            # ground following is deactivated
 
+
+
+  ### functions ###
+
+  def set_nav_scale(self, SCALE):
+    self.nav_scale = SCALE
+  
 
   ## Sets the pick_direction attribute.
   # @param PICK_DIRECTION New pick direction.

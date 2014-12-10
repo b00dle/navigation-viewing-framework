@@ -83,7 +83,7 @@ class MultiDofDevice(avango.script.Script):
       self.tracking_reader = TrackingDefaultReader()
       self.tracking_reader.set_no_tracking_matrix(NO_TRACKING_MAT)
 
-    self.sf_station_mat.connect_from(self.tracking_reader.sf_abs_mat)
+    self.sf_station_mat.connect_from(self.tracking_reader.sf_mat)
 
 
   ## Map an input value to a certain interval.
