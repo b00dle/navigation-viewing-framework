@@ -143,14 +143,16 @@ class TouchInterpreter(avango.script.Script):
         _loader = avango.gua.nodes.TriMeshLoader()
 
         # touch navigation proxy plane
+        '''
         self.nav_proxy_plane = _loader.create_geometry_from_file("touch_proxy_plane",
                                                                 "data/objects/cube.obj",
                                                                 "data/materials/White.gmd",
                                                                 avango.gua.LoaderFlags.DEFAULTS | avango.gua.LoaderFlags.MAKE_PICKABLE)
         self.nav_proxy_plane.Transform.value = self.inv_screen_mat *\
                                                 avango.gua.make_trans_mat(0, -0.0030, 0) *\
-                                                avango.gua.make_scale_mat(1.115 / 2, 0.0025, 0.758)
+                                                avango.gua.make_scale_mat(1.115, 0.0025, 0.758)
         self.screen_transform_node.Children.value.append(self.nav_proxy_plane)
+        '''
 
         for i in range(0, len(self.touch_device.cursors.value)):
             self.finger_geometries.append(_loader.create_geometry_from_file("touch_finger_" + str(i),

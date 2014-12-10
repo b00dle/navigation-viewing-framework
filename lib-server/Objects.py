@@ -56,7 +56,6 @@ class SceneObject:
     '''
       Pipeline values
     '''
-
     ## @var background_texture
     # Mapping of pipeline value BackgroundTexture and FoxTexture.
     self.background_texture = "data/textures/sky.jpg"

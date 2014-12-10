@@ -66,9 +66,9 @@ class HandWidget(avango.script.Script):
                                                | avango.gua.PickingOptions.GET_WORLD_POSITIONS \
                                                | avango.gua.PickingOptions.GET_WORLD_NORMALS
             else:
-                print("pick results of touch_widget_", self.hand_id, ":")
                 for result in self.intersection.mf_pick_result.value:
-                    print(result.Object.value.Name.value)
+                    if result.Object.value.Name.value == "touch_proxy_plane":
+                        result.Object.value.TouchNavigation.value.addContact()
         else:
             if self.intersection != None:
                 del(self.intersection)

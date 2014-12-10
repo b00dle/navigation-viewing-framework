@@ -11,6 +11,7 @@ import avango.gua
 from SceneManager import *
 from ApplicationManager import *
 from TouchInterpreter import *
+from TouchNavigation import *
 
 from scene_config import scenegraphs
 
@@ -50,19 +51,24 @@ def start():
   scene_manager = SceneManager()
 
   # initialize touch devices
-  multi_touch_device = None
+  touch_interpreter = None
 
   for _workspace in application_manager.workspaces:
     for _display_group in _workspace.display_groups:
       for _display in _display_group.displays:
         if "TUIO" in _display.get_touch_protocols():
-          if None == multi_touch_device:
+          if None == touch_interpreter:
             touch_interpreter = TouchInterpreter()
             touch_interpreter.my_constructor(scenegraphs[0])
             #device = TUIODevice()
             #device.my_constructor(scenegraphs[0], _display, scenegraphs[0]["/net"], scene_manager, application_manager)
             #multi_touch_device = device
+      for _navigation in _display_group.navigations:
+        _navigation.setupProxyPlane(touch_interpreter.screen_transform_node)
 
+  #touch_navigation = TouchNavigation()
+  #touch_navigation.my_constructor(avango.gua.make_identity_mat(), avango.gua.Vec3(0,0,0))
+  #touch_navigation.setupProxyPlane(touch_interpreter.screen_transform_node)
   #touch_interpreter = TouchInterpreter()
   #touch_interpreter.my_constructor(scenegraphs[0])
 

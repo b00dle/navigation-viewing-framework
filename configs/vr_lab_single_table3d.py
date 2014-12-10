@@ -14,6 +14,7 @@ from VirtualDisplay import *
 from Workspace import Workspace
 from SteeringNavigation import SteeringNavigation
 from StaticNavigation import StaticNavigation
+from TouchNavigation import TouchNavigation
 
 ## Create Workspaces first ##
 vr_lab_rear = Workspace('VR-Lab-Rear', avango.gua.make_trans_mat(0.0, 0.043, 0.0))
@@ -49,9 +50,16 @@ displays = [touch_table_3D]
 
 ## Create display groups ##
 
+touch_navigation = TouchNavigation()
+touch_navigation.my_constructor(STARTING_MATRIX = avango.gua.make_trans_mat(0, 0, 20) * \
+                                                 avango.gua.make_rot_mat(0, 0, 1, 0)
+                              , STARTING_SCALE = 50.0
+                              , TRACE_VISIBILITY_LIST = trace_visibility_list_table_nav
+                              , REACTS_ON_PORTAL_TRANSIT = False)
 
 vr_lab_rear.create_display_group( DISPLAY_LIST = [touch_table_3D]
-                                , NAVIGATION_LIST = [spacemouse_navigation]
+                                #, NAVIGATION_LIST = [spacemouse_navigation]
+                                , NAVIGATION_LIST = [touch_navigation]
                                 , VISIBILITY_TAG = "table"
                                 , OFFSET_TO_WORKSPACE = avango.gua.make_trans_mat(0.6975, -0.96, 1.9825) * \
                                                         avango.gua.make_rot_mat(-90, 0, 1, 0) )
@@ -76,6 +84,8 @@ vr_lab_rear.create_user( VIP = False
                        , AVATAR_VISIBILITY_TABLE = avatar_visibility_table
                        , HEADTRACKING_TARGET_NAME = 'tracking-dlp-glasses-3'
                        , EYE_DISTANCE = 0.065)
+
+
 
 ## Create tools ##
 
