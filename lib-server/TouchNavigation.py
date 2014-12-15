@@ -38,6 +38,8 @@ class TouchNavigation(Navigation):
 
     self.touch_contacts             = []
 
+    self.multi_touch_center         = avango.gua.make_identity_mat()
+
   def setupProxyPlane(self, SCREENNODE):
        
     _loader = avango.gua.nodes.TriMeshLoader()
@@ -73,7 +75,8 @@ class TouchNavigation(Navigation):
       else:
         newContact = TouchContact(ID, HANDMAT) 
         self.touch_contacts.append(newContact)
-        self.sf_reference_mat.value = self.touch_contacts[1].input_mat
+        self.computeMultiTouchCenter()
+        self.sf_reference_mat.value = avango.gua.make_trans_mat(self.multi_touch_center)
         return True
 
     else:
@@ -84,6 +87,14 @@ class TouchNavigation(Navigation):
           return True
 
     return False
+
+  def computeMultiTouchCenter(self):
+    if len(self.touch_contacts):
+      pos1 = self.touch_contacts[0].input_mat.get_translate()
+      pos2 = self.touch_contacts[1].input_mat.get_translate()
+      pos1ToPos2 = pos2 - pos1
+      self.multi_touch_center = pos1 + avango.gua.Vec3(0.5*pos1ToPos2.x, 0.5*pos1ToPos2.y, 0.5*pos1ToPos2.z)
+      print(self.multi_touch_center)
 
   def evaluateContacts(self):
     
@@ -104,8 +115,30 @@ class TouchNavigation(Navigation):
 
   def rotate(self):
     #pass
-    relativeInput = self.touch_contacts[0].getRelativeInput()
-    self.map_movement_input(0,0,0,0,relativeInput.z*100,0)
+    #relativeInput = self.touch_contacts[0].getRelativeInput()
+    pos1 = self.touch_contacts[0].last_input_mat.get_translate()
+    pos2 = self.touch_contacts[1].last_input_mat.get_translate()
+    lastVec = pos2 - pos1
+    lastVec.normalize()
+    
+    pos1 = self.touch_contacts[0].input_mat.get_translate()
+    pos2 = self.touch_contacts[1].input_mat.get_translate()
+    newVec = pos2 - pos1
+    newVec.normalize()
+
+    print("lastVec: " , lastVec)
+    print("newVec: " , newVec)
+    
+    alpha = 0
+    if lastVec != newVec:
+      cosAlpha = max(min(lastVec.dot(newVec), 1.0), -1.0)
+      print("cosAlpha: ", cosAlpha)
+      alpha = math.acos(cosAlpha)
+
+    alphaDeg = alpha * 180 / math.pi
+    print("alpha: ", alpha)
+    print("alphaDeg: ", alphaDeg)
+    self.map_movement_input(0,0,0,0,-alphaDeg,0)
 
   def removeContact(self, ID):
     kill_contact = None
