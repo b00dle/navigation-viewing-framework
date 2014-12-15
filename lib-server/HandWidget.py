@@ -11,19 +11,20 @@ import math
 
 class HandWidget(avango.script.Script):
 
-    sf_pick_mat = avango.gua.SFMatrix4()
+    sf_pick_mat     = avango.gua.SFMatrix4()
+    sf_world_mat    = avango.gua.SFMatrix4()
 
     def __init__(self):
         self.super(HandWidget).__init__()
 
-        self.hand_id                = 0
+        self.id                     = 0
 
         self.hand_mat               = avango.gua.make_identity_mat()
         self.last_hand_mat          = avango.gua.make_identity_mat()
         self.finger_mat_list        = []
         self.length_finger_span     = 0.0
 
-        self.scene_graph             = None
+        self.scene_graph            = None
         self.hand_geometry          = None
         self.ray_geometry           = None
         self.finger_geometries      = []
@@ -31,14 +32,17 @@ class HandWidget(avango.script.Script):
         self.intersection           = None
 
         self.is_hidden              = False
+        self.contact_is_bound       = False
 
         self.geometry_offset_mat    = avango.gua.make_identity_mat()
         self.rot_mat                = avango.gua.make_identity_mat()
+        self.sf_world_mat.value     = avango.gua.make_identity_mat()
+
 
         self.always_evaluate(True)
 
-    def my_constructor(self, HANDID, FINGERPOSITIONS, GRAPH, HANDGEOMETRY, RAYGEOMETRY, FINGERGEOMETRIES, GEOMETRYOFFSETMAT, ROTATIONMAT):
-        self.hand_id                = HANDID
+    def my_constructor(self, HANDWIDGETID, FINGERPOSITIONS, GRAPH, HANDGEOMETRY, RAYGEOMETRY, FINGERGEOMETRIES, GEOMETRYOFFSETMAT, ROTATIONMAT):
+        self.id                     = HANDWIDGETID
         
         # compute hand and finger matrices
         self.computeMatrices(FINGERPOSITIONS)
@@ -55,9 +59,9 @@ class HandWidget(avango.script.Script):
         self.rot_mat                = ROTATIONMAT
 
     def evaluate(self):
-        if len(self.finger_mat_list) == 5:
+        if len(self.finger_mat_list) > 1:
             if self.intersection == None:
-                self.sf_pick_mat.value = avango.gua.make_trans_mat(0,0.05,0) * self.hand_mat * self.rot_mat
+                self.sf_pick_mat.value = avango.gua.make_trans_mat(0,0.05,0) * self.hand_mat * self.sf_world_mat.value
                 self.intersection = Intersection()
                 self.intersection.my_constructor(self.scene_graph, self.sf_pick_mat, 10.0)
                 self.intersection.picking_options = avango.gua.PickingOptions.PICK_ONLY_FIRST_OBJECT \
@@ -65,22 +69,34 @@ class HandWidget(avango.script.Script):
                                                | avango.gua.PickingOptions.GET_POSITIONS \
                                                | avango.gua.PickingOptions.GET_WORLD_POSITIONS \
                                                | avango.gua.PickingOptions.GET_WORLD_NORMALS
+                self.contact_is_bound = True
             else:
-                for result in self.intersection.mf_pick_result.value:
-                    if result.Object.value.Name.value == "touch_proxy_plane":
-                        result.Object.value.TouchNavigation.value.addContact()
+                if self.contact_is_bound:
+                    for result in self.intersection.mf_pick_result.value:
+                        if result.Object.value.Name.value == "touch_proxy_plane":
+                            self.contact_is_bound = result.Object.value.TouchNavigation.value.addContact(self.hand_mat, self.id)
         else:
             if self.intersection != None:
+                if self.contact_is_bound:
+                    for result in self.intersection.mf_pick_result.value:
+                        if result.Object.value.Name.value == "touch_proxy_plane":
+                            result.Object.value.TouchNavigation.value.removeContact(self.id)
                 del(self.intersection)
                 self.intersection = None
+                self.contact_is_bound = False
 
         self.visualize()
 
     def kill(self):
         self.hide()
+
         if self.intersection != None:
+            for result in self.intersection.mf_pick_result.value:
+                    if result.Object.value.Name.value == "touch_proxy_plane":
+                        result.Object.value.TouchNavigation.value.removeContact(self.id)
             del(self.intersection)
             self.intersection = None
+        
         for i in range(0, len(self.finger_mat_list)):
             del(self.finger_mat_list[len(self.finger_mat_list)-1])
 
@@ -107,7 +123,8 @@ class HandWidget(avango.script.Script):
                     geometry.GroupNames.value = ["do_not_display_group"]
                 i += 1
 
-            if len(self.finger_mat_list) == 5:
+            #if len(self.finger_mat_list) == 5:
+            if self.contact_is_bound:
                 pos = self.hand_mat.get_translate()
                 self.hand_geometry.Transform.value = self.geometry_offset_mat *\
                                                     self.hand_mat *\

@@ -29,6 +29,8 @@ class TouchInterpreter(avango.script.Script):
 
         self.hand_widgets           = {}
 
+        self.id_iterator            = 0
+
         self.always_evaluate(True)
 
     def my_constructor(self, graph):
@@ -36,7 +38,7 @@ class TouchInterpreter(avango.script.Script):
 
         # setup screen transform node to append touch geometry        
         self.screen_transform_node  = avango.gua.nodes.TransformNode(Name = "screen_transform")
-        self.screen_transform_node.Transform.connect_from(self.scene_graph["/net/w0_dg0_u0/screen_0"].Transform)
+        self.screen_transform_node.Transform.connect_from(self.scene_graph["/net/w0_dg0_u0/screen_0"].WorldTransform)
         self.scene_graph["/net"].Children.value.append(self.screen_transform_node)
         
         # get inverse screen mat for HandWidget geometry positioning
@@ -81,7 +83,7 @@ class TouchInterpreter(avango.script.Script):
             fingerPositions = []
             for touchPoint in self.touch_device.active_hands[handID]:
                 unmappedPos = avango.gua.Vec3(touchPoint.PosX.value, touchPoint.PosY.value, 0)
-                fingerPositions.append(self.mapInputPosition(unmappedPos))
+                fingerPositions.append(self.mapToScreen(unmappedPos))
             
             # HandWidget exists and is updated
             if len(fingerPositions) > 0 and self.hand_widgets[handID] != None:
@@ -95,7 +97,7 @@ class TouchInterpreter(avango.script.Script):
                 for i in range(0, 5):
                     fingerGeometries.append(self.finger_geometries[5*handID + i])
                 self.hand_widgets[handID] = HandWidget()
-                self.hand_widgets[handID].my_constructor(handID,
+                self.hand_widgets[handID].my_constructor(self.id_iterator,
                                                         fingerPositions,
                                                         self.scene_graph,
                                                         self.hand_geometries[handID],
@@ -103,11 +105,13 @@ class TouchInterpreter(avango.script.Script):
                                                         fingerGeometries,
                                                         self.inv_screen_mat,
                                                         self.screen_rot_mat)
+                self.hand_widgets[handID].sf_world_mat.connect_from(self.screen_transform_node.Transform)
+                self.id_iterator += 1
 
             # set cut sphere uniforms only for first widget (only one cut supported) 
             if set_cut and self.hand_widgets[handID] != None:
-                handPos = self.hand_widgets[handID].hand_mat.get_translate()
-                self.setCutSphereUniforms(self.hand_widgets[handID].hand_mat.get_translate(), 0.5*self.hand_widgets[handID].length_finger_span)
+                handPos = (self.inv_screen_mat * self.hand_widgets[handID].hand_mat).get_translate()
+                self.setCutSphereUniforms(self.mapToWorld(handPos), 0.5*self.hand_widgets[handID].length_finger_span)
                 set_cut = False
 
         if set_cut:
@@ -117,6 +121,7 @@ class TouchInterpreter(avango.script.Script):
         # remove inactive HandWidgets
         for handID in inactiveWidgets:
             if self.hand_widgets[handID] != None:
+                self.hand_widgets[handID].sf_world_mat.disconnect_from(self.screen_transform_node.Transform)
                 self.hand_widgets[handID].kill()
                 del(self.hand_widgets[handID])
                 self.hand_widgets[handID] = None
@@ -126,7 +131,7 @@ class TouchInterpreter(avango.script.Script):
             if self.hand_widgets[handID] != None:
                 i += 1
 
-    def mapInputPosition(self, POS):
+    def mapToScreen(self, POS):
         displaySize = avango.gua.Vec2(1.115,0.758)
 
         """ map points from interval [0, 1] to [-0.5, 0.5] """
@@ -138,6 +143,13 @@ class TouchInterpreter(avango.script.Script):
         mappedPos = avango.gua.Vec3(mappedPosX * displaySize.x, 0.0, mappedPosY * displaySize.y)   
 
         return mappedPos
+
+    def mapToWorld(self, POS):
+        return self.transform_vector_with_matrix(POS, self.screen_transform_node.Transform.value)
+
+    def transform_vector_with_matrix(self, VECTOR, MATRIX):
+        _vec = MATRIX * VECTOR
+        return avango.gua.Vec3(_vec.x, _vec.y, _vec.z)
 
     def setupTouchGeometries(self, FINGEROBJPATH, HANDOBJPATH, RAYOBJPATH):
         _loader = avango.gua.nodes.TriMeshLoader()

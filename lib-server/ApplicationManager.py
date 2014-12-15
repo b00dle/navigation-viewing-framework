@@ -375,7 +375,7 @@ class ApplicationManager(avango.script.Script):
     ## @var server_transform
     # Transform node representing the position and orientation of the server control monitor.
     self.server_transform = avango.gua.nodes.TransformNode(Name = "server_transform")
-    self.server_transform.Transform.value = avango.gua.make_trans_mat(0, 8, 0) * \
+    self.server_transform.Transform.value = avango.gua.make_trans_mat(0, 2, 0) * \
                                             avango.gua.make_rot_mat(-90, 1, 0, 0)
     self.NET_TRANS_NODE.Children.value.append(self.server_transform)
 
@@ -389,8 +389,8 @@ class ApplicationManager(avango.script.Script):
     # Screen node representing the server's screen.
     self.screen = avango.gua.nodes.ScreenNode(Name = "server_screen")
     self.screen.Transform.value = avango.gua.make_trans_mat(0.0, 0.0, -0.5)
-    self.screen.Width.value = 160/1.5 * 0.5
-    self.screen.Height.value = 100/1.5 * 0.5
+    self.screen.Width.value = 160/1.5 * 0.05
+    self.screen.Height.value = 100/1.5 * 0.05
     #self.screen.Width.value = 160/1.5 * 0.85
     #self.screen.Height.value = 100/1.5 * 0.85    
     self.server_transform.Children.value.append(self.screen)
@@ -423,8 +423,8 @@ class ApplicationManager(avango.script.Script):
     # Window displaying the server control view.
     self.window = avango.gua.nodes.Window()
     self.window.Title.value = "Server Control Monitor"
-    self.window.Size.value = avango.gua.Vec2ui(1280, 1024)
-    self.window.LeftResolution.value = avango.gua.Vec2ui(1280, 1024)
+    self.window.Size.value = avango.gua.Vec2ui(1920, 1440)
+    self.window.LeftResolution.value = avango.gua.Vec2ui(1920, 1440)
 
     ## @var pipeline
     # Pipeline repsonsible for rendering the server control monitor.

@@ -6,6 +6,7 @@ import avango.gua
 import avango.script
 
 import math
+import time
 
 from Navigation import *
 
@@ -14,20 +15,28 @@ class TouchNavigation(Navigation):
   def __init__(self):
     self.super(TouchNavigation).__init__()
 
+    #self.always_evaluate(True)
+
   def my_constructor(self, STARTING_MATRIX, STARTING_SCALE, TRACE_VISIBILITY_LIST, REACTS_ON_PORTAL_TRANSIT):
 
     self.list_constructor(TRACE_VISIBILITY_LIST)
     self.bc_init_movement_traces(str(self), 100, 50.0)
 
-    self.start_matrix = STARTING_MATRIX
-
-    self.start_scale  = STARTING_SCALE
+    self.start_matrix               = STARTING_MATRIX
+    self.start_scale                = STARTING_SCALE
 
     self.bc_set_nav_mat(self.start_matrix)
-
     self.bc_set_nav_scale(self.start_scale)    
 
-    self.reacts_on_portal_transit = REACTS_ON_PORTAL_TRANSIT
+    self.reacts_on_portal_transit   = REACTS_ON_PORTAL_TRANSIT
+
+    self.receiving_input            = False
+
+    self.active_contact             = -1
+
+    self.lastInput                  = avango.gua.make_identity_mat()
+
+    self.touch_contacts             = []
 
   def setupProxyPlane(self, SCREENNODE):
        
@@ -50,10 +59,64 @@ class TouchNavigation(Navigation):
 
     SCREENNODE.Children.value.append(self.proxy_plane)
 
-  def addContact(self):
-    print("hello from TouchNavigation!")
-    #_mat = self.bc_get_nav_mat()
-    #self.bc_set_nav_mat(avango.gua.make_trans_mat(0.01,0,0) * _mat)
+  def addContact(self, HANDMAT, ID):
+    if len(self.touch_contacts) == 0:
+      newContact = TouchContact(ID, HANDMAT)
+      self.touch_contacts.append(newContact)
+      return True
+
+    elif len(self.touch_contacts) == 1:
+      if self.touch_contacts[0].input_id == ID:
+        self.touch_contacts[0].update(HANDMAT)
+        self.evaluateContacts()
+        return True
+      else:
+        newContact = TouchContact(ID, HANDMAT) 
+        self.touch_contacts.append(newContact)
+        self.sf_reference_mat.value = self.touch_contacts[1].input_mat
+        return True
+
+    else:
+      for contact in self.touch_contacts:
+        if contact.input_id == ID:
+          contact.update(HANDMAT)
+          self.evaluateContacts()
+          return True
+
+    return False
+
+  def evaluateContacts(self):
+    
+    if len(self.touch_contacts) == 1:
+      self.translate()
+
+    elif len(self.touch_contacts) == 2:
+      self.rotate()
+
+  def translate(self):
+    relativeInput = self.touch_contacts[0].getRelativeInput()
+
+    self.map_movement_input(-relativeInput.x, -relativeInput.y, -relativeInput.z, 0, 0, 0)
+    #mat = self.bc_get_nav_mat()
+    #transVec = avango.gua.Vec3(-1.0 * relativeInput.x, -1.0 * relativeInput.y, -1.0 * relativeInput.z)
+
+    #self.bc_set_nav_mat(avango.gua.make_trans_mat(transVec) * mat)
+
+  def rotate(self):
+    #pass
+    relativeInput = self.touch_contacts[0].getRelativeInput()
+    self.map_movement_input(0,0,0,0,relativeInput.z*100,0)
+
+  def removeContact(self, ID):
+    kill_contact = None
+
+    for contact in self.touch_contacts:
+      if contact.input_id == ID:
+        kill_contact = contact
+        break
+
+    if kill_contact != None:
+      self.touch_contacts.remove(kill_contact)
 
   def map_movement_input(self, X, Y, Z, RX, RY, RZ):
     _trans_vec = avango.gua.Vec3(X, Y, Z)
@@ -66,20 +129,19 @@ class TouchNavigation(Navigation):
       return
 
     _rot_center = self.get_reference_center()
-    _nav_mat = self.bc_get_nav_mat()    
-    
+    _nav_mat = self.bc_get_nav_mat()
+
     if _trans_input != 0.0: # transfer function for translation      
       _ref_rot_mat = avango.gua.make_rot_mat(_nav_mat.get_rotate())
       _ref_rot_mat = _ref_rot_mat * avango.gua.make_rot_mat(self.sf_reference_mat.value.get_rotate())
       
-      _trans_vec.normalize()
-      _trans_vec *= math.pow(min(_trans_input, 1.0), 3) * self.bc_get_nav_scale()
+      #_trans_vec.normalize()
+      _trans_vec *= self.bc_get_nav_scale()
       _trans_vec = self.transform_vector_with_matrix(_trans_vec, _ref_rot_mat) # transform into reference orientation (e.g. input device orientation)
 
-    if _rot_input != 0.0: # transfer function for rotation
-      _rot_vec.normalize()
-      _rot_vec *= math.pow(min(_rot_input, 1.0), 3)
-
+    #if _rot_input != 0.0: # transfer function for rotation
+    #  _rot_vec.normalize()
+    #  _rot_vec *= math.pow(min(_rot_input, 1.0), 3)
 
     # map input
     _nav_mat = avango.gua.make_trans_mat(_trans_vec) * \
@@ -109,3 +171,20 @@ class TouchNavigation(Navigation):
 
     _vec = MATRIX * VECTOR
     return avango.gua.Vec3(_vec.x, _vec.y, _vec.z)
+
+class TouchContact:
+
+  def __init__(self, INPUTID, STARTMAT):
+    self.input_id       = INPUTID
+    
+    self.input_mat      = STARTMAT
+
+    self.last_input_mat = STARTMAT
+
+  def update(self, NEWMAT):
+    self.last_input_mat = self.input_mat
+
+    self.input_mat      = NEWMAT
+    
+  def getRelativeInput(self):
+    return self.input_mat.get_translate() - self.last_input_mat.get_translate() 
