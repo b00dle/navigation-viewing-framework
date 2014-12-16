@@ -150,19 +150,36 @@ class Test:
 
     #print("in function frame_callback")
    
-    _node = self.graph["/net/cut_sphere"]
+    _node1 = self.graph["/net/cut_sphere1"]
+    _node2 = self.graph["/net/cut_sphere2"]
+    _node3 = self.graph["/net/cut_sphere3"]
+    _node4 = self.graph["/net/cut_sphere4"]
+    _node5 = self.graph["/net/cut_sphere5"]
     
     #print(_node != None)
-    if _node != None:
-      
+    if _node1 != None and _node2 != None and _node3 != None and _node4 != None and _node5 != None:
       #print("inside", self.frame_trigger.Active.value)
-      self.cut_sphere_updater = TimedCutSphereUpdate()
-      self.cut_sphere_updater.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
-      self.cut_sphere_updater.UniformMat.connect_from(_node.Transform)
+      self.cut_sphere_updater1 = TimedCutSphereUpdate()
+      self.cut_sphere_updater1.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
+      self.cut_sphere_updater1.UniformMat.connect_from(_node1.Transform)
+
+      self.cut_sphere_updater2 = TimedCutSphereUpdate()
+      self.cut_sphere_updater2.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
+      self.cut_sphere_updater2.UniformMat.connect_from(_node2.Transform)
+
+      self.cut_sphere_updater3 = TimedCutSphereUpdate()
+      self.cut_sphere_updater3.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
+      self.cut_sphere_updater3.UniformMat.connect_from(_node3.Transform)
+
+      self.cut_sphere_updater4 = TimedCutSphereUpdate()
+      self.cut_sphere_updater4.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
+      self.cut_sphere_updater4.UniformMat.connect_from(_node4.Transform)
+
+      self.cut_sphere_updater5 = TimedCutSphereUpdate()
+      self.cut_sphere_updater5.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
+      self.cut_sphere_updater5.UniformMat.connect_from(_node5.Transform)
 
       self.frame_trigger.Active.value = False # disable frame callback
-    
-      print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     
 ## Main method for the client application.
 def start():
@@ -233,7 +250,6 @@ def start():
   '''
   #cut_sphere_updater = TimedCutSphereUpdate()
   #cut_sphere_updater.MaterialName.value = "data/materials/SimplePhongWhiteCut.gmd"
-
 
   test = Test(graph)
 

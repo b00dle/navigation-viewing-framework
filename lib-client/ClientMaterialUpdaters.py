@@ -47,20 +47,19 @@ class TimedCutSphereUpdate(avango.script.Script):
   def update(self):
 
     sphere_radius = self.UniformMat.value.get_element(0,1)
+
+    sphere_index  = int(self.UniformMat.value.get_element(0,2))
     
     sphere_center = avango.gua.Vec3(self.UniformMat.value.get_element(0,0),
                                     self.UniformMat.value.get_element(1,0),
                                     self.UniformMat.value.get_element(2,0))
-    
-
-
 
     avango.gua.set_material_uniform(self.MaterialName.value,
-                                    "sphere_center",
+                                    "sphere_center"+str(sphere_index),
                                     sphere_center)
 
     avango.gua.set_material_uniform(self.MaterialName.value,
-                                    "sphere_radius",
+                                    "sphere_radius"+str(sphere_index),
                                     sphere_radius)
     #print("field")
     

@@ -131,6 +131,7 @@ class HandWidget(avango.script.Script):
                                                     avango.gua.make_scale_mat(0.5*self.length_finger_span, 0.5*self.length_finger_span, 0.5*self.length_finger_span)
                 self.hand_geometry.GroupNames.value = []
 
+                '''
                 rayLength = 1
                 rayTranslate = self.hand_mat.get_translate()
                 rayTranslate.y = -0.5 * rayLength
@@ -138,10 +139,11 @@ class HandWidget(avango.script.Script):
                                                     avango.gua.make_trans_mat(rayTranslate) *\
                                                     avango.gua.make_scale_mat(0.01, rayLength, 0.01)
                 self.ray_geometry.GroupNames.value = []
+                '''
                 
             else:
                 self.hand_geometry.GroupNames.value = ["do_not_display_group"]
-                self.ray_geometry.GroupNames.value = ["do_not_display_group"]
+                #self.ray_geometry.GroupNames.value = ["do_not_display_group"]
 
     def hide(self):
         self.is_hidden = True

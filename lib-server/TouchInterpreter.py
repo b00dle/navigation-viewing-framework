@@ -47,12 +47,25 @@ class TouchInterpreter(avango.script.Script):
         # get screen totation matrix for HandWidget pick ray orientation
         self.screen_rot_mat = avango.gua.make_rot_mat(self.screen_transform_node.Transform.value.get_rotate())
 
-        # setup cut sphere uniform carrier for clientside material update
-        self.cut_sphere_node = avango.gua.nodes.TransformNode(Name = "cut_sphere")
-        self.scene_graph["/net"].Children.value.append(self.cut_sphere_node)
+        # setup cut sphere uniform carriers for clientside material update
+        self.cut_sphere_node1 = avango.gua.nodes.TransformNode(Name = "cut_sphere1")
+        self.cut_sphere_node2 = avango.gua.nodes.TransformNode(Name = "cut_sphere2")
+        self.cut_sphere_node3 = avango.gua.nodes.TransformNode(Name = "cut_sphere3")
+        self.cut_sphere_node4 = avango.gua.nodes.TransformNode(Name = "cut_sphere4")
+        self.cut_sphere_node5 = avango.gua.nodes.TransformNode(Name = "cut_sphere5")
 
-        # fill cut sphere node with default values
-        self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0)
+        self.scene_graph["/net"].Children.value.append(self.cut_sphere_node1)
+        self.scene_graph["/net"].Children.value.append(self.cut_sphere_node2)
+        self.scene_graph["/net"].Children.value.append(self.cut_sphere_node3)
+        self.scene_graph["/net"].Children.value.append(self.cut_sphere_node4)
+        self.scene_graph["/net"].Children.value.append(self.cut_sphere_node5)
+
+        # fill cut sphere nodes with default values
+        self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0, 1)
+        self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0, 2)
+        self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0, 3)
+        self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0, 4)
+        self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0, 5)
 
         # get TouchDevice instance for reading input data
         self.touch_device = TouchDevice()
@@ -76,7 +89,6 @@ class TouchInterpreter(avango.script.Script):
             inactiveWidgets.append(handID)
 
         # create/update active HandWidgets
-        set_cut = True
         for handID in self.touch_device.active_hands:
             
             # get world space mapped finger positions from input
@@ -109,14 +121,11 @@ class TouchInterpreter(avango.script.Script):
                 self.id_iterator += 1
 
             # set cut sphere uniforms only for first widget (only one cut supported) 
-            if set_cut and self.hand_widgets[handID] != None:
+            if self.hand_widgets[handID] != None:
                 handPos = (self.inv_screen_mat * self.hand_widgets[handID].hand_mat).get_translate()
-                self.setCutSphereUniforms(self.mapToWorld(handPos), 0.5*self.hand_widgets[handID].length_finger_span)
-                set_cut = False
-
-        if set_cut:
-            self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0.0)
-            set_cut = False
+                worldFingerSpan = 0.5*self.hand_widgets[handID].length_finger_span
+                worldFingerSpan = worldFingerSpan * self.screen_transform_node.Transform.value.get_scale().x 
+                self.setCutSphereUniforms(self.mapToWorld(handPos), worldFingerSpan, handID+1)
 
         # remove inactive HandWidgets
         for handID in inactiveWidgets:
@@ -125,6 +134,7 @@ class TouchInterpreter(avango.script.Script):
                 self.hand_widgets[handID].kill()
                 del(self.hand_widgets[handID])
                 self.hand_widgets[handID] = None
+                self.setCutSphereUniforms(avango.gua.Vec3(0,0,0), 0, handID+1)
 
         i = 0
         for handID in self.hand_widgets:
@@ -191,7 +201,7 @@ class TouchInterpreter(avango.script.Script):
             self.ray_geometries[i].GroupNames.value = ["do_not_display_group"]
             self.screen_transform_node.Children.value.append(self.ray_geometries[i])
 
-    def setCutSphereUniforms(self, SPHERECENTER, SPHERERADIUS):
+    def setCutSphereUniforms(self, SPHERECENTER, SPHERERADIUS, SPHEREINDEX):
         _mat = avango.gua.make_identity_mat()
         
         _mat.set_element(0, 0, SPHERECENTER.x)
@@ -199,7 +209,17 @@ class TouchInterpreter(avango.script.Script):
         _mat.set_element(2, 0, SPHERECENTER.z)
         
         _mat.set_element(0, 1, SPHERERADIUS)
+        _mat.set_element(0, 2, SPHEREINDEX)
         
-        self.cut_sphere_node.Transform.value = _mat
+        if SPHEREINDEX == 1:
+            self.cut_sphere_node1.Transform.value = _mat
+        elif SPHEREINDEX == 2:
+            self.cut_sphere_node2.Transform.value = _mat
+        elif SPHEREINDEX == 3:
+            self.cut_sphere_node3.Transform.value = _mat
+        elif SPHEREINDEX == 4:
+            self.cut_sphere_node4.Transform.value = _mat
+        elif SPHEREINDEX == 5:
+            self.cut_sphere_node5.Transform.value = _mat
 
 

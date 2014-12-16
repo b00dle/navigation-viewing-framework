@@ -541,7 +541,7 @@ class SteeringNavigation(Navigation):
 
       _new_mat = self.bc_get_nav_mat() * avango.gua.make_trans_mat(_vec)
     
-      self.bc_set_nav_scale(_new_mat)
+      self.bc_set_nav_mat(_new_mat)
     #'''
 
     self.bc_set_nav_scale(_new_scale) # apply new scale

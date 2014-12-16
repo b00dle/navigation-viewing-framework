@@ -40,6 +40,7 @@ class TouchNavigation(Navigation):
 
     self.multi_touch_center         = avango.gua.Vec3(0,0,0)
     self.last_multi_touch_center    = avango.gua.Vec3(0,0,0)
+    self.multi_touch_distance       = 0.0
 
     self.addedSecondContact         = True
 
@@ -62,11 +63,20 @@ class TouchNavigation(Navigation):
     self.proxy_plane.add_and_init_field(avango.script.SFObject(), "TouchNavigation", self) # rework ??
     self.proxy_plane.TouchNavigation.dont_distribute(True)
 
+    self.proxy_plane.GroupNames.value = ["do_not_display_group"]
+
     SCREENNODE.Children.value.append(self.proxy_plane)
 
   def addContact(self, HANDMAT, ID):
+    kill_contacts = []
+    for contact in self.touch_contacts:
+      if time.clock() - contact.last_update_timer > 0.1:
+        kill_contacts.append(contact.input_id)
+    for input_id in kill_contacts:
+      self.removeContact(input_id)
+
     if len(self.touch_contacts) == 0:
-      newContact = TouchContact(ID, HANDMAT)
+      newContact = TouchContact(ID, HANDMAT, time.clock())
       self.touch_contacts.append(newContact)
       return True
 
@@ -76,7 +86,7 @@ class TouchNavigation(Navigation):
         self.evaluateContacts()
         return True
       else:
-        newContact = TouchContact(ID, HANDMAT) 
+        newContact = TouchContact(ID, HANDMAT, time.clock()) 
         self.touch_contacts.append(newContact)
         self.addedSecondContact = True
         return True
@@ -91,12 +101,19 @@ class TouchNavigation(Navigation):
     return False
 
   def computeMultiTouchCenter(self):
-    if len(self.touch_contacts):
+    if len(self.touch_contacts) > 1:
       pos1 = self.touch_contacts[0].input_mat.get_translate()
       pos2 = self.touch_contacts[1].input_mat.get_translate()
       pos1ToPos2 = pos2 - pos1
       self.last_multi_touch_center = self.multi_touch_center
       self.multi_touch_center = pos1 + avango.gua.Vec3(0.5*pos1ToPos2.x, 0.5*pos1ToPos2.y, 0.5*pos1ToPos2.z)
+
+  def computeMultiTouchDistance(self):
+    if len(self.touch_contacts) > 1:
+      pos1 = self.touch_contacts[0].input_mat.get_translate()
+      pos2 = self.touch_contacts[1].input_mat.get_translate()
+      pos1ToPos2 = pos2 - pos1
+      self.multi_touch_distance = pos1ToPos2.length()
       
   def evaluateContacts(self):
     
@@ -106,30 +123,25 @@ class TouchNavigation(Navigation):
     elif len(self.touch_contacts) == 2:
       self.computeMultiTouchCenter()
       self.sf_reference_mat.value = avango.gua.make_trans_mat(self.multi_touch_center)
-      self.translate()
-      self.rotate()
-
+      if self.addedSecondContact:
+        self.computeMultiTouchDistance()
+        self.addedSecondContact = False
+      else:
+        #self.translate()
+        self.rotate()
+        self.scale()
+      
   def translate(self):
     relativeInput = avango.gua.Vec3(0,0,0)
     
     if len(self.touch_contacts) == 1:
       relativeInput = self.touch_contacts[0].getRelativeInput()
     else:
-      if self.addedSecondContact:
-        self.addedSecondContact = False
-      else:
-        relativeInput = self.multi_touch_center - self.last_multi_touch_center
+      relativeInput = self.multi_touch_center - self.last_multi_touch_center
 
     self.map_movement_input(-relativeInput.x, -relativeInput.y, -relativeInput.z, 0, 0, 0)
-
-    #mat = self.bc_get_nav_mat()
-    #transVec = avango.gua.Vec3(-1.0 * relativeInput.x, -1.0 * relativeInput.y, -1.0 * relativeInput.z)
-
-    #self.bc_set_nav_mat(avango.gua.make_trans_mat(transVec) * mat)
-
+    
   def rotate(self):
-    #pass
-    #relativeInput = self.touch_contacts[0].getRelativeInput()
     pos1 = self.touch_contacts[0].last_input_mat.get_translate()
     pos2 = self.touch_contacts[1].last_input_mat.get_translate()
     lastVec = pos2 - pos1
@@ -148,23 +160,38 @@ class TouchNavigation(Navigation):
       cosAlpha = max(min(lastVec.dot(newVec), 1.0), -1.0)
       alpha = math.acos(cosAlpha)
 
-    alphaDeg = alpha * 180 / math.pi
+    alphaDeg = math.degrees(alpha) * 0.5
     
     if cross.y < 0.0:
       self.map_movement_input(0,0,0,0,alphaDeg,0)
     else:
       self.map_movement_input(0,0,0,0,-alphaDeg,0)
 
+  def scale(self):
+    if self.addedSecondContact:
+      pos1 = self.touch_contacts[0].input_mat.get_translate()
+      pos2 = self.touch_contacts[1].input_mat.get_translate()
+      pos1ToPos2 = pos2 - pos1
+      self.multi_touch_distance = pos1ToPos2.length()
+    else:
+      pos1 = self.touch_contacts[0].input_mat.get_translate()
+      pos2 = self.touch_contacts[1].input_mat.get_translate()
+      pos1ToPos2 = pos2 - pos1
+      self.map_scale_input(self.multi_touch_distance / max(pos1ToPos2.length(), 0.000000001))
+
   def removeContact(self, ID):
     kill_contact = None
 
+    i = 0
     for contact in self.touch_contacts:
       if contact.input_id == ID:
         kill_contact = contact
         break
+      i += 1
 
     if kill_contact != None:
-      self.touch_contacts.remove(kill_contact)
+      #self.touch_contacts.remove(kill_contact)
+      del(self.touch_contacts[i])
 
   def map_movement_input(self, X, Y, Z, RX, RY, RZ):
     _trans_vec = avango.gua.Vec3(X, Y, Z)
@@ -202,6 +229,31 @@ class TouchNavigation(Navigation):
 
     self.bc_set_nav_mat(_nav_mat)
 
+  def map_scale_input(self, SCALE_INPUT):
+  
+    if SCALE_INPUT == 0.0:
+      return
+  
+    _old_scale = self.bc_get_nav_scale()
+    _new_scale = SCALE_INPUT
+        
+    #'''
+    # scale relative to a reference point
+    _scale_center_offset = self.sf_reference_mat.value.get_translate() 
+
+    if _scale_center_offset.length() > 0: # scale/rotation center defined
+      _pos1 = _scale_center_offset * _old_scale
+      _pos2 = _scale_center_offset * _new_scale
+
+      _vec = _pos1 - _pos2
+
+      _new_mat = self.bc_get_nav_mat() * avango.gua.make_trans_mat(_vec)
+    
+      self.bc_set_nav_mat(_new_mat)
+    #'''
+
+    self.bc_set_nav_scale(_new_scale) # apply new scale
+
   ## Resets the navigation's matrix to the initial value.
   def reset(self):
    
@@ -222,17 +274,22 @@ class TouchNavigation(Navigation):
 
 class TouchContact:
 
-  def __init__(self, INPUTID, STARTMAT):
-    self.input_id       = INPUTID
+  def __init__(self, INPUTID, STARTMAT, STARTTIME):
+    self.input_id           = INPUTID
     
-    self.input_mat      = STARTMAT
+    self.input_mat          = STARTMAT
 
-    self.last_input_mat = STARTMAT
+    self.last_input_mat     = STARTMAT
+
+    self.last_update_timer  = STARTTIME
 
   def update(self, NEWMAT):
-    self.last_input_mat = self.input_mat
+    self.last_input_mat    = self.input_mat
 
-    self.input_mat      = NEWMAT
+    self.input_mat         = NEWMAT
+
+    if self.input_mat.get_translate() != self.last_input_mat.get_translate():
+      self.last_update_timer = time.clock()
     
   def getRelativeInput(self):
     return self.input_mat.get_translate() - self.last_input_mat.get_translate() 
