@@ -127,7 +127,7 @@ class TouchNavigation(Navigation):
         self.computeMultiTouchDistance()
         self.addedSecondContact = False
       else:
-        #self.translate()
+        self.translate()
         self.rotate()
         self.scale()
       
